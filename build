@@ -1,0 +1,7 @@
+#!/bin/bash
+bash clean
+8g -o bin/test_code.8 test_code.go
+8g -I. -o bin/symbolTable.8 symbolTable.go symbols.go typesVisitor.go globalsVisitor.go methodsVisitor.go localsVisitor.go symbolTableBuilder.go parseExpr.go rename.go
+8g -I bin -o bin/test_run.8 test_run.go
+8l -L bin -o bin/goref bin/test_run.8
+

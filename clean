@@ -1,0 +1,5 @@
+#!/bin/bash
+rm *.8
+rm *.out
+rm *~
+rm refgo_out_*.*
