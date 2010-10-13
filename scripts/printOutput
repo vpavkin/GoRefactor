@@ -1,0 +1,317 @@
+*ast.File
+ *ast.Ident (test) 
+ []ast.Decl
+  *ast.GenDecl
+   *ast.ImportSpec
+    *ast.Ident (ss) 
+    *ast.BasicLit
+  *ast.GenDecl
+   *ast.TypeSpec
+    *ast.Ident (B) 
+    *ast.Ident (bool) 
+   *ast.TypeSpec
+    *ast.Ident (I) 
+    *ast.Ident (int32) 
+   *ast.TypeSpec
+    *ast.Ident (A) 
+    *ast.ArrayType
+     *ast.BasicLit
+     *ast.Ident (P) 
+   *ast.TypeSpec
+    *ast.Ident (T) 
+    *ast.StructType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (X) 
+       *ast.Ident (P) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (AA) 
+    *ast.Ident (A) 
+   *ast.TypeSpec
+    *ast.Ident (P) 
+    *ast.StarExpr
+     *ast.Ident (T) 
+   *ast.TypeSpec
+    *ast.Ident (PP) 
+    *ast.Ident (P) 
+   *ast.TypeSpec
+    *ast.Ident (R) 
+    *ast.StarExpr
+     *ast.Ident (R) 
+   *ast.TypeSpec
+    *ast.Ident (F) 
+    *ast.FuncType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+       *ast.Ident (A) 
+       *ast.BasicLit
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+       *ast.Ident (I) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (Y) 
+    *ast.InterfaceType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (f) 
+       *ast.FuncType
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+          *ast.Ident (A) 
+          *ast.BasicLit
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+          *ast.Ident (I) 
+          *ast.BasicLit
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (S) 
+    *ast.ArrayType
+     *ast.Ident (P) 
+   *ast.TypeSpec
+    *ast.Ident (M) 
+    *ast.MapType
+     *ast.Ident (I) 
+     *ast.Ident (F) 
+   *ast.TypeSpec
+    *ast.Ident (C) 
+    *ast.ChanType
+     *ast.Ident (I) 
+  *ast.GenDecl
+   *ast.TypeSpec
+    *ast.Ident (t) 
+    *ast.StarExpr
+     *ast.Ident (t) 
+   *ast.TypeSpec
+    *ast.Ident (U) 
+    *ast.Ident (V) 
+   *ast.TypeSpec
+    *ast.Ident (V) 
+    *ast.Ident (W) 
+   *ast.TypeSpec
+    *ast.Ident (W) 
+    *ast.StarExpr
+     *ast.Ident (U) 
+   *ast.TypeSpec
+    *ast.Ident (P1) 
+    *ast.StarExpr
+     *ast.Ident (S1) 
+   *ast.TypeSpec
+    *ast.Ident (P2) 
+    *ast.Ident (P1) 
+   *ast.TypeSpec
+    *ast.Ident (S1) 
+    *ast.StructType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (a) 
+        *ast.Ident (b) 
+        *ast.Ident (c) 
+       *ast.Ident (int) 
+       *ast.BasicLit
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (u) 
+        *ast.Ident (v) 
+       *ast.Ident (float) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (L1) 
+    *ast.ArrayType
+     *ast.Ident (L1) 
+   *ast.TypeSpec
+    *ast.Ident (L2) 
+    *ast.ArrayType
+     *ast.Ident (int) 
+   *ast.TypeSpec
+    *ast.Ident (A1) 
+    *ast.ArrayType
+     *ast.BasicLit
+     *ast.Ident (int) 
+   *ast.TypeSpec
+    *ast.Ident (A4) 
+    *ast.ArrayType
+     *ast.BasicLit
+     *ast.Ident (A1) 
+   *ast.TypeSpec
+    *ast.Ident (F1) 
+    *ast.FuncType
+     *ast.FieldList
+   *ast.TypeSpec
+    *ast.Ident (F2) 
+    *ast.FuncType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (x) 
+        *ast.Ident (y) 
+        *ast.Ident (z) 
+       *ast.Ident (float) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (F3) 
+    *ast.FuncType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (x) 
+        *ast.Ident (y) 
+       *ast.Ident (float) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (F4) 
+    *ast.FuncType
+     *ast.FieldList
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (x) 
+        *ast.Ident (y) 
+       *ast.Ident (float) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (F5) 
+    *ast.FuncType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (x) 
+       *ast.Ident (int) 
+       *ast.BasicLit
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (x) 
+       *ast.Ident (float) 
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (I1) 
+    *ast.InterfaceType
+     *ast.FieldList
+   *ast.TypeSpec
+    *ast.Ident (I2) 
+    *ast.InterfaceType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (m1) 
+       *ast.FuncType
+        *ast.FieldList
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (I3) 
+    *ast.InterfaceType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (m1) 
+       *ast.FuncType
+        *ast.FieldList
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (I4) 
+    *ast.InterfaceType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (m1) 
+       *ast.FuncType
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+           *ast.Ident (x) 
+           *ast.Ident (y) 
+          *ast.Ident (float) 
+          *ast.BasicLit
+       *ast.BasicLit
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (m2) 
+       *ast.FuncType
+        *ast.FieldList
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+           *ast.Ident (x) 
+           *ast.Ident (y) 
+          *ast.Ident (float) 
+          *ast.BasicLit
+       *ast.BasicLit
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (m3) 
+       *ast.FuncType
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+           *ast.Ident (x) 
+          *ast.Ident (int) 
+          *ast.BasicLit
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+           *ast.Ident (x) 
+          *ast.Ident (float) 
+          *ast.BasicLit
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (I5) 
+    *ast.InterfaceType
+     *ast.FieldList
+      *ast.Field
+       []*ast.Ident
+        *ast.Ident (m1) 
+       *ast.FuncType
+        *ast.FieldList
+         *ast.Field
+          []*ast.Ident
+          *ast.Ident (I5) 
+          *ast.BasicLit
+       *ast.BasicLit
+   *ast.TypeSpec
+    *ast.Ident (C1) 
+    *ast.ChanType
+     *ast.Ident (int) 
+   *ast.TypeSpec
+    *ast.Ident (C2) 
+    *ast.ChanType
+     *ast.Ident (int) 
+   *ast.TypeSpec
+    *ast.Ident (C3) 
+    *ast.ChanType
+     *ast.Ident (C3) 
+   *ast.TypeSpec
+    *ast.Ident (M1) 
+    *ast.MapType
+     *ast.Ident (Last) 
+     *ast.Ident (string) 
+   *ast.TypeSpec
+    *ast.Ident (M2) 
+    *ast.MapType
+     *ast.Ident (string) 
+     *ast.Ident (M2) 
+   *ast.TypeSpec
+    *ast.Ident (Last) 
+    *ast.Ident (int) 
+  *ast.FuncDecl
+   *ast.Ident (ABCD) 
+   *ast.FuncType
+    *ast.FieldList
+   *ast.BlockStmt
+    []ast.Stmt
+     *ast.ExprStmt
+      *ast.CallExpr
+       *ast.SelectorExpr
+        *ast.Ident (ss) 
+        *ast.Ident (Printf) 
+       []ast.Expr
+        *ast.BasicLit

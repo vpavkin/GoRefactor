@@ -1,9 +1,10 @@
-package symbolTable
+package packageParser
 
 import (
 	"go/ast"
 	"go/token"
 	"container/vector"
+	"st"
 )
 
 type InMethodsVisitor struct {
@@ -29,13 +30,13 @@ func (mv InMethodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		scope := mv.Stb.RootSymbolTable
 		if f.Recv != nil {
 			for _, field := range f.Recv.List {
-				mv.Stb.PositionsRegister = false
+				st.RegisterPositions = false
 				rtype := mv.Stb.BuildTypeSymbol(field.Type)
-				mv.Stb.PositionsRegister = true
+				st.RegisterPositions = true
 				scope = rtype.Methods()
 			}
 		}
-		m, _ := scope.FindSymbolByName(f.Name.Name())
+		m, _ := scope.LookUp(f.Name.Name())
 		meth := m.(*FunctionSymbol)
 		meth.Locals.AddOpenedScope(mv.Stb.RootSymbolTable)
 
@@ -78,7 +79,7 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 				curTs = lv.Stb.ParseExpr(s.Values[i], lv.Stb.CurrentSymbolTable).At(0).(ITypeSymbol)
 			}
 			toAdd := &VariableSymbol{Obj: CopyObject(n), VariableType: curTs, Posits: new(vector.Vector)}
-			toAdd.Positions().Push(NewOccurence(n.Pos(), toAdd.Obj))
+			toAdd.AddPosition(NewOccurence(n.Pos()))
 			lv.Stb.CurrentSymbolTable.AddSymbol(toAdd)
 		}
 
@@ -94,12 +95,12 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 				if n.(*ast.Ident).Name() != "_" {
 					if i < eTypes.Len() {
 						toAdd := &VariableSymbol{Obj: CopyObject(n.(*ast.Ident)), VariableType: eTypes.At(i).(ITypeSymbol), Posits: new(vector.Vector)}
-						toAdd.Posits.Push(NewOccurence(n.Pos(), toAdd.Obj))
+						toAdd.Posits.Push(NewOccurence(n.Pos()))
 						lv.Current.AddSymbol(toAdd)
 
 					} else {
 						toAdd := &VariableSymbol{Obj: CopyObject(n.(*ast.Ident)), VariableType: &ImportedType{&TypeSymbol{Obj: &ast.Object{Name: "imported"}, Posits: new(vector.Vector)}}, Posits: new(vector.Vector)}
-						toAdd.Posits.Push(NewOccurence(n.Pos(), toAdd.Obj))
+						toAdd.Posits.Push(NewOccurence(n.Pos()))
 						lv.Current.AddSymbol(toAdd)
 					}
 				}
@@ -125,7 +126,7 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 				ts = &AliasTypeSymbol{&TypeSymbol{Obj: CopyObject(s.Name), Meths: NewSymbolTable(), Posits: new(vector.Vector)}, ts}
 			}
 		}
-		ts.Positions().Push(NewOccurence(s.Name.Pos(), ts.Object()))
+		ts.AddPosition(NewOccurence(s.Name.Pos()))
 		lv.Current.AddSymbol(ts)
 	case *ast.ExprStmt:
 		lv.Stb.ParseExpr(s.X, lv.Current)
@@ -142,9 +143,9 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 			}
 		}
 	case *ast.SwitchStmt, *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.FuncLit, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.TypeCaseClause, *ast.CommClause:
-		st := NewSymbolTable()
-		st.AddOpenedScope(lv.Current)
-		ww := LocalsVisitor{lv.Method, st, lv.Stb, nil}
+		table := NewSymbolTable()
+		table.AddOpenedScope(lv.Current)
+		ww := LocalsVisitor{lv.Method, table, lv.Stb, nil}
 		switch inNode := node.(type) {
 		case *ast.ForStmt:
 			ww.ParseStmt(inNode.Init)
@@ -187,14 +188,14 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 				iK := inNode.Key.(*ast.Ident)
 				if iK.Name() != "_" {
 					toAdd := &VariableSymbol{Obj: CopyObject(iK), VariableType: kT, Posits: new(vector.Vector)}
-					toAdd.Posits.Push(NewOccurence(iK.Pos(), toAdd.Obj))
+					toAdd.Posits.Push(NewOccurence(iK.Pos())
 					ww.Current.AddSymbol(toAdd)
 				}
 				if inNode.Value != nil { // not channel, two range vars
 					iV := inNode.Value.(*ast.Ident)
 					if iV.Name() != "_" {
 						toAdd := &VariableSymbol{Obj: CopyObject(iV), VariableType: vT, Posits: new(vector.Vector)}
-						toAdd.Posits.Push(NewOccurence(iV.Pos(), toAdd.Obj))
+						toAdd.Posits.Push(NewOccurence(iV.Pos())
 						ww.Current.AddSymbol(toAdd)
 					}
 				}
@@ -221,7 +222,7 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 				tsTypeAss := tsT.Rhs[0].(*ast.TypeAssertExpr)
 				tsType := ww.Stb.ParseExpr(tsTypeAss.X, ww.Current).At(0).(ITypeSymbol)
 				toAdd := &VariableSymbol{Obj: CopyObject(tsVar), VariableType: tsType, Posits: new(vector.Vector)}
-				toAdd.Posits.Push(NewOccurence(tsVar.Pos(), toAdd.Obj))
+				toAdd.Posits.Push(NewOccurence(tsVar.Pos()))
 				toAdd.Obj.Kind = -1 //TypeSwitch var
 				ww.Current.AddSymbol(toAdd)
 			case *ast.ExprStmt:
@@ -247,7 +248,7 @@ func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
 					ccType := ww.Stb.ParseExpr(inNode.Rhs, ww.Current).At(0).(ITypeSymbol)
 
 					toAdd := &VariableSymbol{Obj: CopyObject(ccVar), VariableType: ccType, Posits: new(vector.Vector)}
-					toAdd.Posits.Push(NewOccurence(ccVar.Pos(), toAdd.Obj))
+					toAdd.Posits.Push(NewOccurence(ccVar.Pos()))
 					ww.Current.AddSymbol(toAdd)
 				case token.ASSIGN:
 					ww.Stb.ParseExpr(inNode.Lhs, ww.Current)

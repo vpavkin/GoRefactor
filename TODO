@@ -1,17 +1,24 @@
-1) think about STB realization (singleton is ok??)
-2) typeSwitch variable search - now it is marked by Obj.Kind == -1. think over
-3) get rid of sym.Obj.Name gets. replace with sym.Name()
-4) rename IsStructPointer to smth better
-5) think of adding a BasicTypeSymbol
-6) GetOrAddPointer last lines ???
++ 1) think about STB realization (singleton is ok??)
+			OK
+
++ 4) rename IsStructPointer to smth better
+			GetBaseStruct
++ 5) think of adding a BasicTypeSymbol
+			Added
++ 6) GetOrAddPointer last lines ???
+			no such fucn now (see parseStarExpr)
++ 9) improve build and clean scripts
+
 7) public/private !!!
 8) SymbolTableBuilder:
-	a mode is needed?
-	b IsGoFile to another file ??
-	c build types - magic isn't needed, typechecker instead.
-	d make little methods for buildSymbolTable
+?	a mode is needed?
+?	b IsGoFile to another file ??
++	c build types - magic isn't needed, typechecker instead.
++	d make little methods for buildSymbolTable
 
-9) improve build and clean scripts
+? 2) typeSwitch variable search - now it is marked by Obj.Kind == -1. think over
+? 3) get rid of sym.Obj.Name gets. replace with sym.Name()
+
 
 features:
 	- speedUp symbol search by setting ST position range (valuable for local ST's)
