@@ -28,6 +28,7 @@ func main() {
 	*/
 	
 	p := program.ParseProgram("/home/rulerr/GoRefactor/src");
+	
 	for	 _,pack := range p.Packages{
 		fmt.Printf("%s :\n",pack.QualifiedPath);
 		if !pack.IsGoPackage {
@@ -41,7 +42,19 @@ func main() {
 		}
 	}
 	fmt.Printf("------------------------------------------------------------\n");
-	st := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols;
+	/*st := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols;
 	vect := st.String();
-	fmt.Println(*vect);
+	fmt.Println(*vect);*/
+	i:=0;
+	for	 _,pack := range p.Packages{
+		fmt.Printf("%s :\n",pack.QualifiedPath);
+		for name,sym := range pack.Symbols.Table{
+			if _,ok := sym.(*st.UnresolvedTypeSymbol);ok{
+				fmt.Printf("	%s\n",name);
+				i++;
+			}
+		}
+	}
+	fmt.Printf("%d symbols unresolved\n",i);
+	
 }

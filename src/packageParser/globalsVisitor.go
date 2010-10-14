@@ -47,7 +47,7 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
 
-			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: new(vector.Vector)}
+			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: new(vector.Vector),PackFrom:gv.Parser.Package}
 			toAdd.AddPosition(st.NewOccurence(n.Pos()))
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}

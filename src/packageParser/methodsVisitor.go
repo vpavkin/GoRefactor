@@ -39,7 +39,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				}
 
 				if len(field.Names) == 0 {
-					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "*unnamed receiver" + strconv.Itoa(e_count) + "*"}, VariableType: rtype, Posits: new(vector.Vector)}
+					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed receiver" + strconv.Itoa(e_count)}, VariableType: rtype, Posits: new(vector.Vector),PackFrom:mv.Parser.Package}
 					ft.Reciever.AddSymbol(toAdd)
 
 					e_count += 1
@@ -48,7 +48,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				for _, name := range field.Names {
 					name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: rtype, Posits: new(vector.Vector)}
+					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: rtype, Posits: new(vector.Vector),PackFrom:mv.Parser.Package}
 					toAdd.AddPosition(st.NewOccurence(name.Pos()))
 					ft.Reciever.AddSymbol(toAdd)
 				}
@@ -56,7 +56,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		}
 		f.Name.Obj = &ast.Object{Kind: ast.Var, Name: f.Name.Name}
 
-		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: new(vector.Vector)}
+		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: new(vector.Vector),PackFrom:mv.Parser.Package}
 		toAdd.AddPosition(st.NewOccurence(f.Name.Pos()))
 		if f.Recv != nil {
 			rtype.AddMethod(toAdd)
@@ -68,7 +68,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 }
 func (pp *packageParser) fixMethods() {
 
-	visited = make(map[string]bool)
+	pp.visited = make(map[string]bool)
 
 	for _, s := range pp.RootSymbolTable.Table {
 		pp.openMethods(s)
@@ -78,7 +78,7 @@ func (pp *packageParser) fixMethods() {
 func (pp *packageParser) openMethods(sym st.Symbol) {
 
 	fmt.Printf("opening %s %T\n", sym.Name(), sym)
-	if checkIsVisited(sym) {
+	if pp.checkIsVisited(sym) {
 		return
 	}
 	if st.IsPredeclaredIdentifier(sym.Name()) {
@@ -119,7 +119,7 @@ func (pp *packageParser) openMethods(sym st.Symbol) {
 				}
 
 				//No longer need in type thumb, replace with var
-				typeVar := &st.VariableSymbol{ts.Object(), ts, ts.Positions(), ts.IsReadOnly()}
+				typeVar := &st.VariableSymbol{ts.Object(), ts, ts.Positions(),pp.Package,ts.IsReadOnly()}
 				t.Fields.AddSymbol(typeVar) //replaces old one
 
 				pp.openMethods(variable)

@@ -134,7 +134,7 @@ func ParseProgram(srcDir string) *Program {
 	for _, pack := range program.Packages {
 		<- pack.Communication;
 	}
-	
+	fmt.Printf("===================All packages stopped fixing \n");
 	
 	/*df,err := os.Open(path.Join(srcDir, d.Name), os.O_RDONLY, 0)
 	if err != nil {

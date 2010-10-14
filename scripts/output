@@ -1,620 +1,635 @@
 Couldn't find a package refactoring in refactoring directory
 PACKAGE token:
 PACKAGE runtime:
-	File token.go:
 PACKAGE strconv:
+	File token.go:
 	File version.go:
+		fmt "fmt"
 PACKAGE sort:
 	File debug.go:
-		fmt "fmt"
-	File quote.go:
-PACKAGE vector:
-VALUE = %i 67
 		strconv "strconv"
-VALUE = %i 32
-
-PACKAGE path:
-		bytes "bytes"
+PACKAGE vector:
 	File error.go:
-	File sort_test.go:
-PACKAGE parser:
-		os "os"
+	File quote.go:
+	File sort.go:
+PACKAGE path:
 	File type.go:
-	File vector_test.goPACKAGE reflect:
+		bytes "bytes"
+	File vector_test.go:
+PACKAGE parser:
+		unsafe "unsafe"
+	File sort_test.go:
+		os "os"
+	File path_test.go:
+		testing "testing"
+PACKAGE reflect:
+ runtime Adding Pointer Type *Type
 		fmt "fmt"
 		strings "strings"
-		unsafe "unsafe"
-		testing "testing"
 		os "os"
+	File intvector_test.go:
 	File interface.go:
 PACKAGE stack:
+Searched Pointer Type Type,1
 		rand "rand"
 		unicode "unicode"
-VALUE = %i 100000
 		testing "testing"
-	File type.go:
+		testing "testing"
 		bytes "bytes"
+	File type.go:
 PACKAGE utf8:
+	File sig.go:
 		strconv "strconv"
 		utf8 "utf8"
-	File sig.go:
-		testing "testing"
 	File match_test.go:
-		runtime "runtime"
+	File stringvector_test.go:
 		ast "go/ast"
+		runtime "runtime"
 	File stack.go:
 PACKAGE program:
-	File atoi.go:
 	File extern.go:
-	File stringvector_test.go:
+		testing "testing"
+	File atoi.go:
 		os "os"
-		strconv "strconv"
 		testing "testing"
 		scanner "go/scanner"
+		strconv "strconv"
+		vector "container/vector"
 	File utf8.go:
 PACKAGE packageParser:
 		os "os"
-		vector "container/vector"
 		testing "testing"
-		testing "testing"
-		unsafe "unsafe"
+	File nogen_test.go:
 		token "go/token"
+		unsafe "unsafe"
 		unicode "unicode"
 	File program.go:
 PACKAGE utils:
 	File internal_test.go:
-	File nogen_test.go:
 	File path.go:
-	File deepequal.go:
-		io "io"
-		vector "container/vector"
-PACKAGE unicode:
-	File typesVisitor.go:
-	File atob.go:
 		fmt "fmt"
+		io "io"
+ reflect Adding Pointer Type *FuncType
+		vector "container/vector"
+	File typesVisitor.go:
+PACKAGE unicode:
+	File atob.go:
 		ioutil "io/ioutil"
-	File value.go:
+		sort "sort"
+		ioutil "io/ioutil"
+ reflect Adding Pointer Type *FuncValue
 		st "st"
+		ast "go/ast"
 	File utils.go:
 PACKAGE st:
-		ast "go/ast"
-		ioutil "io/ioutil"
 		os "os"
 		os "os"
-		sort "sort"
-		math "math"
+		testing "testing"
+		os "os"
+	File deepequal.go:
+		os "os"
+		vector "container/vector"
 		os "os"
 	File digit.go:
 PACKAGE fmt:
-		os "os"
-		vector "container/vector"
-		os "os"
 	File decimal.go:
 		strings "strings"
-		testing "testing"
-		runtime "runtime"
+	File defs.go:
+		pathutil "path"
+	File value.go:
+		utils "utils/utils"
+		st "st"
 		path "path"
 	File casetables.go:
 	File symbolTable.go:
 PACKAGE math:
-		utils "utils/utils"
-		st "st"
-		pathutil "path"
 	File ftoa.go:
-	File match.go:
-	File defs.go:
-		unsafe "unsafe"
+ path Adding Pointer Type *os.FileInfo
+	File stringvector.go:
+	File parser.go:
+		math "math"
+		path "path"
+		fmt "fmt"
 	File tables.go:
 		vector "container/vector"
 	File format.go:
 PACKAGE utf16:
-		path "path"
-		fmt "fmt"
-	File parser.go:
 		math "math"
-		os "os"
-	File stringvector.go:
-		fmt "fmt"
+Searched Pointer Type os.FileInfo,1
+	File numbers_test.go:
+		vector "container/vector"
+		runtime "runtime"
+		packageParser "packageParser"
+ packageParser Adding Pointer Type *packageParser
 	File letter.go:
+		fmt "fmt"
 		bytes "bytes"
 	File ldexp_decl.go:
 PACKAGE flag:
-		packageParser "packageParser"
-	File packageParser.go:
-		vector "container/vector"
 	File atof.go:
-	File numbers_test.g		sort "sort"
+	File match.go:
+		fmt "fmt"
+		fmt "fmt"
+		unsafe "unsafe"
+		parser "go/parser"
+	File packageParser.go:
+		sort "sort"
 		strconv "strconv"
 	File fmod.go:
-PACKAGE ioutil:
 	File utf16.go:
-		parser "go/parser"
+PACKAGE ioutil:
 		math "math"
-		fmt "fmt"
-		ast "go/ast"
-		fmt "fmt"
-	File symbols.		utf8 "utf8"
-	File flag.go:
-	File sincos.go:
-PACKAGE tests:
-		unicode "unicode"
-		ast "go/ast"
 		os "os"
-		ast "go/ast"
-		strconv "strconv"
 		runtime "runtime"
 		ast "go/ast"
-		fmt "fmt"
-	File bits.go:
-	File ioutil.go:
-	File print.go:
-PACKAGE os:
-		strings "strings"
-	File itoa.go:
-		scanner "go/scanner"
-		vector "container/vector"
-		strings "strings"
-		token "go/token"
+Searched Pointer Type FuncValue,1
+		ast "go/ast"
+		ast "go/ast"
+ st Adding Pointer Type *vector.Vector
+		utf8 "utf8"
+	File sincos.go:
+		unicode "unicode"
+	File flag.go:
+PACKAGE tests:
 		os "os"
-	File fdim_decl.go:
-		bytes "bytes"
-		bytes "bytes"
-	File testTypes.go:
-		fmt "fmt"
-PACKAGE syscall:
-		st "st"
-		testing "testing"
-		vector "container/vector"
+		strings "strings"
+		strings "strings"
+		scanner "go/scanner"
+ st Adding Pointer Type *Package
 		strconv "strconv"
+		strings "strings"
+	File print.go:
+	File bits.go:
+		fmt "fmt"
+	File ioutil.go:
+PACKAGE os:
+	File itoa.go:
+		utf8 "utf8"
+		testing "testing"
+		token "go/token"
+		vector "container/vector"
+	File symbols.go:
+		fmt "fmt"
+		bytes "bytes"
+	File fdim_decl.go:
+		os "os"
+	File testTypes.go:
+		bytes "bytes"
+PACKAGE syscall:
+	File vector.go:
+	File parser_test.go:
+		st "st"
+ program Adding Pointer Type *st.SymbolTable
+	File hypot.go:
 		io "io"
-		io "io"
+		strconv "strconv"
 		ss "fmt"
 	File dir_windows.go:
-	File importsVisitor.go:
+		io "io"
 PACKAGE rand:
-		fmt "fmt"
-		strconv "strconv"
-	File vector.go:
-	File hypot.go:
-		os "os"
-	File parser_test.go:
-VALUE = %i 10
-	File file_unix.go:
 		ast "go/ast"
-	File zerrors_darwin_amd64.go:
+		os "os"
+		fmt "fmt"
+ program	File frexp_decl.go:
+		os "os"
+ tests Adding Pointer Type *T
 PACKAGE scanner:
-		path "path"
-		os "os"
-	File intvector.go:
-		sort "sort"
-		os "os"
-VALUE = %i 10
-		runtime "runtime"
-		parser "go/parser"
-	File syscall_darwin.go:
-	File normal.go:
-PACKAGE time:
-		reflect "reflect"
-	File parseExpr.go:
-	File tempfile.go:
 		testing "testing"
-	File fabs_decl.go:
-VALUE = %i 10
-		syscall "syscall"
-		st "st"
-		math "math"
-	File scanner.go:
-PACKAGE bytes:
-		utf8 "utf8"
 		token "go/token"
-	File log10.go:
-	File testGvars.go:
-		os "os"
-	File dir_darwin.go:
+		path "path"
+	File importsVisitor.go:
+	File fabs_decl.go:
+		reflect "reflect"
+ tests Adding Pointer Type *R
+	File normal.go:
+		sort "sort"
+PACKAGE time:
+		runtime "runtime"
 		vector "container/vector"
+ packageParser Adding Pointer Type *st.Package
+		ast "go/ast"
+ tests Adding Pointer Type *t
+	File log10.go	File atan.go:
 	File exp.go:
-		bytes "bytes"
+		os "os"
 	File zoneinfo_unix.go:
 PACKAGE strings:
+	File dir_darwin.go:
+Searched Pointer Type vector.Vector,1
+		unsafe "unsafe"
+		st "st"
 	File scan.go:
-		ast "go/ast"
-	File atan.go:
-	File testFunctions.go:
-		strconv "strconv"
-		syscall "syscall"
-		path "path"
+	File acosh.go:
+ tests Adding Pointer Type *U
 		math "math"
-		token "go/token"
+		strconv "strconv"
 		ioutil "io/ioutil"
 	File bytes.go:
 PACKAGE unsafe:
-		bytes "bytes"
-		vector "container/vector"
-	File acosh.go:
-		unsafe "unsafe"
-		ss "strconv"
-		unsafe "unsafe"
-		utils "utils/utils"
-	File zipf.go:
-		strconv "strconv"
-		os "os"
-		unicode "unicode"
-	File reader.go:
-PACKAGE testing:
-		io "io"
-		fmt "fmt"
-	File floor_decl.go:
-	File proc.go:
+		syscall "syscall"
+ st Adding Pointer Type *ast.Object
 	File ztypes_linux_amd64.go:
-		math "math"
-		unicode "unicode"
-		sync "sync"
-		utf8 "utf8"
+		bytes "bytes"
+		bytes "bytes"
+ner/vector"
+	File floor_decl.go:
+ tests Adding Pointer Type *S1
+	File zipf.go:
 		os "os"
+	File reader.go:
+e"
+PACKAGE testing:
+		unsafe "unsafe"
+Searched Pointer Type ast.Object,1
+ packageParser Adding Pointer Type *st.SymbolTable
+ syscall Adding Pointer Type *byte
+		token "go/token"
+		path "path"
+		io "io"
+	File testGvars.go:
+	File atanh.go:
+		math "math"
+		utf8 "utf8"
 	File unsafe.go:
 PACKAGE sync:
 		os "os"
-		st "st"
-	File atanh.go:
-		syscall "syscall"
-VALUE = %i 4
-	File rand.go:
-		utf8 "utf8"
-	File tick.go:
-	File bytes_decl.go:
-		utf8 "utf8"
-	File regexp_test.go:
-		reflect "reflect"
-PACKAGE io:
-	File globalsVisitor.go:
+	File proc.go:
+Searched Pointer Type Package,1
+Searched Pointer Type st.SymbolTable,1
+Searched Pointer Type byte,1
+		strconv "strconv"
+		os "os"
+	File testFunctions.go:
 	File floor.go:
-	File stat_windows.go:
-VALUE = %i 4
+	File rand.go:
+		utils "utils/utils"
+	File bytes_decl.go:
+	File tick.go:
+ unsafe Adding Pointer Type *ArbitraryType
+	File regexp_test.go:
+PACKAGE io:
+		utf8 "utf8"
+		syscall "syscall"
+ st Adding Pointer Type *SymbolTable
+ packageParser Adding Pointer Type *typesVisitor
+ syscall Adding Pointer Type *Iovec
+		unicode "unicode"
+		reflect "reflect"
+		ss "strconv"
+	File tan.go:
 		sync "sync"
-	File errors.go:
-		sync "sync"
+Searched Pointer Type st.Package,1
 	File buffer.go:
-	File strings.go:
+		sync "sync"
 	File xadd_test.go:
 	File testing.go:
-		strconv "strconv"
 PACKAGE ast:
-		ast "go/ast"
-	File tan.go:
-		syscall "syscall"
-VALUE = %i 4
+	File strings.go:
+	File stat_windows.go:
+Searched Pointer Type SymbolTable,1
+ packageParser Adding Pointer Type *globalsVisitor
+Searched Pointer Type byte,1
+		utf8 "utf8"
+		strconv "strconv"
+	File log10_decl.go:
 	File rand_test.go:
-		vector "container/vector"
-	File time.go:
 		io "io"
-		unicode "unicode"
+	File time.go:
 	File mutex.go:
 		flag "flag"
-		strings "strings"
 	File multi.go:
-		vector "container/vector"
-	File log10_decl.go:
-	File env_unix.go:
-		fmt "fmt"
-"		os "os"
-		os "os"
-		utf8 "utf8"
-		fmt "fmt"
-		runtime "runtime"
 		unicode "unicode"
+		syscall "syscall"
+Searched Pointer Type ast.Object,1
+ packageParser Adding Pointer Type *methodsVisitor
+	File syscall_freebsd_amd64.go:
+	File errors.go:
+		strings "strings"
+	File log1p_decl.go:
+		math "math"
+		os "os"
+		os "os"
+		runtime "runtime"
+		fmt "fmt"
 		os "os"
 	File scope.go:
-		st "st"
-	File log1p_decl.go:
-		sync "sync"
 		utf8 "utf8"
-		token "go/token"
-VALUE = %i 8
-	File sleep.go:
-		fmt "fmt"
-		os "os"
-	File once.go:
-		utf8 "utf8"
-	File io.go:
-	File walk.go:
-		fmt "fmt"
+	File env_unix.go:
+Searched Pointer Type SymbolTable,1
+	File zsysnum_windows_386.go:
+	File parseExpr.go:
+		vector "container/vector"
+		unicode "unicode"
 	File sqrt_port.go:
-	File export_test.go:
-		io "io"
-VALUE = %i 5
-	File dir_nacl.go:
-		os "os"
-		os "os"
-	File doc.go:
-	File rwmutex.go:
-		os "os"
 		fmt "fmt"
-	File methodsVisitor.go:
+		utf8 "utf8"
+	File sleep.go:
+	File once.go:
+		os "os"
+	File io.go:
+ ast Adding Pointer Type *Scope
+Searched Pointer Type vector.Vector,1
+		sync "sync"
+	File zsyscall_linux_arm.go:
+		token "go/token"
+		fmt "fmt"
+		utf8 "utf8"
 	File sincos_decl.go:
 		os "os"
-VALUE = %i 256
+	File export_test.go:
+		os "os"
+		runtime "runtime"
+		os "os"
+	File rwmutex.go:
+ ast Adding Pointer Type *Object
+Searched Pointer Type Package,1
+		unsafe "unsafe"
+		ast "go/ast"
+		token "go/token"
+	File dir_nacl.go:
+	File doc.go:
+	File signbit.go:
 		testing "testing"
 		syscall "syscall"
-		syscall "syscall"
-		runtime "runtime"
+ testing Adding Pointer Type *T
 	File pipe.go:
-	File print.go:
-	File signbit.go:
-		ast "go/ast"
-		sort "sort"
-VALUE = %i 5
-	File rng.go:
-	File format.go:
-		unsafe "unsafe"
-	File regexp.go:
-		os "os"
-		fmt "fmt"
-	File j0.go:
-		strconv "strconv"
-VALUE = %i 4
-	File scanner_test.go:
-		bytes "bytes"
-	File sys_bsd.go:
-		token "go/token"
-		utf8 "utf8"
-		runtime "runtime"
-	File ldexp.go:
+ ast Adding Pointer Type *Type
+ st Adding Pointer Type *TypeSymbol
+	File zerrors_freebsd_amd64.go:
 		vector "container/vector"
-VALUE = %i 8
-		token "go/token"
-		os "os"
 		io "io"
 		syscall "syscall"
+	File j0.go:
+	File rng.go:
+	File format.go:
+	File regexp.go:
+		os "os"
+Searched Pointer Type Object,1
+Searched Pointer Type TypeSymbol,1
+		fmt "fmt"
+		os "os"
+		unsafe "unsafe"
+	File ldexp.go:
+		bytes "bytes"
+		utf8 "utf8"
+		runtime "runtime"
+Searched Pointer Type Scope,1
+Searched Pointer Type TypeSymbol,1
+		st "st"
+		sort "sort"
+	File sys_bsd.go:
+	File asinh.go:
+		os "os"
 	File benchmark.go:
 		sync "sync"
-	File asinh.go:
-		st "st"
-VALUE = %i 16
-		os "os"
-		strconv "strconv"
-		os "os"
-	File types.go:
-		flag "flag"
-	File atan2.go:
-		fmt "fmt"
-VALUE = %i 108
-		testing "testing"
-	File zoneinfo_windows.go:
-		reflect "reflect"
-		syscall "syscall"
-		fmt "fmt"
-	File log.go:
-VALUE = %i 14
-		syscall "syscall"
-	File filter.go:
-	File file_windows.go:
-		os "os"
-	File sqrt_decl.go:
-VALUE = %i 96
-		sync "sync"
-		token "go/token"
-		runtime "runtime"
-		time "time"
-	File atan2_decl.go:
-VALUE = %i 4
-		os "os"
-	File ast.go:
-		syscall "syscall"
-	File expm1_decl.go:
-VALUE = %i 4
-		token "go/token"
-	File error.go:
-	File nextafter.go:
-VALUE = %i 16
-		unicode "unicode"
-		syscall "syscall"
-	File exp.go:
-VALUE = %i 3
-		utf8 "utf8"
-	File stat_linux.go:
-	File atan_decl.go:
-VALUE = %i 4
-	File lgamma.go:
-		syscall "syscall"
-VALUE = %i 2
-	File time.go:
-	File expm1.go:
-VALUE = %i 4
-	File tan_decl.go:
-		syscall "syscall"
-VALUE = %i 65
-	File sqrt_test.go:
-	File getwd.go:
-VALUE = %i 65
-	File cbrt.go:
-		syscall "syscall"
-VALUE = %i 65
-	File fmod_decl.go:
-	File stat_darwin.go:
-VALUE = %i 65
-	File const.go:
-		syscall "syscall"
-VALUE = %i 65
-	File gamma.go:
-	File sys_windows.go:
-VALUE = %i 65
-	File sinh.go:
-		syscall "syscall"
-VALUE = %i 4
-	File j1.go:
-	File sys_linux.go:
-VALUE = %i 6
-	File log_decl.go:
-	File stat_freebsd.go:
-VALUE = %i 6
-	File modf.go:
-		syscall "syscall"
-VALUE = %i 4
-	File logb.go:
-	File sys_nacl.go:
-	File syscall_freebsd_amd64.go:
-	File fdim.go:
-	File path.go:
-	File zsysnum_windows_386.go:
-	File exp2.go:
-	File stat_nacl.go:
-	File zsyscall_linux_arm.go:
-	File exp_decl.go:
-		syscall "syscall"
-		unsafe "unsafe"
-	File pow.go:
-	File env_windows.go:
-	File zerrors_freebsd_amd64.go:
-	File frexp.go:
-		syscall "syscall"
-	File asin_decl.go:
-		utf16 "utf16"
-	File hypot_port.go:
-		unsafe "unsafe"
-	File hypot_test.go:
-	File dir_freebsd.go:
-	File sqrt.go:
+Searched Pointer Type Type,1
+Searched Pointer Type TypeSymbol,1
 	File zsyscall_freebsd_386.go:
-	File fabs.go:
+	File globalsVisitor.go:
+ scanner Adding Pointer Type *Error
+		syscall "syscall"
+	File atan2.go:
+		strconv "strconv"
+		flag "flag"
+Searched Pointer Type Scope,1
+Searched Pointer Type TypeSymbol,1
 		unsafe "unsafe"
-	File copysign.go:
-		unsafe "unsafe"
-	File exec.go:
-	File jn.go:
+		ast "go/ast"
+	File scanner_test.go:
+	File zoneinfo_windows.go:
+	File log.go:
+		fmt "fmt"
+	File walk.go:
+Searched Pointer Type TypeSymbol,1
+		token "go/token"
+		vector "container/vector"
 		syscall "syscall"
 	File ztypes_darwin_386.go:
-	File asin.go:
-	File file.go:
-VALUE = %i 2
-	File erf.go:
-		runtime "runtime"
-VALUE = %i 8
-	File sin.go:
+	File sqrt_decl.go:
+		fmt "fmt"
+		os "os"
+Searched Pointer Type SymbolTable,1
+		os "os"
 		syscall "syscall"
-VALUE = %i 16
+		st "st"
+Searched Point	File atan2_decl.go:
+	File print.go:
+		time "time"
+Searched Pointer Type SymbolTable,1
+		testing "testing"
+	File file_windows.go:
+		os "os"
+		fmt "fmt"
+	File expm1_decl.go:
+ testing Adding Pointer Type *B
+Searched Pointer Type SymbolTable,1
+		fmt "fmt"
+		runtime "runtime"
+Searched Pointer Type packageParser,1
+Searched Pointer Type byte,1
+	File nextafter.go:
+Searched Pointer Type TypeSymbol,1
+		token "go/token"
+		syscall "syscall"
+	File methodsVisitor.go:
+Searched Pointer Type Iovec,1
+	File exp.go:
+Searched Pointer Type TypeSymbol,1
+		io "io"
+	File error.go:
+		ast "go/ast"
+Searched Pointer Type byte,1
+	File atan_decl.go:
+Searched Pointer Type TypeSymbol,1
+		os "os"
+		syscall "syscall"
+		strconv "strconv"
+Searched Pointer Type byte,1
+	File lgamma.go:
+Searched Pointer Type SymbolTable,1
+		reflect "reflect"
+	File stat_linux.go:
+		vector "container/vector"
+	File zsysnum_darwin_386.go:
+	File expm1.go:
+Searched Pointer Type TypeSymbol,1
+	File filter.go:
+		syscall "syscall"
+		st "st"
+	File tan_decl.go:
+	File syscall_darwin_amd64.go:
+Searched Pointer Type SymbolTable,1
+		token "go/token"
+		fmt "fmt"
+	File time.go:
+	File sqrt_test.go:
+	File zsysnum_linux_amd64.go:
+Searched Pointer Type ast.Object,1
+Searched Pointer Type packageParser,1
+	File ast.go:
+		syscall "syscall"
+	File cbrt.go:
+Searched Pointer Type vector.Vector,1
+	File str.go:
+		token "go/token"
+	File getwd.go:
+	File fmod_decl.go:
+Searched Pointer Type Package,1
+	File syscall_linux_386.go:
+		syscall "syscall"
+	File const.go:
+		unicode "unicode"
+Searched Pointer Type Package,1
+	File stat_darwin.go:
+		unsafe "unsafe"
+	File gamma.go:
+		utf8 "utf8"
+Searched Pointer Type SymbolTable,1
+		syscall "syscall"
+	File zsysnum_nacl_386.go:
+	File sinh.go:
+ ast Adding Pointer Type *Comment
+Searched Pointer Type vector.Vector,1
+	File sys_windows.go:
+	File ztypes_darwin_amd64.go:
+	File j1.go:
+ ast Adding Pointer Type *CommentGroup
+ st Adding Pointer Type *ast.Package
+		syscall "syscall"
+	File log_decl.go:
+pe byte,1
+ ast Adding Pointer Type *Ident
+Searched Pointer Type vector.Vector,1
+	File sys_linux.go:
+	File modf.go:
+Searched Pointer Type byte,1
+Searched Pointer Type ast.Object,1
+ ast Adding Pointer Type *BasicLit
+	File stat_freebsd.go:
+	File logb.go:
+Searched Pointer Type byte,1
+Searched Pointer Type SymbolTable,1
+Searched Pointer Type CommentGroup,1
+		syscall "syscall"
+	File fdim.go:
+Searched Pointer Type Iovec,1
+Searched Pointer Type vector.Vector,1
+ ast Adding Pointer Type *Field
+	File sys_nacl.go:
+	File exp2.go:
+Searched Pointer Type byte,1
+Searched Pointer Type Package,1
+Searched Pointer Type Object,1
+	File path.go:
+	File exp_decl.go:
+Searched Pointer Type byte,1
+Searched Pointer Type ast.Object,1
+ ast Adding Pointer Type *FuncType
+	File stat_nacl.go:
+	File pow.go:
+	File syscall_freebsd.go:
+Searched Pointer Type vector.Vector,1
+ ast Adding Pointer Type *BlockStmt
+		syscall "syscall"
+	File frexp.go:
+	File zerrors_windows_386.go:
+Searched Pointer Type Package,1
+Searched Pointer Type Ident,1
+	File env_windows.go:
+	File asin_decl.go:
+	File zsysnum_freebsd_amd64.go:
+		syscall "syscall"
+ ast Adding Pointer Type *FieldList
+	File hypot_port.go:
+	File syscall.go:
+		utf16 "utf16"
+Searched Pointer Type FieldList,1
+	File hypot_test.go:
+		unsafe "unsafe"
+Searched Pointer Type FieldList,1
+	File zerrors_darwin_386.go:
+	File dir_freebsd.go:
+	File ztypes_freebsd_amd64.go:
+Searched Pointer Type FieldList,1
+	File sqrt.go:
+		syscall "syscall"
+Searched Pointer Type byte,1
+Searched Pointer Type Ident,1
+	File fabs.go:
+		unsafe "unsafe"
+Searched Pointer Type byte,1
+ ast Adding Pointer Type *CallExpr
+	File copysign.go:
+	File exec.go:
+Searched Pointer Type Iovec,1
+Searched Pointer Type CallExpr,1
+	File jn.go:
+		syscall "syscall"
+Searched Pointer Type byte,1
+Searched Pointer Type Ident,1
+	File asin.go:
+ os Adding Pointer Type *syscall.Rusage
+Searched Pointer Type byte,1
+Searched Pointer Type BlockStmt,1
+	File erf.go:
+	File file.go:
+	File zsyscall_darwin_386.go:
+Searched Pointer Type BlockStmt,1
+	File sin.go:
+		runtime "runtime"
+		unsafe "unsafe"
+Searched Pointer Type BlockStmt,1
 	File hypot_decl.go:
+		syscall "syscall"
+Searched Pointer Type BlockStmt,1
 	File sin_decl.go:
+	File dir_linux.go:
+Searched Pointer Type BlockStmt,1
+		syscall "syscall"
+	File zsyscall_freebsd_amd64.go:
+Searched Pointer Type BlockStmt,1
+		unsafe "unsafe"
 	File unsafe.go:
+		unsafe "unsafe"
 		unsafe "unsafe"
 	File remainder_decl.go:
 	File log1p.go:
+Searched Pointer Type CommentGroup,1
 	File remainder.go:
 	File exp2_decl.go:
 	File modf_decl.go:
 	File pow10.go:
 	File tanh.go:
-VALUE = %i 1024
-go:
-VALUE = %i 1024
-		syscall "syscall"
-VALUE = %i 8
-		unsafe "unsafe"
-VALUE = %i 1024
-VALUE = %i 3
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 104
-VALUE = %i 14
-VALUE = %i 92
-VALUE = %i 32
-	File zsysnum_darwin_386.go:
-	File syscall_darwin_amd64.go:
-	File zsysnum_linux_amd64.go:
-	File str.go:
-	File syscall_linux_386.go:
-		unsafe "unsafe"
-	File zsysnum_nacl_386.go:
-	File ztypes_darwin_amd64.go:
-VALUE = %i 4
-VALUE = %i 4
-VALUE = %i 2
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 1024
-VALUE = %i 1024
-VALUE = %i 8
-VALUE = %i 4
-VALUE = %i 1024
-VALUE = %i 3
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 104
-VALUE = %i 14
-VALUE = %i 92
-VALUE = %i 4
-VALUE = %i 4
-VALUE = %i 32
-	File syscall_freebsd.go:
-	File zerrors_windows_386.go:
-	File zsysnum_freebsd_amd64.go:
-	File syscall.go:
-	File zerrors_darwin_386.go:
-	File ztypes_freebsd_amd64.go:
-VALUE = %i 10
-VALUE = %i 8
-VALUE = %i 80
-VALUE = %i 16
-VALUE = %i 88
-VALUE = %i 88
-VALUE = %i 4
-VALUE = %i 256
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 104
-VALUE = %i 14
-VALUE = %i 92
-VALUE = %i 4
-VALUE = %i 4
-VALUE = %i 16
-	File zsyscall_darwin_386.go:
-		unsafe "unsafe"
-	File zsyscall_freebsd_amd64.go:
-		unsafe "unsafe"
-	File zsyscall_linux_amd64.go:
-		unsafe "unsafe"
+Searched Pointer Type Ident,1
+Searched Pointer Type BasicLit,1
+Searched Pointer Type CommentGroup,1
+Searched Pointer Type CommentGroup,1
+Searched Pointer Type Ident,1
+Searched Pointer Type CommentGr		unsafe "unsafe"
+Searched Pointer Type CommentGroup,1
 	File syscall_windows_386.go:
+Searched Pointer Type Ident,1
 	File zsysnum_freebsd_386.go:
+Searched Pointer Type CommentGroup,1
 	File ztypes_linux_386.go:
-VALUE = %i 2
-VALUE = %i 2
-VALUE = %i 8
-VALUE = %i 5
-VALUE = %i 256
-VALUE = %i 1
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 108
-VALUE = %i 14
-VALUE = %i 96
-VALUE = %i 32
-VALUE = %i 3
-VALUE = %i 8
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 6
-VALUE = %i 6
-	File syscall_freebsd_386.go:
-	File zerrors_nacl_386.go:
+Searched Pointer Type CommentGroup,1
+Searched Pointer Type byte,1
+Searched Pointer Type CommentGroup,1
+Searched Pointer Type byte,1
+Searched Pointer Type FieldList,1
+Searched Pointer Type Iovec,1
+Searched Pointer Type Ident,1
+Searched Pointer Type byte,1
+Searched Pointer Type FuncType,1
+Searched Pointer Type BlockStm	File zerrors_nacl_386.go:
 	File zerrors_freebsd_386.go:
 	File syscall_linux_amd64.go:
 	File syscall_darwin_386.go:
 	File syscall_bsd.go:
 		unsafe "unsafe"
-VALUE = %i 4
-VALUE = %i 16
 	File zsysnum_darwin_amd64.go:
 	File syscall_linux.go:
 		unsafe "unsafe"
-VALUE = %i 4
-VALUE = %i 16
 	File zsysnum_linux_arm.go:
 	File exec_unix.go:
 		sync "sync"
@@ -628,8 +643,6 @@ VALUE = %i 16
 		unsafe "unsafe"
 	File syscall_nacl_386.go:
 	File ztypes_nacl_386.go:
-VALUE = %i 256
-VALUE = %i 2
 	File zerrors_linux_amd64.go:
 	File syscall_386.go:
 	File zerrors_linux_arm.go:
@@ -638,55 +651,36 @@ VALUE = %i 2
 	File zsysnum_linux_386.go:
 	File syscall_linux_arm.go:
 	File ztypes_freebsd_386.go:
-VALUE = %i 10
-VALUE = %i 8
-VALUE = %i 80
-VALUE = %i 16
-VALUE = %i 88
-VALUE = %i 88
-VALUE = %i 256
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 104
-VALUE = %i 14
-VALUE = %i 92
-VALUE = %i 32
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
+Searched Pointer Type Iovec,1
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
 	File ztypes_linux_arm.go:
-VALUE = %i 2
-VALUE = %i 6
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 5
-VALUE = %i 4
-VALUE = %i 256
-VALUE = %i 5
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 16
-VALUE = %i 108
-VALUE = %i 14
-VALUE = %i 96
-VALUE = %i 32
-VALUE = %i 3
-VALUE = %i 8
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 65
-VALUE = %i 6
-VALUE = %i 6
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
+Searched Pointer Type Iovec,1
+Searched Pointer Type byte,1
 	File syscall_arm.go:
 	File ztypes_windows_386.go:
-VALUE = %i 13
-VALUE = %i 32
-VALUE = %i 32
-VALUE = %i 40
+Searched Pointer Type byte,1
+ syscall Adding Pointer Type *uint16
+Searched Pointer Type uint16,1
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
+ syscall Adding Pointer Type **byte
+Searched Pointer Type byte,1
+ syscall Adding Pointer Type **byte
+Searched Pointer Type byte,1
+Searched Pointer Type byte,1
+ syscall Adding Pointer Type **byte
+Searched Pointer Type byte,1
+Searched Pointer Type uint16,1
+ syscall Adding Pointer Type *DNSRecord
+Searched Pointer Type uint16,1
 	File syscall_nacl.go:
-VALUE = %i 4
-VALUE = %i 16
 	File syscall_amd64.go:
 	File ztypes_nacl.go:
 	File zsyscall_darwin_amd64.go:
@@ -694,1190 +688,1930 @@ VALUE = %i 16
 	File syscall_windows.go:
 		unsafe "unsafe"
 		utf16 "utf16"
-VALUE = %i 4
-VALUE = %i 8
-VALUE = %i 14
-VALUE = %i 96
-VALUE = %i 4
-VALUE = %i 16
-+++++++++++ package rand started fixing 
-+++++++++++ package token started fixing 
-+++++++++++ package runtime started fixing 
-+++++++++++ package strconv started fixing 
-+++++++++++ package sort started fixing 
-+++++++++++ package vector started fixing 
-+++++++++++ package path started fixing 
-+++++++++++ package parser started fixing 
-+++++++++++ package reflect started fixing 
-+++++++++++ package stack started fixing 
-+++++++++++ package utf8 started fixing 
-+++++++++++ package program started fixing 
-+++++++++++ package packageParser started fixing 
-+++++++++++ package utils started fixing 
-+++++++++++ package unicode started fixing 
-+++++++++++ package st started fixing 
-+++++++++++ package fmt started fixing 
-+++++++++++ package math started fixing 
-+++++++++++ package utf16 started fixing 
-+++++++++++ package flag started fixing 
-+++++++++++ package ioutil started fixing 
-+++++++++++ package tests started fixing 
-+++++++++++ package os started fixing 
-+++++++++++ package syscall started fixing 
-fixing Source *st.InterfaceTypeSymbol
-fixing Token *st.AliasTypeSymbol
-fixing UintptrType *st.AliasTypeSymbol
-fixing NumError *st.StructTypeSymbol
-fixing Interface *st.InterfaceTypeSymbol
-fixing LessInterface *st.InterfaceTypeSymbol
-fixing Visitor *st.InterfaceTypeSymbol
-fixing SliceValue *st.StructTypeSymbol
-fixing Stack *st.AliasTypeSymbol
-fixing importsVisitor *st.StructTypeSymbol
-fixing *globalsVisitor *st.PointerTypeSymbol
-fixing SpecialCase *st.ArrayTypeSymbol
-fixing Symbol *st.InterfaceTypeSymbol
-fixing GoStringer *st.InterfaceTypeSymbol
-fixing Value *st.InterfaceTypeSymbol
-fixing F3 *st.FunctionTypeSymbol
-fixing Errno *st.AliasTypeSymbol
-fixing Hostent *st.StructTypeSymbol
-+++++++++++ package scanner started fixing 
-+++++++++++ package time started fixing 
-+++++++++++ package bytes started fixing 
-+++++++++++ package strings started fixing 
-+++++++++++ package unsafe started fixing 
-+++++++++++ package testing started fixing 
-+++++++++++ package sync started fixing 
-+++++++++++ package io started fixing 
-+++++++++++ package ast started fixing 
-fixing Seed *st.FunctionSymbol
-fixing Position *st.StructTypeSymbol
-fixing StructType *st.StructTypeSymbol
-fixing Num *st.VariableSymbol
-fixing Len *st.FunctionSymbol
-fixing Less *st.FunctionSymbol
-fixing VisitDir *st.FunctionSymbol
-fixing Value *st.InterfaceTypeSymbol
-fixing Package *st.VariableSymbol
-fixing typesVisitor *st.StructTypeSymbol
-fixing CaseRange *st.StructTypeSymbol
-fixing String *st.FunctionSymbol
-fixing GoString *st.FunctionSymbol
-fixing String *st.FunctionSymbol
-fixing x *st.VariableSymbol
-fixing File *st.StructTypeSymbol
-fixing AddrList *st.VariableSymbol
-fixing ErrorList *st.ArrayTypeSymbol
-fixing Ticker *st.StructTypeSymbol
-fixing Buffer *st.StructTypeSymbol
-fixing Reader *st.AliasTypeSymbol
-fixing Pointer *st.AliasTypeSymbol
-fixing Test *st.StructTypeSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing RWMutex *st.StructTypeSymbol
-fixing CallExpr *st.StructTypeSymbol
-fixing Filename *st.VariableSymbol
-fixing UnsafePointerType *st.AliasTypeSymbol
-fixing Error *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Interface *st.FunctionSymbol
-fixing *Package *st.PointerTypeSymbol
-fixing Parser *st.VariableSymbol
-fixing Hi *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Set *st.FunctionSymbol
-fixing y *st.VariableSymbol
-fixing FileInfo *st.StructTypeSymbol
-fixing **byte *st.PointerTypeSymbol
-fixing *Error *st.PointerTypeSymbol
-fixing C *st.VariableSymbol
-fixing *ArbitraryType *st.PointerTypeSymbol
-fixing F *st.VariableSymbol
-fixing Write *st.FunctionSymbol
-fixing Once *st.StructTypeSymbol
-fixing Rparen *st.VariableSymbol
-fixing seed *st.VariableSymbol
-fixing Line *st.VariableSymbol
-fixing FloatType *st.AliasTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing y *st.VariableSymbol
-fixing path *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Package *st.StructTypeSymbol
-fixing *packageParser *st.PointerTypeSymbol
-fixing Delta *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing C2 *st.ChanTypeSymbol
-fixing Size *st.VariableSymbol
-fixing *byte *st.PointerTypeSymbol
-fixing Error *st.StructTypeSymbol
-fixing  *st.ChanTypeSymbol
-fixing ArbitraryType *st.AliasTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Mutex *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Int63 *st.FunctionSymbol
-fixing Column *st.VariableSymbol
-fixing ArrayType *st.StructTypeSymbol
-fixing Swap *st.FunctionSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing f *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing FileName *st.VariableSymbol
-fixing globalsVisitor *st.StructTypeSymbol
-fixing Lo *st.VariableSymbol
-fixing IsReadOnly *st.FunctionSymbol
-fixing Stringer *st.InterfaceTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing L1 *st.ArrayTypeSymbol
-fixing Dev *st.VariableSymbol
-fixing Length *st.VariableSymbol
-fixing *Error *st.PointerTypeSymbol
-fixing ParseError *st.StructTypeSymbol
-fixing ArbitraryType *st.AliasTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing p *st.VariableSymbol
-fixing Args *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Offset *st.VariableSymbol
-fixing Func *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing StringVector *st.ArrayTypeSymbol
-fixing *os.FileInfo *st.PointerTypeSymbol
-fixing Addr *st.FunctionSymbol
-fixing *st.Package *st.PointerTypeSymbol
-fixing Parser *st.VariableSymbol
-fixing Range *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing String *st.FunctionSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing P1 *st.AliasTypeSymbol
-fixing Mtime_ns *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing ErrorVector *st.StructTypeSymbol
-fixing Value *st.VariableSymbol
-fixing *ArbitraryType *st.PointerTypeSymbol
-fixing Name *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing ComplexType *st.AliasTypeSymbol
-fixing i *st.VariableSymbol
-fixing Vector *st.ArrayTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Program *st.StructTypeSymbol
-fixing packageParser *st.StructTypeSymbol
-fixing Stride *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing State *st.InterfaceTypeSymbol
-fixing Flag *st.StructTypeSymbol
-fixing *S1 *st.PointerTypeSymbol
-fixing Ctime_ns *st.VariableSymbol
-fixing *byte *st.PointerTypeSymbol
-fixing ErrorHandler *st.InterfaceTypeSymbol
-fixing Message *st.VariableSymbol
-fixing Regexp *st.StructTypeSymbol
-fixing err *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Zipf *st.StructTypeSymbol
-fixing MapType *st.StructTypeSymbol
-fixing j *st.VariableSymbol
-fixing  *st.InterfaceTypeSymbol
-fixing VisitFile *st.FunctionSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing BaseSymbolTable *st.VariableSymbol
-fixing MethodsParser *st.VariableSymbol
-fixing Hi *st.VariableSymbol
-fixing SetObject *st.FunctionSymbol
-fixing Precision *st.FunctionSymbol
-fixing Value *st.VariableSymbol
-fixing Y *st.InterfaceTypeSymbol
-fixing Blocks *st.VariableSymbol
-fixing Aliases *st.VariableSymbol
-fixing Error *st.FunctionSymbol
-fixing ValueElem *st.VariableSymbol
-fixing B *st.StructTypeSymbol
-fixing n *st.VariableSymbol
-fixing Node *st.InterfaceTypeSymbol
-fixing Rand *st.StructTypeSymbol
-fixing BoolType *st.AliasTypeSymbol
-fixing Less *st.FunctionSymbol
-fixing IntVector *st.ArrayTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing SetValue *st.FunctionSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing *methodsVisitor *st.PointerTypeSymbol
-fixing Lo *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Name *st.VariableSymbol
-fixing f *st.FunctionSymbol
-fixing Blksize *st.VariableSymbol
-fixing **byte *st.PointerTypeSymbol
-fixing Scanner *st.StructTypeSymbol
-fixing LayoutElem *st.VariableSymbol
-fixing N *st.VariableSymbol
-fixing ReadWriteSeeker *st.InterfaceTypeSymbol
-fixing Pos *st.FunctionSymbol
-fixing IntType *st.AliasTypeSymbol
-fixing StringArray *st.ArrayTypeSymbol
-fixing VectorInterface *st.InterfaceTypeSymbol
-fixing path *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing SymbolTable *st.StructTypeSymbol
-fixing RootSymbolTable *st.VariableSymbol
-fixing CaseRange *st.StructTypeSymbol
-fixing obj *st.VariableSymbol
-fixing ok *st.VariableSymbol
-fixing DefValue *st.VariableSymbol
-fixing I4 *st.InterfaceTypeSymbol
-fixing Ino *st.VariableSymbol
-fixing AddrType *st.VariableSymbol
-fixing ErrorCount *st.VariableSymbol
-fixing Layout *st.VariableSymbol
-fixing *T *st.PointerTypeSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing InterfaceType *st.StructTypeSymbol
-fixing FloatArray *st.ArrayTypeSymbol
-fixing Cap *st.FunctionSymbol
-fixing f *st.VariableSymbol
-fixing v *st.VariableSymbol
-fixing Table *st.VariableSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing *ast.Object *st.PointerTypeSymbol
-fixing prec *st.VariableSymbol
-fixing Usage *st.VariableSymbol
-fixing m1 *st.FunctionSymbol
-fixing FollowedSymlink *st.VariableSymbol
-fixing *DNSRecord *st.PointerTypeSymbol
-fixing Error *st.StructTypeSymbol
-fixing Time *st.StructTypeSymbol
-fixing T *st.StructTypeSymbol
-fixing Reader *st.InterfaceTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing ChanDir *st.AliasTypeSymbol
-fixing IntArray *st.ArrayTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing MatchTest *st.StructTypeSymbol
-fixing CanSet *st.FunctionSymbol
-fixing  *st.MapTypeSymbol
-fixing TypesParser *st.VariableSymbol
-fixing Positions *st.FunctionSymbol
-fixing Flag *st.FunctionSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Gid *st.VariableSymbol
-fixing Timex *st.StructTypeSymbol
-fixing Day *st.VariableSymbol
-fixing *B *st.PointerTypeSymbol
-fixing Seeker *st.InterfaceTypeSymbol
-fixing Fun *st.VariableSymbol
-fixing ChanType *st.StructTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing IsAbsTest *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing OpenedScopes *st.VariableSymbol
-fixing *typesVisitor *st.PointerTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Width *st.FunctionSymbol
-fixing x *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing Pad4 *st.VariableSymbol
-fixing Hour *st.VariableSymbol
-fixing T *st.StructTypeSymbol
-fixing Seek *st.FunctionSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing MemProfileRecord *st.StructTypeSymbol
-fixing Len *st.FunctionSymbol
-fixing *os.FileInfo *st.PointerTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing *Vector *st.PointerTypeSymbol
-fixing typesVisitor *st.StructTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing y *st.VariableSymbol
-fixing Pad10 *st.VariableSymbofixing Benchmark *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Lparen *st.VariableSymbol
-fixing Stack0 *st.VariableSymbol
-fixing CleanTest *st.StructTypeSymbol
-fixing Method *st.FunctionSymbol
-fixing Vector *st.ArrayTypeSymbol
-fixing RegisterPositions *st.VariableSymbol
-fixing Object *st.FunctionSymbol
-fixing ok *st.VariableSymbol
-fixing m3 *st.FunctionSymbol
-fixing Precision *st.VariableSymbol
-fixing Atime_ns *st.VariableSymbol
-fixing ZoneOffset *st.VariableSymbol
-fixing F *st.VariableSymbol
-fixing offset *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing SplitTest *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Package *st.VariableSymbol
-fixing GlobalsParser *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing wid *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Pad8 *st.VariableSymbol
-fixing Nlink *st.VariableSymbol
-fixing Month *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing whence *st.VariableSymbol
-fixing TypeAssertExpr *st.StructTypeSymbol
-fixing AllocObjects *st.VariableSymbol
-fixing Node *st.StructTypeSymbol
-fixing i *st.VariableSymbol
-fixing Packages *st.VariableSymbol
-fixing *globalsVisitor *st.PointerTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing Write *st.FunctionSymbol
-fixing x *st.VariableSymbol
-fixing Ppsfreq *st.VariableSymbol
-fixing Rdev *st.VariableSymbol
-fixing Year *st.VariableSymbol
-fixing err *st.VariableSymbol
-fixing X *st.VariableSymbol
-fixing AllocBytes *st.VariableSymbol
-fixing JoinTest *st.StructTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing  *st.MapTypeSymbol
-fixing globalsVisitor *st.StructTypeSymbol
-fixing Name *st.FunctionSymbol
-fixing Formatter *st.InterfaceTypeSymbol
-fixing x *st.VariableSymbol
-fixing Errcnt *st.VariableSymbol
-fixing Mode *st.VariableSymbol
-fixing Minute *st.VariableSymbol
-fixing ret *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing FreeBytes *st.VariableSymbol
-fixing ExtTest *st.StructTypeSymbol
-fixing Type *st.FunctionSymbol
-fixing Package *st.VariableSymbol
-fixing AddPosition *st.FunctionSymbol
-fixing *st.Package *st.PointerTypeSymbol
-fixing m2 *st.FunctionSymbol
-fixing Pad3 *st.VariableSymbol
-fixing Waitmsg *st.StructTypeSymbol
-fixing Second *st.VariableSymbol
-fixing ReadWriteCloser *st.InterfaceTypeSymbol
-fixing Type *st.VariableSymbol
-fixing FreeObjects *st.VariableSymbol
-fixing TestVisitor *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing CurrentFileName *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Format *st.FunctionSymbol
-fixing Status *st.VariableSymbol
-fixing Rusage *st.VariableSymbol
-fixing Zone *st.VariableSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing ParenExpr *st.StructTypeSymbol
-fixing SliceType *st.StructTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing CurrentSymbolTable *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing x *st.VariableSymbol
-fixing *Package *st.PointerTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Pad11 *st.VariableSymbol
-fixing *Rusage *st.PointerTypeSymbol
-fixing Reader *st.InterfaceTypeSymbol
-fixing Rparen *st.VariableSymbol
-fixing *Type *st.PointerTypeSymbol
-fixing StructType *st.StructTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing *ast.Object *st.PointerTypeSymbol
-fixing y *st.VariableSymbol
-fixing c *st.VariableSymbol
-fixing Stabil *st.VariableSymbol
-fixing Rusage *st.StructTypeSymbol
-fixing Closer *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Type *st.InterfaceTypeSymbol
-fixing ComplexValue *st.StructTypeSymbol
-fixing Mode *st.VariableSymbol
-fixing BasicTypeSymbol *st.StructTypeSymbol
-fixing *t *st.PointerTypeSymbol
-fixing f *st.VariableSymbol
-fixing Pad7 *st.VariableSymbol
-fixing Pid *st.VariableSymbol
-fixing Close *st.FunctionSymbol
-fixing X *st.VariableSymbol
-fixing StringType *st.AliasTypeSymbol
-fixing UnsafePointerType *st.StructTypeSymbol
-fixing *typesVisitor *st.PointerTypeSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing M2 *st.MapTypeSymbol
-fixing Scanner *st.InterfaceTypeSymbol
-fixing Calcnt *st.VariableSymbol
-fixing ErrorString *st.AliasTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing StructType *st.StructTypeSymbol
-fixing MemStatsType *st.StructTypeSymbol
-fixing TypeSymbol *st.StructTypeSymbol
-fixing methodsVisitor *st.StructTypeSymbol
-fixing FloatType *st.StructTypeSymbol
-fixing A4 *st.ArrayTypeSymbol
-fixing ScanState *st.InterfaceTypeSymbol
-fixing Freq *st.VariableSymbol
-fixing *Rusage *st.PointerTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing ValueSpec *st.StructTypeSymbol
-fixing MCacheInuse *st.VariableSymbol
-fixing Meths *st.VariableSymbol
-fixing Parser *st.VariableSymbol
-fixing ArrayType *st.StructTypeSymbol
-fixing A1 *st.ArrayTypeSymbol
-fixing GetRune *st.FunctionSymbol
-fixing Maxerror *st.VariableSymbol
-fixing PathError *st.StructTypeSymbol
-fixing ReadByter *st.InterfaceTypeSymbol
-fixing Doc *st.VariableSymbol
-fixing HeapIdle *st.VariableSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing *methodsVisitor *st.PointerTypeSymbol
-fixing UintValue *st.StructTypeSymbol
-fixing U *st.AliasTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Modes *st.VariableSymbol
-fixing Op *st.VariableSymbol
-fixing ReadByte *st.FunctionSymbol
-fixing *CommentGroup *st.PointerTypeSymbol
-fixing Lookups *st.VariableSymbol
-fixing Obj *st.VariableSymbol
-fixing *packageParser *st.PointerTypeSymbol
-fixing ArrayOrSliceType *st.InterfaceTypeSymbol
-fixing B *st.AliasTypeSymbol
-fixing err *st.VariableSymbol
-fixing Pad2 *st.VariableSymbol
-fixing Path *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing CommentGroup *st.StructTypeSymbol
-fixing StackInuse *st.VariableSymbol
-fixing *ast.Object *st.PointerTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing Elem *st.FunctionSymbol
-fixing III *st.AliasTypeSymbol
-fixing rune *st.VariableSymbol
-fixing Jitter *st.VariableSymbol
-fixing Error *st.VariableSymbol
-fixing List *st.VariableSymbol
-fixing c *st.VariableSymbol
-fixing MCacheSys *st.VariableSymbol
-fixing Posits *st.VariableSymbol
-fixing *Package *st.PointerTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing C1 *st.ChanTypeSymbol
-fixing Pad6 *st.VariableSymbol
-fixing Token *st.FunctionSymbol
-fixing Error *st.InterfaceTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing MSpanSys *st.VariableSymbol
-fixing *Vector *st.PointerTypeSymbol
-fixing err *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing F *st.FunctionTypeSymbol
-fixing Jitcnt *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing SyscallError *st.StructTypeSymbol
-fixing PauseNs *st.VariableSymbol
-fixifixing Reader *st.InterfaceTypeSymbol
-fixing Type *st.InterfaceTypeSymbol
-fixing L2 *st.ArrayTypeSymbol
-fixing Pad1 *st.VariableSymbol
-fixing token *st.VariableSymbol
-fixing Syscall *st.VariableSymbol
-fixing HeapSys *st.VariableSymbol
-fixing PointerTypeSymbol *st.StructTypeSymbol
-fixing Comment *st.StructTypeSymbol
-fixing ReaderAt *st.InterfaceTypeSymbol
-fixing FloatValue *st.StructTypeSymbol
-fixing I3 *st.InterfaceTypeSymbol
-fixing Tolerance *st.VariableSymbol
-fixing err *st.VariableSymbol
-fixing Errno *st.VariableSymbol
-fixing Alloc *st.VariableSymbol
-fixing BaseType *st.VariableSymbol
-fixing Text *st.VariableSymbol
-fixing ReadAt *st.FunctionSymbol
-fixing StringValue *st.StructTypeSymbol
-fixing m1 *st.FunctionSymbol
-fixing Constant *st.VariableSymbol
-fixing Width *st.FunctionSymbol
-fixing Errno *st.AliasTypeSymbol
-fixing MHeapMapSys *st.VariableSymbol
-fixing ITypeSymbol *st.InterfaceTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing ComplexType *st.StructTypeSymbol
-fixing P2 *st.AliasTypeSymbol
-fixing Pad5 *st.VariableSymbol
-fixing UngetRune *st.FunctionSymbol
-fixing LinkError *st.StructTypeSymbol
-fixing EnableGC *st.VariableSymbol
-fixing Symbol *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing p *st.VariableSymbol
-fixing UnsafePointerValue *st.StructTypeSymbol
-fixing P1 *st.AliasTypeSymbol
-fixing Pad9 *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Op *st.VariableSymbol
-fixing HeapInuse *st.VariableSymbol
-fixing String *st.FunctionSymbol
-fixing Comment *st.VariableSymbol
-fixing off *st.VariableSymbol
-fixing IntValue *st.StructTypeSymbol
-fixing Last *st.AliasTypeSymbol
-fixing Esterror *st.VariableSymbol
-fixing Old *st.VariableSymbol
-fixing Mallocs *st.VariableSymbol
-fixing IsReadOnly *st.FunctionSymbol
-fixing Values *st.VariableSymbol
-fixing err *st.VariableSymbol
-fixing MapType *st.StructTypeSymbol
-fixing M1 *st.MapTypeSymbol
-fixing Time *st.VariableSymbol
-fixing New *st.VariableSymbol
-fixing NumGC *st.VariableSymbol
-fixing SetObject *st.FunctionSymbol
-fixing  *st.ArrayTypeSymbol
-fixing n *st.VariableSymbol
-fixing BoolType *st.StructTypeSymbol
-fixing F4 *st.FunctionTypeSymbol
-fixing Tick *st.VariableSymbol
-fixing Error *st.VariableSymbol
-fixing BySize *st.VariableSymbol
-fixing Positions *st.FunctionSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing ReadCloser *st.InterfaceTypeSymbol
-fixing FuncValue *st.StructTypeSymbol
-fixing Object *st.FunctionSyfixing MapValue *st.StructTypeSymbol
-fixing  *st.StructTypeSymbol
-fixing Name *st.FunctionSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Closer *st.InterfaceTypeSymbol
-fixing Offset *st.VariableSymbol
-fixing y *st.VariableSymbol
-fixing BoolValue *st.StructTypeSymbol
-fixing Size *st.VariableSymbol
-fixing AddPosition *st.FunctionSymbol
-fixing *Ident *st.PointerTypeSymbol
-fixing WriteSeeker *st.InterfaceTypeSymbol
-fixing Stbcnt *st.VariableSymbol
-fixing *S1 *st.PointerTypeSymbol
-fixing Kind *st.AliasTypeSymbol
-fixing Mallocs *st.VariableSymbol
-fixing SetMethods *st.FunctionSymbol
-fixing Ident *st.StructTypeSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing Pad0 *st.VariableSymbol
-fixing *T *st.PointerTypeSymbol
-fixing IntType *st.StructTypeSymbol
-fixing Frees *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Obj *st.VariableSymbol
-fixing Seeker *st.InterfaceTypeSymbol
-fixing SockaddrUnix *st.StructTypeSymbol
-fixing R *st.AliasTypeSymbol
-fixing InterfaceType *st.StructTypeSymbol
-fixing StackSys *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing PipeReader *st.StructTypeSymbol
-fixing Name *st.VariableSymbol
-fixing *R *st.PointerTypeSymbol
-fixing ChanDir *st.AliasTypeSymbol
-fixing Sys *st.VariableSymbol
-fixing Copy *st.FunctionSymbol
-fixing Position *st.StructTypeSymbol
-fixing SectionReader *st.StructTypeSymbol
-fixing WaitStatus *st.AliasTypeSymbol
-fixing BBB *st.AliasTypeSymbol
-fixing InterfaceValue *st.StructTypeSymbol
-fixing BuckHashSys *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Type *st.VariableSymbol
-fixing ReadSeeker *st.InterfaceTypeSymbol
-fixing Fstore_t *st.StructTypeSymbol
-fixing PP *st.AliasTypeSymbol
-fixing PtrValue *st.StructTypeSymbol
-fixing TotalAlloc *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing ReturnStmt *st.StructTypeSymbol
-fixing Reader *st.InterfaceTypeSymbol
-fixing Bytesalloc *st.VariableSymbol
-fixing P *st.AliasTypeSymbol
-fixing *FuncType *st.PointerTypeSymbol
-fixing NextGC *st.VariableSymbol
-fixing Methods *st.FunctionSymbol
-fixing Position *st.StructTypeSymbol
-fixing Seeker *st.InterfaceTypeSymbol
-fixing Posmode *st.VariableSymbol
-fixing *T *st.PointerTypeSymbol
-fixing FuncType *st.StructTypeSymbol
-fixing MSpanInuse *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Results *st.VariableSymbol
-fixing WriteCloser *st.InterfaceTypeSymbol
-fixing Flags *st.VariableSymbol
-fixing V *st.AliasTypeSymbol
-fixing SliceHeader *st.StructTypeSymbol
-fixing HeapAlloc *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing Length *st.VariableSymbol
-fixing AAAAAA *st.StructTypeSymbol
-fixing Data *st.VariableSymbol
-fixing DebugGC *st.VariableSymbol
-fixing AddMethod *st.FunctionSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Closer *st.InterfaceTypeSymbol
-fixing Offset *st.VariableSymbol
-fixing Obj *st.VariableSymbol
-fixing Cap *st.VariableSymbol
-fixing HeapObjects *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing *Scope *st.PointerTypeSymbol
-fixing ReadWriter *st.InterfaceTypeSymbol
-fixing Sockaddr *st.InterfaceTypeSymbol
-fixing OtherField1 *st.VariableSymbol
-fixing Len *st.VariableSymbol
-fixing FuncType *st.StructTypeSymbol
-fixing meth *st.VariableSymbol
-fixing Scope *st.StructTypeSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing SockaddrInet4 *st.StructTypeSymbol
-fixing C *st.ChanTypeSymbol
-fixing PtrType *st.StructTypeSymbol
-fixing ChanType *st.StructTypeSymbol
-fixing Symbol *st.InterfaceTypeSymbol
-fixing Objects *st.VariableSymbol
-fixing Addr *st.VariableSymbol
-fixing Reader *st.InterfaceTypeSymbol
-fixing F1 *st.FunctionTypeSymbol
-fixing UintType *st.AliasTypeSymbol
-fixing StringHeader *st.StructTypeSymbol
-fixing Port *st.VariableSymbol
-fixing Closer *st.InterfaceTypeSymbol
-fixing I2 *st.InterfaceTypeSymbol
-fixing Type *st.InterfaceTypeSymbol
-fixing Data *st.VariableSymbol
-fixing Time_t *st.AliasTypeSymbol
-fixing Seeker *st.InterfaceTypeSymbol
-fixing m1 *st.FunctionSymbol
-fixing Error *st.InterfaceTypeSymbol
-fixing Len *st.VariableSymbol
-fixing Timezoneinformation *st.StructTypeSymbol
-fixing WriterAt *st.InterfaceTypeSymbol
-fixing BBBBBB *st.StructTypeSymbol
-fixing TypeAssertionError *st.StructTypeSymbol
-fixing ArrayValue *st.StructTypeSymbol
-fixing StandardDate *st.VariableSymbol
-fixing WriteAt *st.FunctionSymbol
-fixing Obj *st.VariableSymbol
-fixing Itable *st.StructTypeSymbol
-fixing StructValue *st.StructTypeSymbol
-fixing Systemtime *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing OtherField2 *st.VariableSymbol
-fixing Fn *st.VariableSymbol
-fixing SliceType *st.StructTypeSymbol
-fixing Day *st.VariableSymbol
-fixing p *st.VariableSymbol
-fixing F5 *st.FunctionTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing *FuncValue *st.PointerTypeSymbol
-fixing Hour *st.VariableSymbol
-fixing off *st.VariableSymbol
-fixing x *st.VariableSymbol
-fixing Itype *st.VariableSymbol
-fixing Method *st.StructTypeSymbol
-fixing Month *st.VariableSymbol
-fixing err *st.VariableSymbol
-fixing x *st.VariableSymbol
-fixing *Type *st.PointerTypeSymbol
-fixing StringType *st.StructTypeSymbol
-fixing Year *st.VariableSymbol
-fixing n *st.VariableSymbol
-fixing t *st.AliasTypeSymbol
-fixing Type *st.VariableSymbol
-fixing StructField *st.StructTypeSymbol
-fixing Milliseconds *st.VariableSymbol
-fixing WriterTo *st.InterfaceTypeSymbol
-fixing *t *st.PointerTypeSymbol
-fixing Anonymous *st.VariableSymbol
-fixing Minute *st.VariableSymbol
-fixing WriteTo *st.FunctionSymbol
-fixing *U *st.PointerTypeSymbol
-fixing PkgPath *st.VariableSymbol
-fixing Second *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing U *st.AliasTypeSymbol
-fixing Tag *st.VariableSymbol
-fixing DayOfWeek *st.VariableSymbol
-fixing w *st.VariableSymbol
-fixing S *st.ArrayTypeSymbol
-fixing Name *st.VariableSymbol
-fixing DaylightName *st.VariableSymbol
-fixing Writer *st.InterfaceTypeSymbol
-fixing P *st.AliasTypeSymbol
-fixing Type *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing err *st.VariableSymbol
-fixing AA *st.AliasTypeSymbol
-fixing Index *st.VariableSymbol
-fixing Bias *st.VariableSymbol
-fixing n *st.VariableSymbol
-fixing A *st.ArrayTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing DaylightDate *st.VariableSymbol
-fixing ReaderFrom *st.InterfaceTypeSymbol
-fixing W *st.AliasTypeSymbol
-fixing Offset *st.VariableSymbol
-fixing Systemtime *st.StructTypeSymbol
-fixing ReadFrom *st.FunctionSymbol
-fixing *U *st.PointerTypeSymbol
-fixing FuncType *st.StructTypeSymbol
-fixing StandardBias *st.VariableSymbol
-fixing  *st.FunctionTypeSymbol
-fixing SSSSSSSSSSSSSSSSSS *st.AliasTypeSymbol
-fixing ArrayOrSliceValue *st.InterfaceTypeSymbol
-fixing StandardName *st.VariableSymbol
-fixing r *st.VariableSymbol
-fixing F2 *st.FunctionTypeSymbol
-fixing Value *st.InterfaceTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Reader *st.InterfaceTypeSymbol
-fixing x *st.VariableSymbol
-fixing Cap *st.FunctionSymbol
-fixing DaylightBias *st.VariableSymbol
-fixing err *st.VariableSymbol
-fixing y *st.VariableSymbol
-fixing Len *st.FunctionSymbol
-fixing Systemtime *st.StructTypeSymbol
-fixing n *st.VariableSymbol
-fixing z *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Error *st.StructTypeSymbol
-fixing Fields *st.VariableSymbol
-fixing S1 *st.StructTypeSymbol
-fixing PtrType *st.StructTypeSymbol
-fixing Utime *st.VariableSymbol
-fixing *Object *st.PointerTypeSymbol
-fixing PipeWriter *st.StructTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing v *st.VariableSymbol
-fixing UintType *st.StructTypeSymbol
-fixing Cstime *st.VariableSymbol
-fixing Outer *st.VariableSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing c *st.VariableSymbol
-fixing Type *st.InterfaceTypeSymbol
-fixing Stime *st.VariableSymbol
-fixing *Scope *st.PointerTypeSymbol
-fixing PackageSymbol *st.StructTypeSymbol
-fixing a *st.VariableSymbol
-fixing ChanValue *st.StructTypeSymbol
-fixing Cutime *st.VariableSymbol
-fixing Visitor *st.InterfaceTypeSymbol
-fixing Obj *st.VariableSymbol
-fixing u *st.VariableSymbol
-fixing *Iovec *st.PointerTypeSymbol
-fixing Visit *st.FunctionSymbol
-fixing Posits *st.VariableSymbol
-fixing b *st.VariableSymbol
-fixing Iovec *st.StructTypeSymbol
-fixing  *st.FunctionTypeSymbol
-fixing Package *st.VariableSymbol
-fixing C3 *st.ChanTypeSymbol
-fixing Len *st.VariableSymbol
-fixing node *st.VariableSymbol
-fixing HasLocalName *st.VariableSymbol
-fixing I1 *st.InterfaceTypeSymbol
-fixing Base *st.VariableSymbol
-fixing  *st.InterfaceTypeSymbol
-fixing Path *st.VariableSymbol
-fixing I5 *st.InterfaceTypeSymbol
-fixing *byte *st.PointerTypeSymbol
-fixing w *st.VariableSymbol
-fixing FunctionSymbol *st.StructTypeSymbol
-fixing m1 *st.FunctionSymbol
-fixing Rlimit *st.StructTypeSymbol
-fixing ArrayType *st.StructTypeSymbol
-fixing Locals *st.VariableSymbol
-fixing A1 *st.ArrayTypeSymbol
-fixing Max *st.VariableSymbol
-fixing CaseClause *st.StructTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing I *st.AliasTypeSymbol
-fixing Cur *st.VariableSymbol
-fixing Body *st.VariableSymbol
-fixing FunctionType *st.VariableSymbol
-fixing P *st.AliasTypeSymbol
-fixing WSAData *st.StructTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing ITypeSymbol *st.InterfaceTypeSymbol
-fixing M *st.MapTypeSymbol
-fixing MaxSockets *st.VariableSymbol
-fixing Stmt *st.InterfaceTypeSymbol
-fixing Obj *st.VariableSymbol
-fixing I *st.AliasTypeSymbol
-fixing VendorInfo *st.VariableSymbol
-fixing Node *st.InterfaceTypeSymbol
-fixing Posits *st.VariableSymbol
-fixing F *st.FunctionTypeSymbol
-fixing *byte *st.PointerTypeSymbol
-fixing Values *st.VariableSymbol
-fixing *R *st.PointerTypeSymbol
-fixinfixing Colon *st.VariableSymbol
-TypeSymbol
-fixing Nsec *st.VariableSymbol
-fixing ChanTypeSymbol *st.StructTypeSymbol
-fixing Sec *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing FdSet *st.StructTypeSymbol
-fixing File *st.StructTypeSymbol
-fixing ValueType *st.VariableSymbol
-fixing Bits *st.VariableSymbol
-fixing *File *st.PointerTypeSymbol
-fixing ITypeSymbol *st.InterfaceTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing File *st.StructTypeSymbol
-fixing VariableSymbol *st.StructTypeSymbol
-fixing Stat_t *st.StructTypeSymbol
-fixing Decl *st.InterfaceTypeSymbol
-fixing Obj *st.VariableSymbol
-fixing Windata *st.VariableSymbol
-fixing Node *st.InterfaceTypeSymbol
-fixing Posits *st.VariableSymbol
-fixing Win32finddata *st.StructTypeSymbol
-fixing FuncDecl *st.StructTypeSymbol
-fixing ReadOnly *st.VariableSymbol
-fixing Reserved0 *st.VariableSymbol
-fixing Body *st.VariableSymbol
-fixing VariableType *st.VariableSymbol
-fixing AlternateFileName *st.VariableSymbol
-fixing Doc *st.VariableSymbol
-fixing ITypeSymbol *st.InterfaceTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Name *st.VariableSymbol
-fixing TypeSymbol *st.StructTypeSymbol
-fixing LastAccessTime *st.VariableSymbol
-fixing Recv *st.VariableSymbol
-fixing Occurence *st.StructTypeSymbol
-fixing Filetime *st.StructTypeSymbol
-fixing *FieldList *st.PointerTypeSymbol
-fixing Pos *st.VariableSymbol
-fixing HighDateTime *st.VariableSymbol
-fixing FieldList *st.StructTypeSymbol
-fixing FunctionTypeSymbol *st.StructTypeSymbol
-fixing LowDateTime *st.VariableSymbol
-fixing Closing *st.VariableSymbol
-fixing Reciever *st.VariableSymbol
-fixing Reserved1 *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing FileSizeHigh *st.VariableSymbol
-fixing List *st.VariableSymbol
-fixing Results *st.VariableSymbol
-fixing FileAttributes *st.VariableSymbol
-fixing Opening *st.VariableSymbol
-fixing Parameters *st.VariableSymbol
-fixing FileName *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing FileSizeLow *st.VariableSymbol
-fixing Type *st.VariableSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing LastWriteTime *st.VariableSymbol
-fixing FieldList *st.StructTypeSymbol
-fixing *ast.Package *st.PointerTypeSymbol
-fixing Filetime *st.StructTypeSymbol
-fixing *BasicLit *st.PointerTypeSymbol
-fixing MapTypeSymbol *st.StructTypeSymbol
-fixing CreationTime *st.VariableSymbol
-fixing BasicLit *st.StructTypeSymbol
-fixing KeyType *st.VariableSymbol
-fixing Filetime *st.StructTypeSymbol
-fixing ITypeSymbol *st.InterfaceTypeSymbol
-fixing Mode *st.VariableSymbol
-fixing Kind *st.VariableSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing Ustat_t *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing ValueType *st.VariableSymbol
-fixing Fname *st.VariableSymbol
-fixing Spec *st.InterfaceTypeSymbol
-fixing InterfaceTypeSymbol *st.StructTypeSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Node *st.InterfaceTypeSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing Tfree *st.VariableSymbol
-fixing SelectorExpr *st.StructTypeSymbol
-fixing Package *st.StructTypeSymbol
-fixing Tinode *st.VariableSymbol
-fixing Sel *st.VariableSymbol
-fixing AliasTypeSymbol *st.StructTypeSymbol
-fixing Fpack *st.VariableSymbol
-fixing *Ident *st.PointerTypeSymbol
-fixing BaseType *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing X *st.VariableSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing DNSRecord *st.StructTypeSymbol
-fixing BadDecl *st.StructTypeSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing Data *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing ArrayTypeSymbol *st.StructTypeSymbol
-fixing Length *st.VariableSymbol
-fixing CompositeLit *st.StructTypeSymbol
-fixing ElemType *st.VariableSymbol
-fixing Ttl *st.VariableSymbol
-fixing Lbrace *st.VariableSymbol
-fixing ITypeSymbol *st.InterfaceTypeSymbol
-fixing Name *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Len *st.VariableSymbol
-fixing Next *st.VariableSymbol
-fixing Rbrace *st.VariableSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing *DNSRecord *st.PointerTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing *Vector *st.PointerTypeSymbol
-fixing Type *st.VariableSymbol
-fixing Elts *st.VariableSymbol
-fixing SymbolTable *st.StructTypeSymbol
-fixing Reserved *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing UnresolvedTypeSymbol *st.StructTypeSymbol
-fixing Dw *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Declaration *st.VariableSymbol
-fixing *uint16 *st.PointerTypeSymbol
-fixing Type *st.VariableSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing Msghdr *st.StructTypeSymbol
-fixing MapType *st.StructTypeSymbol
-fixing *SymbolTable *st.PointerTypeSymbol
-fixing Iov *st.VariableSymbol
-fixing Filter *st.FunctionTypeSymbol
-fixing *Package *st.PointerTypeSymbol
-fixing *Iovec *st.PointerTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing StructTypeSymbol *st.StructTypeSymbol
-fixing Namelen *st.VariableSymbol
-fixing *unnamed0* *st.VariableSymbol
-fixing Fields *st.VariableSymbol
-fixing Control *st.VariableSymbol
-fixing BinaryExpr *st.StructTypeSymbol
-fixing *TypeSymbol *st.PointerTypeSymbol
-fixing *byte *st.PointerTypeSymbol
-fixing Op *st.VariableSymbol
-fixing Flags *st.VariableSymbol
-fixing Y *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing OpPos *st.VariableSymbol
-fixing Controllen *st.VariableSymbol
-fixing Iovlen *st.VariableSymbol
-fixifixing X *st.VariableSymbol
-fixing Kind *st.AliasTypeSymbol
-fixing SwitchStmt *st.StructTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Tag *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Init *st.VariableSymbol
-fixing Stmt *st.InterfaceTypeSymbol
-fixing BranchStmt *st.StructTypeSymbol
-fixing Label *st.VariableSymbol
-fixing *Ident *st.PointerTypeSymbol
-fixing Tok *st.VariableSymbol
-fixing Token *st.AliasTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Ellipsis *st.StructTypeSymbol
-fixing Elt *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing StarExpr *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing X *st.VariableSymbol
-fixing InterfaceType *st.StructTypeSymbol
-fixing DeclStmt *st.StructTypeSymbol
-fixing Decl *st.VariableSymbol
-fixing ChanDir *st.AliasTypeSymbol
-fixing Field *st.StructTypeSymbol
-fixing Doc *st.VariableSymbol
-fixing Tag *st.VariableSymbol
-fixing Comment *st.VariableSymbol
-fixing Names *st.VariableSymbol
-fixing Type *st.VariableSymbol
-fixing ForStmt *st.StructTypeSymbol
-fixing Post *st.VariableSymbol
-fixing Stmt *st.InterfaceTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Cond *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Init *st.VariableSymbol
-fixing Comment *st.StructTypeSymbol
-fixing *CommentGroup *st.PointerTypeSymbol
-fixing DeferStmt *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Call *st.VariableSymbol
-fixing *CallExpr *st.PointerTypeSymbol
-fixing CallExpr *st.StructTypeSymbol
-fixing ExprStmt *st.StructTypeSymbol
-fixing X *st.VariableSymbol
-fixing *Field *st.PointerTypeSymbol
-fixing Field *st.StructTypeSymbol
-fixing *Ident *st.PointerTypeSymbol
-fixing SelectStmt *st.StructTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Object *st.StructTypeSymbol
-fixing *FuncType *st.PointerTypeSymbol
-fixing Node *st.InterfaceTypeSymbol
-fixing BasicLit *st.StructTypeSymbol
-fixing ChanType *st.StructTypeSymbol
-fixing TypeSpec *st.StructTypeSymbol
-fixing Doc *st.VariableSymbol
-fixing Comment *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing Type *st.VariableSymbol
-fixing SliceExpr *st.StructTypeSymbol
-fixing End *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing X *st.VariableSymbol
-fixing Index *st.VariableSymbol
-fixing IfStmt *st.StructTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Else *st.VariableSymbol
-fixing Stmt *st.InterfaceTypeSymbol
-fixing Cond *st.VariableSymbol
-fixing Init *st.VariableSymbol
-fixing ImportSpec *st.StructTypeSymbol
-fixing Doc *st.VariableSymbol
-fixing Comment *st.VariableSymbol
-fixing Name *st.VariableSymbol
-fixing Path *st.VariableSymbol
-fixing UnaryExpr *st.StructTypeSymbol
-fixing Op *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing X *st.VariableSymbol
-fixing *CallExpr *st.PointerTypeSymbol
-fixing IndexExpr *st.StructTypeSymbol
-fixing X *st.VariableSymbol
-fixing Index *st.VariableSymbol
-fixing CommClause *st.StructTypeSymbol
-fixing Tok *st.VariableSymbol
-fixing Body *st.VariableSymbol
-fixing Lhs *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Rhs *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Colon *st.VariableSymbol
-fixing IncDecStmt *st.StructTypeSymbol
-fixing Tok *st.VariableSymbol
-fixing X *st.VariableSymbol
-fixing CommentGroup *st.StructTypeSymbol
-fixing BadExpr *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing BlockStmt *st.StructTypeSymbol
-fixing List *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Rbrace *st.VariableSymbol
-fixing Package *st.StructTypeSymbol
-fixing *Object *st.PointerTypeSymbol
-fixing *Type *st.PointerTypeSymbol
-fixing EmptyStmt *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing KeyValueExpr *st.StructTypeSymbol
-fixing Value *st.VariableSymbol
-fixing Key *st.VariableSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Colon *st.VariableSymbol
-fixing FuncLit *st.StructTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Type *st.VariableSymbol
-fixing RangeStmt *st.StructTypeSymbol
-fixing Tok *st.VariableSymbol
-fixing Value *st.VariableSymbol
-fixing Body *st.VariableSymbol
-fixing Key *st.VariableSymbol
-fixing TokPos *st.VariableSymbol
-fixing Position *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing X *st.VariableSymbol
-fixing Ident *st.StructTypeSymbol
-fixing Scope *st.StructTypeSymbol
-fixing TypeCaseClause *st.StructTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Types *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Colon *st.VariableSymbol
-fixing BadStmt *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing GenDecl *st.StructTypeSymbol
-fixing Tok *st.VariableSymbol
-fixing Rparen *st.VariableSymbol
-fixing Doc *st.VariableSymbol
-fixing Specs *st.VariableSymbol
-fixing  *st.ArrayTypeSymbol
-fixing Spec *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Lparen *st.VariableSymbol
-fixing Stmt *st.InterfaceTypeSymbol
-fixing Form *st.AliasTypeSymbol
-fixing GoStmt *st.StructTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Call *st.VariableSymbol
-fixing FuncType *st.StructTypeSymbol
-fixing *Comment *st.PointerTypeSymbol
-fixing Type *st.StructTypeSymbol
-fixing LabeledStmt *st.StructTypeSymbol
-fixing Label *st.VariableSymbol
-fixing Stmt *st.VariableSymbol
-fixing *BlockStmt *st.PointerTypeSymbol
-fixing BlockStmt *st.StructTypeSymbol
-fixing MergeMode *st.AliasTypeSymbol
-fixing TypeSwitchStmt *st.StructTypeSymbol
-fixing Body *st.VariableSymbol
-fixing Assign *st.VariableSymbol
-fixing Stmt *st.InterfaceTypeSymbol
-fixing Position *st.StructTypeSymbol
-fixing Init *st.VariableSymbol
-fixing *FieldList *st.PointerTypeSymbol
-fixing Expr *st.InterfaceTypeSymbol
-fixing AssignStmt *st.StructTypeSymbol
-fixing Tok *st.VariableSymbol
-fixing Lhs *st.VariableSymbol
-fixing Rhs *st.VariableSymbol
-fixing TokPos *st.VariableSymbol
-fixing FieldFilter *st.FunctionTypeSymbol
-fixing name *st.VariableSymbol
-fixing value *st.VariableSymbol
-fixing Value *st.InterfaceTypeSymbol
-fixing *unnamed0* *st.VariableSymbol
++++++++++++ package rand started fixing; fn=/home/rulerr/go/src/pkg/rand/rng.go 
++++++++++++ package strconv started fixing; fn=/home/rulerr/go/src/pkg/strconv/itoa.go 
++++++++++++ package sort started fixing; fn=/home/rulerr/go/src/pkg/sort/sort_test.go 
++++++++++++ package vector started fixing; fn=/home/rulerr/go/src/pkg/container/vector/intvector.go 
++++++++++++ package path started fixing; fn=/home/rulerr/go/src/pkg/path/match.go 
++++++++++++ package parser started fixing; fn=/home/rulerr/go/src/pkg/go/parser/parser_test.go 
++++++++++++ package reflect started fixing; fn=/home/rulerr/go/src/pkg/reflect/value.go 
++++++++++++ package stack started fixing; fn=/home/rulerr/GoRefactor/src/utils/stack/stack.go 
++++++++++++ package utf8 started fixing; fn=/home/rulerr/go/src/pkg/utf8/utf8.go 
++++++++++++ package program started fixing; fn=/home/rulerr/GoRefactor/src/program/importsVisitor.go 
++++++++++++ package packageParser started fixing; fn=/home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go 
++++++++++++ package utils started fixing; fn=/home/rulerr/GoRefactor/src/utils/utils/utils.go 
++++++++++++ package runtime started fixing; fn=/home/rulerr/go/src/pkg/runtime/extern.go 
++++++++++++ package st started fixing; fn=/home/rulerr/GoRefactor/src/st/symbols.go 
++++++++++++ package math started fixing; fn=/home/rulerr/go/src/pkg/math/tanh.go 
++++++++++++ package utf16 started fixing; fn=/home/rulerr/go/src/pkg/utf16/utf16.go 
++++++++++++ package flag started fixing; fn=/home/rulerr/go/src/pkg/flag/flag.go 
++++++++++++ package ioutil started fixing; fn=/home/rulerr/go/src/pkg/io/ioutil/tempfile.go 
++++++++++++ package os started fixing; fn=/home/rulerr/go/src/pkg/os/dir_linux.go 
++++++++++++ package syscall started fixing; fn=/home/rulerr/go/src/pkg/syscall/syscall_windows.go 
+rand fixing Source *st.InterfaceTypeSymbol
+strconv fixing NumError *st.StructTypeSymbol
+sort fixing Interface *st.InterfaceTypeSymbol
+vector fixing LessInterface *st.InterfaceTypeSymbol
+path fixing Visitor *st.InterfaceTypeSymbol
+token fixing Token *st.AliasTypeSymbol
+reflect fixing SliceValue *st.StructTypeSymbol
+ome/rulerr/GoRefactor/src/tests/testFunctions.go 
+stack fixing Stack *st.AliasTypeSymbol
+program fixing importsVisitor *st.StructTypeSymbol
+packageParser fixing *globalsVisitor *st.PointerTypeSymbol
+unicode fixing SpecialCase *st.ArrayTypeSymbol
+fmt fixing GoStringer *st.InterfaceTypeSymbol
+st fixing Symbol *st.InterfaceTypeSymbol
+runtime fixing UintptrType *st.AliasTypeSymbol
+flag fixing Value *st.InterfaceTypeSymbol
+os fixing Errno *st.AliasTypeSymbol
+syscall fixing Hostent *st.StructTypeSymbol
++++++++++++ package scanner started fixing; fn=/home/rulerr/go/src/pkg/go/scanner/scanner_test.go 
++++++++++++ package time started fixing; fn=/home/rulerr/go/src/pkg/time/zoneinfo_windows.go 
++++++++++++ package bytes started fixing; fn=/home/rulerr/go/src/pkg/bytes/export_test.go 
++++++++++++ package strings started fixing; fn=/home/rulerr/go/src/pkg/strings/strings.go 
++++++++++++ package unsafe started fixing; fn=/home/rulerr/go/src/pkg/unsafe/unsafe.go 
++++++++++++ package testing started fixing; fn=/home/rulerr/go/src/pkg/testing/benchmark.go 
++++++++++++ package sync started fixing; fn=/home/rulerr/go/src/pkg/sync/rwmutex.go 
++++++++++++ package io started fixing; fn=/home/rulerr/go/src/pkg/io/pipe.go 
++++++++++++ package ast started fixing; fn=/home/rulerr/go/src/pkg/go/ast/ast.go 
+rand fixing Seed *st.FunctionSymbol
+strconv fixing Num *st.VariableSymbol
+sort fixing Len *st.FunctionSymbol
+vector fixing Less *st.FunctionSymbol
+path fixing VisitDir *st.FunctionSymbol
+token fixing Position *st.StructTypeSymbol
+reflect fixing Value *st.InterfaceTypeSymbol
+tests fixing F3 *st.FunctionTypeSymbol
+program fixing Package *st.VariableSymbol
+packageParser globalsVisitor set to globalsVisitor
+unicode fixing CaseRange *st.StructTypeSymbol
+fmt fixing GoString *st.FunctionSymbol
+st fixing String *st.FunctionSymbol
+runtime fixing StructType *st.StructTypeSymbol
+flag fixing String *st.FunctionSymbol
+os fixing File *st.StructTypeSymbol
+syscall fixing AddrList *st.VariableSymbol
+scanner fixing ErrorList *st.ArrayTypeSymbol
+time fixing Ticker *st.StructTypeSymbol
+bytes fixing Buffer *st.StructTypeSymbol
+strings fixing Reader *st.AliasTypeSymbol
+unsafe fixing Pointer *st.AliasTypeSymbol
+testing fixing Test *st.StructTypeSymbol
+sync fixing RWMutex *st.StructTypeSymbol
+io fixing Writer *st.InterfaceTypeSymbol
+ast fixing CallExpr *st.StructTypeSymbol
+rand fixing  *st.FunctionTypeSymbol
+strconv string has type *st.BasicTypeSymbol
+sort fixing  *st.FunctionTypeSymbol
+vector fixing  *st.FunctionTypeSymbol
+path fixing  *st.FunctionTypeSymbol
+token fixing Filename *st.VariableSymbol
+reflect fixing Interface *st.FunctionSymbol
+tests fixing x *st.VariableSymbol
+program *st.Package has type *st.PointerTypeSymbol
+packageParser fixing typesVisitor *st.StructTypeSymbol
+unicode fixing Hi *st.VariableSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime fixing UnsafePointerType *st.AliasTypeSymbol
+flag fixing  *st.FunctionTypeSymbol
+os fixing FileInfo *st.StructTypeSymbol
+syscall **byte has type *st.PointerTypeSymbol
+scanner fixing *Error *st.PointerTypeSymbol
+time fixing C *st.VariableSymbol
+unsafe fixing *ArbitraryType *st.PointerTypeSymbol
+testing fixing F *st.VariableSymbol
+sync fixing Once *st.StructTypeSymbol
+io fixing Write *st.FunctionSymbol
+ast fixing Rparen *st.VariableSymbol
+rand fixing seed *st.VariableSymbol
+strconv fixing Error *st.VariableSymbol
+sort fixing $unnamed0 *st.VariableSymbol
+vector fixing y *st.VariableSymbol
+path fixing path *st.VariableSymbol
+token string has type *st.BasicTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+tests float has type *st.BasicTypeSymbol
+program fixing *st.Package *st.PointerTypeSymbol
+packageParser fixing Parser *st.VariableSymbol
+unicode int has type *st.BasicTypeSymbol
+fmt fixing $unnamed0 *st.VariableSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime fixing FloatType *st.AliasTypeSymbol
+flag fixing $unnamed0 *st.VariableSymbol
+os fixing Size *st.VariableSymbol
+syscall fixing **byte *st.PointerTypeSymbol
+scanner fixing Error *st.StructTypeSymbol
+time  has type *st.ChanTypeSymbol
+unsafe fixing ArbitraryType *st.AliasTypeSymbol
+testing  has type *st.FunctionTypeSymbol
+sync fixing Mutex *st.StructTypeSymbol
+io fixing  *st.FunctionTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+rand int64 has type *st.BasicTypeSymbol
+strconv os.Error has type *st.UnresolvedTypeSymbol
+sort int has type *st.BasicTypeSymbol
+vector  has type *st.InterfaceTypeSymbol
+path string has type *st.BasicTypeSymbol
+token fixing Line *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+tests fixing y *st.VariableSymbol
+program st.Package set to Package
+packageParser *packageParser has type *st.PointerTypeSymbol
+unicode fixing Delta *st.VariableSymbol
+fmt string has type *st.BasicTypeSymbol
+st string has type *st.BasicTypeSymbol
+runtime fixing ArrayType *st.StructTypeSymbol
+flag string has type *st.BasicTypeSymbol
+os int64 has type *st.BasicTypeSymbol
+syscall fixing *byte *st.PointerTypeSymbol
+scanner fixing Pos *st.VariableSymbol
+time fixing  *st.ChanTypeSymbol
+testing fixing  *st.FunctionTypeSymbol
+io fixing p *st.VariableSymbol
+ast fixing Args *st.VariableSymbol
+rand fixing Int63 *st.FunctionSymbol
+sort fixing Swap *st.FunctionSymbol
+vector fixing  *st.InterfaceTypeSymbol
+path fixing f *st.VariableSymbol
+token int has type *st.BasicTypeSymbol
+reflect  has type *st.InterfaceTypeSymbol
+tests float has type *st.BasicTypeSymbol
+program fixing FileName *st.VariableSymbol
+packageParser fixing *packageParser *st.PointerTypeSymbol
+unicode d has type *st.UnresolvedTypeSymbol
+fmt fixing Stringer *st.InterfaceTypeSymbol
+st fixing IsReadOnly *st.FunctionSymbol
+runtime fixing Func *st.StructTypeSymbol
+flag fixing Set *st.FunctionSymbol
+os fixing Dev *st.VariableSymbol
+syscall fixing Length *st.VariableSymbol
+scanner token.Position has type *st.UnresolvedTypeSymbol
+time fixing ParseError *st.StructTypeSymbol
+testing fixing $unnamed0 *st.VariableSymbol
+io  has type *st.ArrayTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+rand fixing  *st.FunctionTypeSymbol
+sort fixing  *st.FunctionTypeSymbol
+vector fixing $unnamed0 *st.VariableSymbol
+path *os.FileInfo has type *st.PointerTypeSymbol
+token fixing Column *st.VariableSymbol
+reflect fixing  *st.InterfaceTypeSymbol
+tests fixing C2 *st.ChanTypeSymbol
+program string has type *st.BasicTypeSymbol
+packageParser packageParser set to packageParser
+unicode fixing Lo *st.VariableSymbol
+fmt fixing String *st.FunctionSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime fixing ComplexType *st.AliasTypeSymbol
+flag fixing  *st.FunctionTypeSymbol
+os uint64 has type *st.BasicTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+scanner fixing Msg *st.VariableSymbol
+time fixing Value *st.VariableSymbol
+testing *T has type *st.PointerTypeSymbol
+io fixing  *st.ArrayTypeSymbol
+ast fixing  *st.ArrayTypeSymbol
+rand fixing $unnamed0 *st.VariableSymbol
+sort fixing i *st.VariableSymbol
+vector bool has type *st.BasicTypeSymbol
+path fixing *os.FileInfo *st.PointerTypeSymbol
+token int has type *st.BasicTypeSymbol
+reflect fixing Addr *st.FunctionSymbol
+tests fixing L1 *st.ArrayTypeSymbol
+program fixing *Package *st.PointerTypeSymbol
+packageParser fixing *st.Package *st.PointerTypeSymbol
+unicode int has type *st.BasicTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime fixing MapType *st.StructTypeSymbol
+flag fixing $unnamed0 *st.VariableSymbol
+os fixing Mtime_ns *st.VariableSymbol
+syscall fixing Name *st.VariableSymbol
+scanner string has type *st.BasicTypeSymbol
+time string has type *st.BasicTypeSymbol
+testing fixing *T *st.PointerTypeSymbol
+io fixing err *st.VariableSymbol
+ast fixing Expr *st.InterfaceTypeSymbol
+rand int64 has type *st.BasicTypeSymbol
+sort int has type *st.BasicTypeSymbol
+vector fixing StringVector *st.ArrayTypeSymbol
+path os.FileInfo set to FileInfo
+token fixing Offset *st.VariableSymbol
+reflect fixing  *st.FunctionTypeSymbol
+tests fixing P1 *st.AliasTypeSymbol
+program fixing Program *st.StructTypeSymbol
+packageParser st.Package set to Package
+unicode fixing Range *st.StructTypeSymbol
+fmt fixing $unnamed0 *st.VariableSymbol
+st bool has type *st.BasicTypeSymbol
+runtime fixing BoolType *st.AliasTypeSymbol
+flag string has type *st.BasicTypeSymbol
+os int64 has type *st.BasicTypeSymbol
+syscall *byte has type *st.PointerTypeSymbol
+scanner fixing ErrorVector *st.StructTypeSymbol
+time fixing Message *st.VariableSymbol
+testing fixing T *st.StructTypeSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+ast fixing Node *st.InterfaceTypeSymbol
+rand fixing Zipf *st.StructTypeSymbol
+sort fixing j *st.VariableSymbol
+vector fixing Vector *st.ArrayTypeSymbol
+path fixing $unnamed0 *st.VariableSymbol
+token int has type *st.BasicTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+tests fixing *S1 *st.PointerTypeSymbol
+program fixing BaseSymbolTable *st.VariableSymbol
+packageParser fixing globalsVisitor *st.StructTypeSymbol
+unicode fixing Stride *st.VariableSymbol
+fmt string has type *st.BasicTypeSymbol
+st fixing SetObject *st.FunctionSymbol
+runtime fixing IntType *st.AliasTypeSymbol
+flag fixing $unnamed0 *st.VariableSymbol
+os fixing Ctime_ns *st.VariableSymbol
+syscall fixing Aliases *st.VariableSymbol
+scanner fixing ErrorHandler *st.InterfaceTypeSymbol
+time string has type *st.BasicTypeSymbol
+testing fixing Name *st.VariableSymbol
+io fixing n *st.VariableSymbol
+ast fixing Pos *st.FunctionSymbol
+rand fixing Rand *st.StructTypeSymbol
+sort int has type *st.BasicTypeSymbol
+vector fixing  *st.InterfaceTypeSymbol
+path bool has type *st.BasicTypeSymbol
+reflect uintptr has type *st.BasicTypeSymbol
+tests S1 set to S1
+program *st.SymbolTable has type *st.PointerTypeSymbol
+packageParser fixing Parser *st.VariableSymbol
+unicode int has type *st.BasicTypeSymbol
+fmt fixing State *st.InterfaceTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime fixing InterfaceType *st.StructTypeSymbol
+flag bool has type *st.BasicTypeSymbol
+os int64 has type *st.BasicTypeSymbol
+syscall **byte has type *st.PointerTypeSymbol
+scanner fixing Error *st.FunctionSymbol
+time fixing ValueElem *st.VariableSymbol
+testing string has type *st.BasicTypeSymbol
+io int has type *st.BasicTypeSymbol
+ast fixing  *st.FunctionTypeSymbol
+sort fixing Less *st.FunctionSymbol
+vector fixing IntVector *st.ArrayTypeSymbol
+path fixing VisitFile *st.FunctionSymbol
+reflect fixing SetValue *st.FunctionSymbol
+tests fixing Y *st.InterfaceTypeSymbol
+program fixing *st.SymbolTable *st.PointerTypeSymbol
+packageParser *packageParser has type *st.PointerTypeSymbol
+unicode fixing Hi *st.VariableSymbol
+fmt fixing Precision *st.FunctionSymbol
+st fixing obj *st.VariableSymbol
+runtime fixing ChanDir *st.AliasTypeSymbol
+flag fixing Flag *st.StructTypeSymbol
+os fixing Blocks *st.VariableSymbol
+syscall fixing AddrType *st.VariableSymbol
+scanner fixing  *st.FunctionTypeSymbol
+time string has type *st.BasicTypeSymbol
+testing fixing Regexp *st.StructTypeSymbol
+io fixing ReadWriteSeeker *st.InterfaceTypeSymbol
+ast fixing $unnamed0 *st.VariableSymbol
+sort fixing  *st.FunctionTypeSymbol
+vector fixing VectorInterface *st.InterfaceTypeSymbol
+path fixing  *st.FunctionTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+tests fixing f *st.FunctionSymbol
+program st.SymbolTable set to SymbolTable
+packageParser fixing packageParser *st.StructTypeSymbol
+unicode int has type *st.BasicTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st *ast.Object has type *st.PointerTypeSymbol
+runtime fixing ChanType *st.StructTypeSymbol
+flag fixing Value *st.VariableSymbol
+os int64 has type *st.BasicTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+scanner fixing pos *st.VariableSymbol
+time fixing LayoutElem *st.VariableSymbol
+testing fixing B *st.StructTypeSymbol
+io fixing Reader *st.InterfaceTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+sort fixing i *st.VariableSymbol
+vector fixing Cap *st.FunctionSymbol
+path fixing path *st.VariableSymbol
+reflect fixing v *st.VariableSymbol
+tests fixing  *st.FunctionTypeSymbol
+program fixing Packages *st.VariableSymbol
+packageParser fixing MethodsParser *st.VariableSymbol
+unicode fixing Lo *st.VariableSymbol
+fmt fixing ok *st.VariableSymbol
+st fixing *ast.Object *st.PointerTypeSymbol
+runtime fixing MemProfileRecord *st.StructTypeSymbol
+flag Value has type *st.InterfaceTypeSymbol
+os fixing Blksize *st.VariableSymbol
+syscall fixing *DNSRecord *st.PointerTypeSymbol
+scanner token.Position has type *st.UnresolvedTypeSymbol
+time string has type *st.BasicTypeSymbol
+testing fixing N *st.VariableSymbol
+io fixing Read *st.FunctionSymbol
+ast fixing Fun *st.VariableSymbol
+sort int has type *st.BasicTypeSymbol
+vector fixing  *st.FunctionTypeSymbol
+path string has type *st.BasicTypeSymbol
+reflect Value has type *st.UnresolvedTypeSymbol
+tests fixing $unnamed0 *st.VariableSymbol
+program  has type *st.MapTypeSymbol
+packageParser *methodsVisitor has type *st.PointerTypeSymbol
+unicode int has type *st.BasicTypeSymbol
+fmt bool has type *st.BasicTypeSymbol
+st ast.Object set to Object
+runtime fixing Stack0 *st.VariableSymbol
+flag fixing Name *st.VariableSymbol
+os int64 has type *st.BasicTypeSymbol
+syscall DNSRecord set to DNSRecord
+scanner fixing msg *st.VariableSymbol
+time fixing Layout *st.VariableSymbol
+testing int has type *st.BasicTypeSymbol
+io fixing  *st.FunctionTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+sort fixing j *st.VariableSymbol
+vector fixing $unnamed0 *st.VariableSymbol
+path fixing f *st.VariableSymbol
+reflect fixing CanSet *st.FunctionSymbol
+tests A has type *st.ArrayTypeSymbol
+program fixing  *st.MapTypeSymbol
+packageParser fixing *methodsVisitor *st.PointerTypeSymbol
+fmt fixing prec *st.VariableSymbol
+st fixing PackageFrom *st.FunctionSymbol
+runtime  has type *st.ArrayTypeSymbol
+flag string has type *st.BasicTypeSymbol
+os fixing Ino *st.VariableSymbol
+syscall fixing Timex *st.StructTypeSymbol
+scanner string has type *st.BasicTypeSymbol
+time string has type *st.BasicTypeSymbol
+testing fixing *B *st.PointerTypeSymbol
+io fixing p *st.VariableSymbol
+ast fixing Lparen *st.VariableSymbol
+sort int has type *st.BasicTypeSymbol
+vector int has type *st.BasicTypeSymbol
+path *FileInfo has type *st.PointerTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+tests fixing A *st.ArrayTypeSymbol
+program fixing *SymbolTable *st.PointerTypeSymbol
+packageParser methodsVisitor set to methodsVisitor
+fmt int has type *st.BasicTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+flag fixing DefValue *st.VariableSymbol
+runtime fixing  *st.ArrayTypeSymbol
+syscall fixing Pad4 *st.VariableSymbol
+scanner fixing Scanner *st.StructTypeSymbol
+time fixing Time *st.StructTypeSymbol
+testing B set to B
+io  has type *st.ArrayTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+sort fixing $unnamed0 *st.VariableSymbol
+vector fixing Len *st.FunctionSymbol
+path fixing *FileInfo *st.PointerTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+packageParser fixing RootSymbolTable *st.VariableSymbol
+tests fixing $unnamed0 *st.VariableSymbol
+fmt fixing Flag *st.FunctionSymbol
+st fixing $unnamed0 *st.VariableSymbol
+flag string has type *st.BasicTypeSymbol
+runtime fixing AllocObjects *st.VariableSymbol
+os fixing FollowedSymlink *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+scanner fixing ErrorCount *st.VariableSymbol
+time fixing Day *st.VariableSymbol
+io fixing  *st.ArrayTypeSymbol
+testing fixing Benchmark *st.StructTypeSymbol
+ast fixing TypeAssertExpr *st.StructTypeSymbol
+vector fixing  *st.FunctionTypeSymbol
+path fixing MatchTest *st.StructTypeSymbol
+reflect bool has type *st.BasicTypeSymbol
+tests I has type *st.AliasTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+flag fixing Usage *st.VariableSymbol
+runtime int64 has type *st.BasicTypeSymbol
+os bool has type *st.BasicTypeSymbol
+scanner int has type *st.BasicTypeSymbol
+syscall fixing Pad10 *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io fixing err *st.VariableSymbol
+testing fixing F *st.VariableSymbol
+vector fixing $unnamed0 *st.VariableSymbol
+path fixing IsAbsTest *st.StructTypeSymbol
+reflect fixing Method *st.FunctionSymbol
+ast fixing X *st.VariableSymbol
+packageParser fixing *st.SymbolTable *st.PointerTypeSymbol
+tests fixing I *st.AliasTypeSymbol
+fmt fixing $unnamed0 *st.VariableSymbol
+sort fixing StringArray *st.ArrayTypeSymbol
+st fixing *Package *st.PointerTypeSymbol
+flag string has type *st.BasicTypeSymbol
+runtime fixing AllocBytes *st.VariableSymbol
+os fixing Gid *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Hour *st.VariableSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+testing  has type *st.FunctionTypeSymbol
+vector int has type *st.BasicTypeSymbol
+path fixing CleanTest *st.StructTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+packageParser st.SymbolTable set to SymbolTable
+tests fixing I4 *st.InterfaceTypeSymbol
+fmt int has type *st.BasicTypeSymbol
+sort fixing FloatArray *st.ArrayTypeSymbol
+st Package set to Package
+runtime int64 has type *st.BasicTypeSymbol
+os int has type *st.BasicTypeSymbol
+syscall fixing Precision *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io fixing n *st.VariableSymbol
+testing fixing  *st.FunctionTypeSymbol
+path fixing SplitTest *st.StructTypeSymbol
+reflect fixing i *st.VariableSymbol
+ast fixing Type *st.VariableSymbol
+packageParser fixing visited *st.VariableSymbol
+tests fixing m1 *st.FunctionSymbol
+fmt fixing $unnamed0 *st.VariableSymbol
+sort fixing IntArray *st.ArrayTypeSymbol
+st fixing Positions *st.FunctionSymbol
+runtime fixing FreeBytes *st.VariableSymbol
+os fixing Name *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Weekday *st.VariableSymbol
+io int has type *st.BasicTypeSymbol
+testing fixing b *st.VariableSymbol
+path fixing Node *st.StructTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+packageParser  has type *st.MapTypeSymbol
+tests fixing  *st.FunctionTypeSymbol
+fmt bool has type *st.BasicTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime int64 has type *st.BasicTypeSymbol
+os string has type *st.BasicTypeSymbol
+syscall fixing Pad8 *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io fixing Seeker *st.InterfaceTypeSymbol
+testing *B has type *st.PointerTypeSymbol
+path fixing JoinTest *st.StructTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing ParenExpr *st.StructTypeSymbol
+packageParser fixing  *st.MapTypeSymbol
+tests fixing x *st.VariableSymbol
+fmt fixing Width *st.FunctionSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime fixing FreeObjects *st.VariableSymbol
+os fixing Uid *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing ZoneOffset *st.VariableSymbol
+io fixing Seek *st.FunctionSymbol
+testing fixing Name *st.VariableSymbol
+path fixing ExtTest *st.StructTypeSymbol
+reflect *FuncValue has type *st.PointerTypeSymbol
+ast fixing Rparen *st.VariableSymbol
+packageParser fixing TypesParser *st.VariableSymbol
+tests float has type *st.BasicTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st *vector.Vector has type *st.PointerTypeSymbol
+runtime int64 has type *st.BasicTypeSymbol
+os int has type *st.BasicTypeSymbol
+syscall fixing Ppsfreq *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io fixing  *st.FunctionTypeSymbol
+testing string has type *st.BasicTypeSymbol
+path fixing TestVisitor *st.StructTypeSymbol
+reflect fixing *FuncValue *st.PointerTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+packageParser *typesVisitor has type *st.PointerTypeSymbol
+tests fixing y *st.VariableSymbol
+fmt fixing ok *st.VariableSymbol
+st fixing *vector.Vector *st.PointerTypeSymbol
+runtime fixing SliceType *st.StructTypeSymbol
+os fixing Atime_ns *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Month *st.VariableSymbol
+io fixing offset *st.VariableSymbol
+reflect FuncValue set to FuncValue
+ast fixing X *st.VariableSymbol
+packageParser fixing *typesVisitor *st.PointerTypeSymbol
+tests float has type *st.BasicTypeSymbol
+fmt bool has type *st.BasicTypeSymbol
+st vector.Vector set to Vector
+runtime fixing *Type *st.PointerTypeSymbol
+os int64 has type *st.BasicTypeSymbol
+syscall fixing Errcnt *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io int64 has type *st.BasicTypeSymbol
+reflect fixing Type *st.FunctionSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+packageParser fixing RegisterPositions *st.VariableSymbol
+tests fixing m3 *st.FunctionSymbol
+fmt fixing wid *st.VariableSymbol
+st fixing Object *st.FunctionSymbol
+runtime fixing Type *st.InterfaceTypeSymbol
+os fixing Nlink *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Year *st.VariableSymbol
+io fixing whence *st.VariableSymbol
+reflect fixing  *st.FunctionTypeSymbol
+rewrited token.Position 
+packageParser bool has type *st.BasicTypeSymbol
+tests fixing  *st.FunctionTypeSymbol
+fmt int has type *st.BasicTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime fixing StringType *st.AliasTypeSymbol
+os uint64 has type *st.BasicTypeSymbol
+syscall fixing Pad3 *st.VariableSymbol
+time int64 has type *st.BasicTypeSymbol
+io int has type *st.BasicTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing StructType *st.StructTypeSymbol
+packageParser fixing GlobalsParser *st.VariableSymbol
+tests fixing x *st.VariableSymbol
+fmt fixing Write *st.FunctionSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime fixing MemStatsType *st.StructTypeSymbol
+os fixing Rdev *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Minute *st.VariableSymbol
+io fixing err *st.VariableSymbol
+reflect Type has type *st.InterfaceTypeSymbol
+ast fixing Incomplete *st.VariableSymbol
+packageParser *globalsVisitor has type *st.PointerTypeSymbol
+tests int has type *st.BasicTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st *Object has type *st.PointerTypeSymbol
+runtime fixing MCacheInuse *st.VariableSymbol
+os uint64 has type *st.BasicTypeSymbol
+syscall fixing Status *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+reflect fixing Type *st.InterfaceTypeSymbol
+ast bool has type *st.BasicTypeSymbol
+packageParser fixing Package *st.VariableSymbol
+tests fixing x *st.VariableSymbol
+fmt fixing b *st.VariableSymbol
+st fixing *Object *st.PointerTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing Mode *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Second *st.VariableSymbol
+io fixing ret *st.VariableSymbol
+reflect fixing String *st.FunctionSymbol
+ast fixing Fields *st.VariableSymbol
+packageParser *Package has type *st.PointerTypeSymbol
+tests float has type *st.BasicTypeSymbol
+fmt  has type *st.ArrayTypeSymbol
+st fixing Name *st.FunctionSymbol
+runtime fixing HeapIdle *st.VariableSymbol
+os uint32 has type *st.BasicTypeSymbol
+syscall fixing Pad11 *st.VariableSymbol
+time int has type *st.BasicTypeSymbol
+io int64 has type *st.BasicTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast *FieldList has type *st.PointerTypeSymbol
+packageParser fixing *Package *st.PointerTypeSymbol
+tests fixing m2 *st.FunctionSymbol
+fmt fixing  *st.ArrayTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing Waitmsg *st.StructTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+time fixing Zone *st.VariableSymbol
+io fixing ReadWriteCloser *st.InterfaceTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing *FieldList *st.PointerTypeSymbol
+packageParser fixing CurrentFileName *st.VariableSymbol
+tests fixing  *st.FunctionTypeSymbol
+fmt fixing err *st.VariableSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime fixing Lookups *st.VariableSymbol
+os fixing Rusage *st.VariableSymbol
+syscall fixing Stabil *st.VariableSymbol
+time string has type *st.BasicTypeSymbol
+io fixing Closer *st.InterfaceTypeSymbol
+reflect string has type *st.BasicTypeSymbol
+ast fixing FieldList *st.StructTypeSymbol
+packageParser string has type *st.BasicTypeSymbol
+tests fixing x *st.VariableSymbol
+fmt os.Error has type *st.UnresolvedTypeSymbol
+st string has type *st.BasicTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os *syscall.Rusage has type *st.PointerTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io fixing Close *st.FunctionSymbol
+reflect fixing Size *st.FunctionSymbol
+ast fixing Closing *st.VariableSymbol
+packageParser fixing CurrentSymbolTable *st.VariableSymbol
+tests float has type *st.BasicTypeSymbol
+fmt fixing ret *st.VariableSymbol
+st fixing AddPosition *st.FunctionSymbol
+runtime fixing StackInuse *st.VariableSymbol
+os fixing *syscall.Rusage *st.PointerTypeSymbol
+syscall fixing Pad7 *st.VariableSymbol
+io fixing  *st.FunctionTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+packageParser *SymbolTable has type *st.PointerTypeSymbol
+tests fixing y *st.VariableSymbol
+fmt int has type *st.BasicTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os syscall.Rusage set to Rusage
+syscall int32 has type *st.BasicTypeSymbol
+io fixing $unnamed0 *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing List *st.VariableSymbol
+packageParser fixing *SymbolTable *st.PointerTypeSymbol
+tests float has type *st.BasicTypeSymbol
+fmt fixing Formatter *st.InterfaceTypeSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime fixing MCacheSys *st.VariableSymbol
+rewrited syscall.WaitStatus 
+syscall fixing Calcnt *st.VariableSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+reflect uintptr has type *st.BasicTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+packageParser fixing Mode *st.VariableSymbol
+tests fixing *t *st.PointerTypeSymbol
+fmt fixing Format *st.FunctionSymbol
+st Occurence has type *st.UnresolvedTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing Pid *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io fixing ReadByter *st.InterfaceTypeSymbol
+reflect fixing PkgPath *st.FunctionSymbol
+ast fixing  *st.ArrayTypeSymbol
+packageParser int has type *st.BasicTypeSymbol
+tests t set to t
+fmt fixing  *st.FunctionTypeSymbol
+st fixing BasicTypeSymbol *st.StructTypeSymbol
+runtime fixing MSpanSys *st.VariableSymbol
+os int has type *st.BasicTypeSymbol
+syscall fixing Freq *st.VariableSymbol
+io fixing ReadByte *st.FunctionSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast fixing *Field *st.PointerTypeSymbol
+packageParser fixing methodsVisitor *st.StructTypeSymbol
+tests fixing M2 *st.MapTypeSymbol
+fmt fixing c *st.VariableSymbol
+st fixing *TypeSymbol *st.PointerTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing ErrorString *st.AliasTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io fixing  *st.FunctionTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing Field *st.StructTypeSymbol
+packageParser fixing Parser *st.VariableSymbol
+tests fixing A4 *st.ArrayTypeSymbol
+fmt int has type *st.BasicTypeSymbol
+st fixing TypeSymbol *st.StructTypeSymbol
+runtime fixing PauseNs *st.VariableSymbol
+os fixing *Rusage *st.PointerTypeSymbol
+syscall fixing Maxerror *st.VariableSymbol
+io fixing c *st.VariableSymbol
+reflect string has type *st.BasicTypeSymbol
+ast fixing Doc *st.VariableSymbol
+packageParser *packageParser has type *st.PointerTypeSymbol
+tests fixing A1 *st.ArrayTypeSymbol
+fmt fixing f *st.VariableSymbol
+st fixing Meths *st.VariableSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing PathError *st.StructTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io byte has type *st.BasicTypeSymbol
+reflect fixing NumMethod *st.FunctionSymbol
+ast *CommentGroup has type *st.PointerTypeSymbol
+tests fixing U *st.AliasTypeSymbol
+fmt State has type *st.InterfaceTypeSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+runtime fixing HeapSys *st.VariableSymbol
+os fixing Op *st.VariableSymbol
+syscall fixing Modes *st.VariableSymbol
+io fixing err *st.VariableSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast fixing *CommentGroup *st.PointerTypeSymbol
+tests fixing B *st.AliasTypeSymbol
+fmt fixing Scanner *st.InterfaceTypeSymbol
+st fixing *SymbolTable *st.PointerTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os string has type *st.BasicTypeSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing CommentGroup *st.StructTypeSymbol
+tests fixing III *st.AliasTypeSymbol
+fmt fixing Scan *st.FunctionSymbol
+st fixing SymbolTable *st.StructTypeSymbol
+runtime fixing Alloc *st.VariableSymbol
+os fixing Path *st.VariableSymbol
+syscall fixing Pad2 *st.VariableSymbol
+io fixing ReaderAt *st.InterfaceTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+ast fixing List *st.VariableSymbol
+tests fixing C1 *st.ChanTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st fixing Table *st.VariableSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os string has type *st.BasicTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io fixing ReadAt *st.FunctionSymbol
+reflect fixing Kind *st.FunctionSymbol
+ast  has type *st.ArrayTypeSymbol
+tests fixing F *st.FunctionTypeSymbol
+fmt fixing verb *st.VariableSymbol
+st  has type *st.MapTypeSymbol
+runtime fixing MHeapMapSys *st.VariableSymbol
+os fixing Error *st.VariableSymbol
+syscall fixing Jitter *st.VariableSymbol
+io fixing  *st.FunctionTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast fixing  *st.ArrayTypeSymbol
+tests fixing $unnamed0 *st.VariableSymbol
+fmt int has type *st.BasicTypeSymbol
+st fixing  *st.MapTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os Error has type *st.InterfaceTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io fixing p *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing *Comment *st.PointerTypeSymbol
+tests A has type *st.ArrayTypeSymbol
+fmt fixing state *st.VariableSymbol
+st fixing OpenedScopes *st.VariableSymbol
+runtime fixing EnableGC *st.VariableSymbol
+os fixing Error *st.InterfaceTypeSymbol
+syscall fixing Pad6 *st.VariableSymbol
+io  has type *st.ArrayTypeSymbol
+reflect Kind has type *st.UnresolvedTypeSymbol
+ast fixing Comment *st.StructTypeSymbol
+tests fixing $unnamed0 *st.VariableSymbol
+fmt ScanState has type *st.InterfaceTypeSymbol
+st *Vector has type *st.PointerTypeSymbol
+runtime bool has type *st.BasicTypeSymbol
+os fixing String *st.FunctionSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io fixing  *st.ArrayTypeSymbol
+reflect fixing Align *st.FunctionSymbol
+ast fixing Text *st.VariableSymbol
+tests I has type *st.AliasTypeSymbol
+fmt fixing ScanState *st.InterfaceTypeSymbol
+st fixing *Vector *st.PointerTypeSymbol
+runtime fixing HeapInuse *st.VariableSymbol
+os fixing  *st.FunctionTypeSymbol
+syscall fixing Jitcnt *st.VariableSymbol
+io fixing off *st.VariableSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+tests fixing L2 *st.ArrayTypeSymbol
+fmt fixing GetRune *st.FunctionSymbol
+st fixing Package *st.VariableSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing $unnamed0 *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+io int64 has type *st.BasicTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing  *st.ArrayTypeSymbol
+tests fixing I3 *st.InterfaceTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+runtime fixing Mallocs *st.VariableSymbol
+os string has type *st.BasicTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+rewrited token.Position 
+tests fixing m1 *st.FunctionSymbol
+fmt fixing err *st.VariableSymbol
+st fixing Obj *st.VariableSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+os fixing SyscallError *st.StructTypeSymbol
+reflect fixing Name *st.FunctionSymbol
+ast fixing Tag *st.VariableSymbol
+tests fixing  *st.FunctionTypeSymbol
+fmt os.Error has type *st.UnresolvedTypeSymbol
+st *Object has type *st.PointerTypeSymbol
+runtime fixing NumGC *st.VariableSymbol
+os fixing Syscall *st.VariableSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast *BasicLit has type *st.PointerTypeSymbol
+tests fixing P2 *st.AliasTypeSymbol
+fmt fixing rune *st.VariableSymbol
+st fixing Posits *st.VariableSymbol
+runtime uint32 has type *st.BasicTypeSymbol
+os string has type *st.BasicTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing *BasicLit *st.PointerTypeSymbol
+tests fixing Last *st.AliasTypeSymbol
+fmt int has type *st.BasicTypeSymbol
+st *Vector has type *st.PointerTypeSymbol
+runtime fixing BySize *st.VariableSymbol
+os fixing Errno *st.VariableSymbol
+reflect string has type *st.BasicTypeSymbol
+ast BasicLit set to BasicLit
+tests fixing M1 *st.MapTypeSymbol
+fmt fixing Token *st.FunctionSymbol
+st fixing PackFrom *st.VariableSymbol
+runtime  has type *st.ArrayTypeSymbol
+os Errno has type *st.AliasTypeSymbol
+reflect fixing Method *st.FunctionSymbol
+ast fixing Comment *st.VariableSymbol
+tests fixing F4 *st.FunctionTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+runtime fixing  *st.ArrayTypeSymbol
+os fixing LinkError *st.StructTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+ast *CommentGroup has type *st.PointerTypeSymbol
+tests fixing x *st.VariableSymbol
+fmt fixing token *st.VariableSymbol
+st fixing ReadOnly *st.VariableSymbol
+runtime fixing  *st.StructTypeSymbol
+os fixing Op *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+ast fixing Names *st.VariableSymbol
+tests float has type *st.BasicTypeSymbol
+fmt string has type *st.BasicTypeSymbol
+st bool has type *st.BasicTypeSymbol
+runtime fixing Size *st.VariableSymbol
+os string has type *st.BasicTypeSreflect int has type *st.BasicTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+testsfmt fixing err *st.VariableSymbol
+st fixing PointerTypeSymbol *st.StructTypeSymbol
+runtime uint32 has type *st.BasicTypeSymbol
+io os.Error has type *st.Unresolvsyscall int32 has type *st.BasicTypeSymbol
+fmt os.Error has type *st.UnresolvedTypeSymbol
+st fixing BaseType *st.VariableSymbol
+runtime fixing Mallocs *st.VariableSymbol
+io fixing n *st.VariableSymbol
+reflect Method has type *st.StructTypeSymbol
+ast fixing *Ident *st.PointerTypeSymbol
+tests fixing *T *st.PointerTypeSymbol
+os string has type *st.BasicTypeSymbol
+syscall fixing Tolerance *st.VariableSymbol
+fmt fixing Width *st.FunctionSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+io int has type *st.BasicTypeSymbol
+reflect fixing Method *st.StructTypeSymbol
+ast Ident set to Ident
+tests fixing T *st.StructTypeSymbol
+os fixing New *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+fmt fixing  *st.FunctionTypeSymbol
+st fixing ITypeSymbol *st.InterfaceTypeSymbol
+reflect fixing PkgPath *st.VariableSymbol
+io fixing ReadCloser *st.InterfaceTypeSymbol
+runtime fixing Frees *st.VariableSymbol
+ast fixing Type *st.VariableSymbol
+tests fixing X *st.VariableSymbol
+os string has type *st.BasicTypeSymbol
+syscall fixing Constant *st.VariableSymbol
+fmt fixing ok *st.VariableSymbol
+st fixing SetMethods *st.FunctionSymbol
+reflect string has type *st.BasicTypeSymbol
+io fixing WriteSeeker *st.InterfaceTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+tests P has type *st.UnresolvedTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+fmt bool has type *st.BasicTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+reflect fixing Func *st.VariableSymbol
+io fixing PipeReader *st.StructTypeSymbol
+runtime fixing StackSys *st.VariableSymbol
+ast fixing Opening *st.VariableSymbol
+tests fixing R *st.AliasTypeSymbol
+os Error has type *st.InterfaceTypeSymbol
+syscall fixing Pad5 *st.VariableSymbol
+reflect *FuncValue has type *st.PointerTypeSymbol
+io fixing SectionReader *st.StructTypeSymbol
+st fixing $unnamed0 *st.VariableSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+fmt fixing wid *st.VariableSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+tests fixing *R *st.PointerTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+reflect fixing Name *st.VariableSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+runtime fixing Sys *st.VariableSymbol
+fmt int has type *st.BasicTypeSymbol
+rewrited token.Position 
+io fixing ReadSeeker *st.InterfaceTypeSymbol
+reflect string has type *st.BasicTypeSymbol
+tests R set to R
+syscall fixing Pad9 *st.VariableSymbol
+fmt fixing UngetRune *st.FunctionSio fixing n *st.VariableSymbol
+reflect fixing StructType *st.StructTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+tests fixing m1 *st.FunctionSymbol
+syscall fixing Shift *st.VariableSymbol
+ast fixing ReturnStmt *st.StructTypeSymbol
+st fixing  *st.FunctionTypeSymbol
+io int has type *st.BasicTypeSymbol
+reflect fixing ComplexValue *st.StructTypeSymbol
+runtime fixing DebugGC *st.VariableSymbol
+tests fixing  *st.FunctionTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing Results *st.VariableSymbol
+st fixing $unnamed0 *st.VariableSymbol
+io fixing WriterTo *st.InterfaceTypeSymbol
+reflect fixing UnsafePointerType *st.StructTypeSymbol
+runtime bool has type *st.BasicTypeSymbol
+tests fixing BBBBBB *st.StructTypeSymbol
+syscall fixing Offset *st.VariableSymbol
+ast  has type *st.ArrayTypeSymbol
+st ITypeSymbol has type *st.UnresolvedTypeSymbol
+io fixing WriteTo *st.FunctionSymbol
+reflect fixing FloatType *st.StructTypeSymbol
+runtime fixing HeapObjects *st.VariableSymbol
+tests fixing Obj *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing  *st.ArrayTypeSymbol
+st fixing Methods *st.FunctionSymbol
+io fixing  *st.FunctionTypeSymbol
+reflect fixing ArrayType *st.StructTypeSymbol
+runtime uint64 has type *st.BasicTypeSymbol
+tests string has type *st.BasicTypeSymbol
+syscall fixing Stbcnt *st.VariableSymbol
+rewrited token.Position 
+st fixing  *st.FunctionTypeSymbol
+io fixing w *st.VariableSymbol
+reflect fixing UintValue *st.StructTypeSymbol
+runtime fixing FuncType *st.StructTypeSymbol
+tests fixing OtherField2 *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing *Scope *st.PointerTypeSymbol
+st fixing $unnamed0 *st.VariableSymbol
+io Writer has type *st.InterfaceTypeSymbol
+reflect fixing ArrayOrSliceType *st.InterfaceTypeSymbol
+runtime fixing PtrType *st.StructTypeSymbol
+tests bool has type *st.BasicTypeSymbol
+syscall fixing Pad0 *st.VariableSymbol
+ast Scope set to Scope
+st *SymbolTable has type *st.PointerTypeSymbol
+io fixing err *st.VariableSymbol
+reflect fixing Elem *st.FunctionSymbol
+runtime fixing UintType *st.AliasTypeSymbol
+tests fixing F5 *st.FunctionTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing Visitor *st.InterfaceTypeSymbol
+st fixing AddMethod *st.FunctionSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+runtime fixing Error *st.InterfaceTypeSymbol
+tests fixing x *st.VariableSymbol
+syscall fixing SockaddrUnix *st.StructTypeSymbol
+ast fixing Visit *st.FunctionSymbol
+st fixing  *st.FunctionTypeSymbol
+io fixing n *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+runtime fixing String *st.FunctionSymbol
+tests int has type *st.BasicTypeSymbol
+syscall fixing Name *st.VariableSymbol
+ast fixing  *st.FunctionTypeSymbol
+st fixing meth *st.VariableSymbol
+io int64 has type *st.BasicTypeSymbol
+reflect Type has type *st.InterfaceTypeSymbol
+runtime fixing  *st.FunctionTypeSymbol
+tests fixing x *st.VariableSymbol
+syscall string has type *st.BasicTypeSymbol
+ast fixing node *st.VariableSymbol
+st Symbol has type *st.InterfaceTypeSymbol
+io fixing ReaderFrom *st.InterfaceTypeSymbol
+reflect fixing FloatValue *st.StructTypeSymbol
+runtime fixing $unnamed0 *st.VariableSymbol
+tests float has type *st.BasicTypeSymbol
+syscall fixing WaitStatus *st.AliasTypeSymbol
+ast  has type *st.InterfaceTypeSymbol
+st fixing Fields *st.VariableSymbol
+io fixing ReadFrom *st.FunctionSymbol
+reflect fixing StringValue *st.StructTypeSymbol
+runtime string has type *st.BasicTypeSymbol
+tests fixing t *st.AliasTypeSymbol
+syscall fixing Fstore_t *st.StructTypeSymbol
+ast fixing  *st.InterfaceTypeSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+io fixing  *st.FunctionTypeSymbol
+reflect fixing ComplexType *st.StructTypeSymbol
+runtime fixing RuntimeError *st.FunctionSymbol
+tests fixing *U *st.PointerTypeSymbol
+syscall fixing Bytesalloc *st.VariableSymbol
+ast fixing w *st.VariableSymbol
+st fixing PackageSymbol *st.StructTypeSymbol
+io fixing r *st.VariableSymbol
+reflect fixing UnsafePointerValue *st.StructTypeSymbol
+runtime fixing  *st.FunctionTypeSymbol
+tests fixing S *st.ArrayTypeSymbol
+syscall int64 has type *st.BasicTypeSymbol
+ast Visitor has type *st.UnresolvedTypeSymbol
+st fixing Obj *st.VariableSymbol
+io Reader has type *st.InterfaceTypeSymbol
+reflect fixing IntValue *st.StructTypeSymbol
+runtime fixing TypeAssertionError *st.StructTypeSymbol
+tests fixing AA *st.AliasTypeSymbol
+syscall fixing Posmode *st.VariableSymbol
+ast fixing ArrayType *st.StructTypeSymbol
+st *Object has type *st.PointerTypeSymbol
+io fixing err *st.VariableSymbol
+reflect fixing MapType *st.StructTypeSymbol
+runtime fixing Itable *st.StructTypeSymbol
+tests fixing W *st.AliasTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing Len *st.VariableSymbol
+st fixing Posits *st.VariableSymbol
+io os.Error has type *st.UnresolvedTypeSymbol
+reflect fixing BoolType *st.StructTypeSymbol
+runtime fixing Fn *st.VariableSymbol
+tests fixing SSSSSSSSSSSSSSSSSS *st.AliasTypeSymbol
+syscall fixing Flags *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st *Vector has type *st.PointerTypeSymbol
+io fixing n *st.VariableSymbol
+reflect fixing FuncValue *st.StructTypeSymbol
+runtime  has type *st.ArrayTypeSymbol
+tests fixing F2 *st.FunctionTypeSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast fixing Elt *st.VariableSymbol
+st fixing PackFrom *st.VariableSymbol
+io int64 has type *st.BasicTypeSymbol
+reflect fixing MapValue *st.StructTypeSymbol
+runtime fixing  *st.ArrayTypeSymbol
+tests fixing x *st.VariableSymbol
+syscall fixing Length *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+io fixing Error *st.StructTypeSymbol
+reflect fixing BoolValue *st.StructTypeSymbol
+runtime fixing Itype *st.VariableSymbol
+tests float has type *st.BasicTypeSymbol
+syscall int64 has type *st.BasicTypeSymbol
+rewrited token.Position 
+st fixing Package *st.VariableSymbol
+rewrited os.ErrorString 
+reflect fixing Kind *st.AliasTypeSymbol
+runtime *Type has type *st.PointerTypeSymbol
+tests fixing y *st.VariableSymbol
+syscall fixing Offset *st.VariableSymbol
+ast fixing CaseClause *st.StructTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+io fixing PipeWriter *st.StructTypeSymbol
+reflect fixing IntType *st.StructTypeSymbol
+runtime fixing Type *st.VariableSymbol
+tests float has type *st.BasicTypeSymbol
+syscall int64 has type *st.BasicTypeSymbol
+ast fixing Body *st.VariableSymbol
+st fixing HasLocalName *st.VariableSymbol
+reflect fixing InterfaceType *st.StructTypeSymbol
+runtime *Type has type *st.PointerTypeSymbol
+tests fixing z *st.VariableSymbol
+syscall fixing Sockaddr *st.InterfaceTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+st bool has type *st.BasicTypeSymbol
+reflect fixing ChanDir *st.AliasTypeSymbol
+tests float has type *st.BasicTypeSymbol
+syscall fixing SockaddrInet4 *st.StructTypeSymbol
+ast fixing  *st.ArrayTypeSymbol
+st fixing Path *st.VariableSymbol
+reflect fixing InterfaceValue *st.StructTypeSymbol
+tests fixing S1 *st.StructTypeSymbol
+syscall fixing Addr *st.VariableSymbol
+ast fixing Stmt *st.InterfaceTypeSymbol
+st string has type *st.BasicTypeSymbol
+reflect fixing PtrValue *st.StructTypeSymbol
+tests fixing v *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing Values *st.VariableSymbol
+st fixing FunctionSymbol *st.StructTypeSymbol
+reflect fixing SliceHeader *st.StructTypeSymbol
+tests float has type *st.BasicTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+st fixing Locals *st.VariableSymbol
+reflect fixing Data *st.VariableSymbol
+tests fixing c *st.VariableSymbol
+syscall fixing Port *st.VariableSymbol
+ast fixing  *st.ArrayTypeSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+reflect uintptr has type *st.BasicTypeSymbol
+tests int has type *st.BasicTypeSymbol
+syscall int has type *st.BasicTypeSymbol
+ast fixing Colon *st.VariableSymbol
+st fixing FunctionType *st.VariableSymbol
+reflect fixing Cap *st.VariableSymbol
+tests fixing a *st.VariableSymbol
+syscall fixing Time_t *st.AliasTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+tests int has type *st.BasicTypeSymbol
+syscall fixing Timezoneinformation *st.StructTypeSymbol
+rewrited token.Position 
+st fixing Obj *st.VariableSymbol
+reflect fixing Len *st.VariableSymbol
+tests fixing u *st.VariableSymbol
+syscall fixing StandardDate *st.VariableSymbol
+ast fixing File *st.StructTypeSymbol
+st *Object has type *st.PointerTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+tests float has type *st.BasicTypeSymbol
+syscall Systemtime has type *st.StructTypeSymbol
+ast fixing Decls *st.VariableSymbol
+st fixing Posits *st.VariableSymbol
+reflect fixing ChanType *st.StructTypeSymbol
+tests fixing b *st.VariableSymbol
+syscall fixing Systemtime *st.StructTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+st *Vector has type *st.PointerTypeSymbol
+reflect fixing StringHeader *st.StructTypeSymbol
+tests int has type *st.BasicTypeSymbol
+syscall fixing Day *st.VariableSymbol
+ast fixing  *st.ArrayTypeSymbol
+st fixing PackFrom *st.VariableSymbol
+reflect fixing Data *st.VariableSymbol
+tests fixing C3 *st.ChanTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing Decl *st.InterfaceTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+reflect uintptr has type *st.BasicTypeSymbol
+tests fixing I1 *st.InterfaceTypeSymbol
+syscall fixing Hour *st.VariableSymbol
+ast fixing Doc *st.VariableSymbol
+st fixing ReadOnly *st.VariableSymbol
+reflect fixing Len *st.VariableSymbol
+tests fixing I5 *st.InterfaceTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast *CommentGroup has type *st.PointerTypeSymbol
+st bool has type *st.BasicTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+tests fixing m1 *st.FunctionSymbol
+syscall fixing Month *st.VariableSymbol
+ast fixing Name *st.VariableSymbol
+st fixing ChanTypeSymbol *st.StructTypeSymbol
+reflect fixing ArrayValue *st.StructTypeSymbol
+tests fixing  *st.FunctionTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast *Ident has type *st.PointerTypeSymbol
+st fixing ValueType *st.VariableSymbol
+reflect fixing StructValue *st.StructTypeSymbol
+tests fixing $unnamed0 *st.VariableSymbol
+syscall fixing Year *st.VariableSymbol
+ast fixing Comments *st.VariableSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+reflect fixing SliceType *st.StructTypeSymbol
+tests I5 has type *st.UnresolvedTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+st fixing VariableSymbol *st.StructTypeSymbol
+reflect fixing StringType *st.StructTypeSymbol
+tests fixing M *st.MapTypeSymbol
+syscall fixing Milliseconds *st.VariableSymbol
+ast fixing  *st.ArrayTypeSymbol
+st fixing Obj *st.VariableSymbol
+reflect fixing StructField *st.StructTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+rewrited token.Position 
+st *Object has type *st.PointerTypeSymbol
+reflect fixing Anonymous *st.VariableSymbol
+syscall fixing Minute *st.VariableSymbol
+ast fixing *File *st.PointerTypeSymbol
+st fixing Posits *st.VariableSymbol
+reflect bool has type *st.BasicTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing FuncDecl *st.StructTypeSymbol
+st *Vector has type *st.PointerTypeSymbol
+reflect fixing PkgPath *st.VariableSymbol
+syscall fixing Second *st.VariableSymbol
+ast fixing Body *st.VariableSymbol
+st fixing PackFrom *st.VariableSymbol
+reflect string has type *st.BasicTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast *BlockStmt has type *st.PointerTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+reflect fixing Tag *st.VariableSymbol
+syscall fixing DayOfWeek *st.VariableSymbol
+ast fixing *BlockStmt *st.PointerTypeSymbol
+st fixing ReadOnly *st.VariableSymbol
+reflect string has type *st.BasicTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast BlockStmt set to BlockStmt
+st bool has type *st.BasicTypeSymbol
+reflect fixing Name *st.VariableSymbol
+syscall fixing DaylightName *st.VariableSymbol
+ast fixing Doc *st.VariableSymbol
+st fixing VariableType *st.VariableSymbol
+reflect string has type *st.BasicTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast *CommentGroup has type *st.PointerTypeSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+reflect fixing Type *st.VariableSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Name *st.VariableSymbol
+st fixing Occurence *st.StructTypeSymbol
+reflect Type has type *st.InterfaceTypeSymbol
+syscall fixing Bias *st.VariableSymbol
+ast *Ident has type *st.PointerTypeSymbol
+st fixing Pos *st.VariableSymbol
+reflect fixing Index *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing Recv *st.VariableSymbol
+st token.Position has type *st.UnresolvedTypeSymbol
+reflect  has type *st.ArrayTypeSymbol
+syscall fixing DaylightDate *st.VariableSymbol
+ast *FieldList has type *st.PointerTypeSymbol
+st fixing FunctionTypeSymbol *st.StructTypeSymbol
+reflect fixing  *st.ArrayTypeSymbol
+syscall Systemtime has type *st.StructTypeSymbol
+ast fixing Type *st.VariableSymbol
+st fixing Reciever *st.VariableSymbol
+reflect fixing Offset *st.VariableSymbol
+syscall fixing StandardBias *st.VariableSymbol
+ast *FuncType has type *st.PointerTypeSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+reflect uintptr has type *st.BasicTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing *FuncType *st.PointerTypeSymbol
+st fixing Results *st.VariableSymbol
+reflect fixing ArrayOrSliceValue *st.InterfaceTypeSymbol
+syscall fixing StandardName *st.VariableSymbol
+ast FuncType set to FuncType
+st *SymbolTable has type *st.PointerTypeSymbol
+reflect fixing Cap *st.FunctionSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing Spec *st.InterfaceTypeSymbol
+st fixing Parameters *st.VariableSymbol
+reflect fixing  *st.FunctionTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing SelectorExpr *st.StructTypeSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+syscall fixing DaylightBias *st.VariableSymbol
+ast fixing Sel *st.VariableSymbol
+st fixing *ast.Package *st.PointerTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast *Ident has type *st.PointerTypeSymbol
+st ast.Package set to Package
+reflect fixing Len *st.FunctionSymbol
+syscall fixing Tms *st.StructTypeSymbol
+ast fixing X *st.VariableSymbol
+st fixing MapTypeSymbol *st.StructTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+syscall fixing Utime *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st fixing KeyType *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing BadDecl *st.StructTypeSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+syscall fixing Cstime *st.VariableSymbol
+rewrited token.Position 
+st fixing ValueType *st.VariableSymbol
+reflect fixing Elem *st.FunctionSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing CompositeLit *st.StructTypeSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+reflect fixing  *st.FunctionTypeSymbol
+syscall fixing Stime *st.VariableSymbol
+ast fixing Lbrace *st.VariableSymbol
+st fixing InterfaceTypeSymbol *st.StructTypeSymbol
+reflect fixing i *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+st fixing Package *st.StructTypeSymbol
+reflect int has type *st.BasicTypeSymbol
+syscall fixing Cutime *st.VariableSymbol
+ast fixing Rbrace *st.VariableSymbol
+st fixing Imports *st.VariableSymbol
+reflect fixing $unnamed0 *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+st  has type *st.MapTypeSymbol
+reflect Value has type *st.InterfaceTypeSymbol
+syscall fixing *Iovec *st.PointerTypeSymbol
+ast fixing Elts *st.VariableSymbol
+st fixing  *st.MapTypeSymbol
+reflect fixing PtrType *st.StructTypeSymbol
+syscall fixing Iovec *st.StructTypeSymbol
+ast  has type *st.ArrayTypeSymbol
+st fixing QualifiedPath *st.VariableSymbol
+reflect fixing UintType *st.StructTypeSymbol
+syscall fixing Len *st.VariableSymbol
+ast fixing  *st.ArrayTypeSymbol
+st string has type *st.BasicTypeSymbol
+reflect fixing ChanValue *st.StructTypeSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+ast fixing Type *st.VariableSymbol
+st fixing Communication *st.VariableSymbol
+syscall fixing Base *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st  has type *st.ChanTypeSymbol
+syscall *byte has type *st.PointerTypeSymbol
+ast fixing MapType *st.StructTypeSymbol
+st fixing  *st.ChanTypeSymbol
+syscall fixing Rlimit *st.StructTypeSymbol
+ast fixing Value *st.VariableSymbol
+st fixing AstPackage *st.VariableSymbol
+syscall fixing Max *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st *Package has type *st.PointerTypeSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+ast fixing Key *st.VariableSymbol
+st fixing IsGoPackage *st.VariableSymbol
+syscall fixing Cur *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st bool has type *st.BasicTypeSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+rewrited token.Position 
+st fixing SymbolTablePool *st.VariableSymbol
+syscall fixing WSAData *st.StructTypeSymbol
+ast fixing Filter *st.FunctionTypeSymbol
+st *Vector has type *st.PointerTypeSymbol
+syscall fixing MaxSockets *st.VariableSymbol
+ast fixing $unnamed0 *st.VariableSymbol
+st fixing Symbols *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast string has type *st.BasicTypeSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+syscall fixing VendorInfo *st.VariableSymbol
+ast fixing $unnamed0 *st.VariableSymbol
+st fixing AliasTypeSymbol *st.StructTypeSymbol
+syscall *byte has type *st.PointerTypeSymbol
+ast bool has type *st.BasicTypeSymbol
+st fixing BaseType *st.VariableSymbol
+syscall fixing Version *st.VariableSymbol
+ast fixing BinaryExpr *st.StructTypeSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing Op *st.VariableSymbol
+st fixing ArrayTypeSymbol *st.StructTypeSymbol
+syscall fixing SystemStatus *st.VariableSymbol
+ast token.Token has type *st.UnresolvedTypeSymbol
+st fixing ElemType *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing Y *st.VariableSymbol
+st ITypeSymbol has type *st.InterfaceTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st fixing Len *st.VariableSymbol
+syscall fixing Description *st.VariableSymbol
+ast fixing OpPos *st.VariableSymbol
+st int has type *st.BasicTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast token.Position has type *st.UnresolvedTypeSymbol
+st fixing UnresolvedTypeSymbol *st.StructTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing X *st.VariableSymbol
+st fixing Declaration *st.VariableSymbol
+syscall fixing MaxUdpDg *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+st ast.Expr has type *st.UnresolvedTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing Kind *st.AliasTypeSymbol
+st fixing StructTypeSymbol *st.StructTypeSymbol
+syscall fixing HighVersion *st.VariableSymbol
+ast fixing SwitchStmt *st.StructTypeSymbol
+st fixing Fields *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing Body *st.VariableSymbol
+st *SymbolTable has type *st.PointerTypeSymbol
+syscall fixing RawSockaddrInet6 *st.StructTypeSymbol
+ast *BlockStmt has type *st.PointerTypeSymbol
+syscall fixing Scope_id *st.VariableSymbol
+ast fixing Tag *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Flowinfo *st.VariableSymbol
+ast fixing Init *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast Stmt has type *st.InterfaceTypeSymbol
+syscall fixing Family *st.VariableSymbol
+rewrited token.Position 
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing BranchStmt *st.StructTypeSymbol
+syscall fixing Addr *st.VariableSymbol
+ast fixing Label *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast *Ident has type *st.PointerTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Tok *st.VariableSymbol
+syscall fixing Port *st.VariableSymbol
+ast token.Token has type *st.UnresolvedTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+rewrited token.Position 
+syscall fixing Statfs_t *st.StructTypeSymbol
+ast fixing Ellipsis *st.StructTypeSymbol
+syscall fixing Bsize *st.VariableSymbol
+ast fixing Elt *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Namelen *st.VariableSymbol
+rewrited token.Position 
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing StarExpr *st.StructTypeSymbol
+syscall fixing Blocks *st.VariableSymbol
+ast fixing X *st.VariableSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Fsid *st.VariableSymbol
+rewrited token.Position 
+syscall  has type *st.ArrayTypeSymbol
+ast fixing InterfaceType *st.StructTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Methods *st.VariableSymbol
+syscall fixing Bfree *st.VariableSymbol
+ast *FieldList has type *st.PointerTypeSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+ast fixing Incomplete *st.VariableSymbol
+syscall fixing Ffree *st.VariableSymbol
+ast bool has type *st.BasicTypeSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+rewrited token.Position 
+syscall fixing Spare *st.VariableSymbol
+ast fixing DeclStmt *st.StructTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing Decl *st.VariableSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast Decl has type *st.InterfaceTypeSymbol
+syscall fixing Bavail *st.VariableSymbol
+ast fixing ChanDir *st.AliasTypeSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+ast fixing ForStmt *st.StructTypeSymbol
+syscall fixing Frsize *st.VariableSymbol
+ast fixing Post *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast Stmt has type *st.InterfaceTypeSymbol
+syscall fixing Type *st.VariableSymbol
+ast fixing Body *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast *BlockStmt has type *st.PointerTypeSymbol
+syscall fixing Files *st.VariableSymbol
+ast fixing Cond *st.VariableSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Pad0 *st.VariableSymbol
+ast fixing Init *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast Stmt has type *st.InterfaceTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+rewrited token.Position 
+syscall fixing PtraceRegs *st.StructTypeSymbol
+ast fixing DeferStmt *st.StructTypeSymbol
+syscall fixing RawSockaddrAny *st.StructTypeSymbol
+rewrited token.Position 
+syscall fixing Addr *st.VariableSymbol
+ast fixing Call *st.VariableSymbol
+syscall RawSockaddr has type *st.StructTypeSymbol
+ast *CallExpr has type *st.PointerTypeSymbol
+syscall fixing RawSockaddr *st.StructTypeSymbol
+ast fixing *CallExpr *st.PointerTypeSymbol
+syscall fixing Data *st.VariableSymbol
+ast fixing ExprStmt *st.StructTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing X *st.VariableSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Family *st.VariableSymbol
+ast fixing SelectStmt *st.StructTypeSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+ast fixing Body *st.VariableSymbol
+syscall fixing Pad *st.VariableSymbol
+ast *BlockStmt has type *st.PointerTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+rewrited token.Position 
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Object *st.StructTypeSymbol
+syscall fixing Timespec *st.StructTypeSymbol
+ast fixing Decl *st.VariableSymbol
+syscall fixing Nsec *st.VariableSymbol
+ast  has type *st.InterfaceTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing  *st.InterfaceTypeSymbol
+syscall fixing Sec *st.VariableSymbol
+ast fixing N *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast int has type *st.BasicTypeSymbol
+syscall fixing FdSet *st.StructTypeSymbol
+ast fixing Kind *st.VariableSymbol
+syscall fixing Bits *st.VariableSymbol
+ast Kind has type *st.UnresolvedTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing Name *st.VariableSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast string has type *st.BasicTypeSymbol
+syscall fixing Stat_t *st.StructTypeSymbol
+ast fixing Type *st.VariableSymbol
+syscall fixing Windata *st.VariableSymbol
+ast *Type has type *st.PointerTypeSymbol
+syscall Win32finddata has type *st.StructTypeSymbol
+ast fixing *Type *st.PointerTypeSymbol
+syscall fixing Win32finddata *st.StructTypeSymbol
+ast Type set to Type
+syscall fixing Reserved0 *st.VariableSymbol
+ast fixing BasicLit *st.StructTypeSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast fixing Value *st.VariableSymbol
+syscall fixing AlternateFileName *st.VariableSymbol
+ast  has type *st.ArrayTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast fixing  *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Kind *st.VariableSymbol
+syscall fixing LastAccessTime *st.VariableSymbol
+ast token.Token has type *st.UnresolvedTypeSymbol
+syscall Filetime has type *st.StructTypeSymbol
+rewrited token.Position 
+syscall fixing Filetime *st.StructTypeSymbol
+ast fixing ChanType *st.StructTypeSymbol
+syscall fixing HighDateTime *st.VariableSymbol
+ast fixing Value *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing LowDateTime *st.VariableSymbol
+ast fixing Dir *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast ChanDir has type *st.AliasTypeSymbol
+syscall fixing Reserved1 *st.VariableSymbol
+rewrited token.Position 
+syscall uint32 has type *st.BasicTypeSymbol
+ast fixing TypeSpec *st.StructTypeSymbol
+syscall fixing FileSizeHigh *st.VariableSymbol
+ast fixing Doc *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast *CommentGroup has type *st.PointerTypeSymbol
+syscall fixing FileAttributes *st.VariableSymbol
+ast fixing Comment *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast *CommentGroup has type *st.PointerTypeSymbol
+syscall fixing FileName *st.VariableSymbol
+ast fixing Name *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast *Ident has type *st.PointerTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Type *st.VariableSymbol
+syscall fixing FileSizeLow *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast fixing SliceExpr *st.StructTypeSymbol
+syscall fixing LastWriteTime *st.VariableSymbol
+ast fixing End *st.VariableSymbol
+syscall Filetime has type *st.StructTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing CreationTime *st.VariableSymbol
+ast fixing X *st.VariableSymbol
+syscall Filetime has type *st.StructTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Mode *st.VariableSymbol
+ast fixing Index *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall fixing Ustat_t *st.StructTypeSymbol
+ast fixing IfStmt *st.StructTypeSymbol
+syscall fixing Fname *st.VariableSymbol
+ast fixing Body *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+ast *BlockStmt has type *st.PointerTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+ast fixing Else *st.VariableSymbol
+syscall fixing Tfree *st.VariableSymbol
+ast Stmt has type *st.InterfaceTypeSymbol
+syscall int32 has type *st.BasicTypeSymbol
+ast fixing Cond *st.VariableSymbol
+syscall fixing Tinode *st.VariableSymbol
+ast Expr has type *st.InterfaceTypeSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+ast fixing Init *st.VariableSymbol
+syscall fixing Fpack *st.VariableSymbol
+ast Stmt has type *st.InterfaceTypeSymbol
+syscall  has type *st.ArrayTypeSymbol
+rewrited token.Position 
+ast fixing ImportSpec *st.StructTypesyscall fixing DNSRecord *st.StructTypeSymbol
+syscall fixing Data *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Length *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Ttl *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Name *st.VariableSymbol
+syscall *uint16 has type *st.PointerTypeSymbol
+syscall fixing *uint16 *st.PointerTypeSymbol
+syscall fixing Next *st.VariableSymbol
+syscall *DNSRecord has type *st.PointerTypeSymbol
+syscall fixing Type *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Reserved *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Dw *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Msghdr *st.StructTypeSymbol
+syscall fixing Iov *st.VariableSymbol
+syscall *Iovec has type *st.PointerTypeSymbol
+syscall fixing Namelen *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Control *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Flags *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Name *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Controllen *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Iovlen *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Rusage *st.StructTypeSymbol
+syscall fixing Nvcsw *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Utime *st.VariableSymbol
+syscall Timeval has type *st.StructTypeSymbol
+syscall fixing Msgsnd *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Majflt *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Nswap *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Nsignals *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Isrss *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Inblock *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Stime *st.VariableSymbol
+syscall Timeval has type *st.StructTypeSymbol
+syscall fixing Maxrss *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Msgrcv *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Idrss *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Ixrss *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Minflt *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Nivcsw *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Oublock *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Cmsghdr *st.StructTypeSymbol
+syscall fixing Len *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Level *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Type *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Kevent_t *st.StructTypeSymbol
+syscall fixing Data *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Filter *st.VariableSymbol
+syscall int16 has type *st.BasicTypeSymbol
+syscall fixing Udata *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Flags *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Ident *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Fflags *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing WSABuf *st.StructTypeSymbol
+syscall fixing Len *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Buf *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Servent *st.StructTypeSymbol
+syscall fixing Proto *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Name *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Aliases *st.VariableSymbol
+syscall **byte has type *st.PointerTypeSymbol
+syscall fixing Port *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing StartupInfo *st.StructTypeSymbol
+syscall fixing Y *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing StdOutput *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Cb *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing XSize *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing StdInput *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing ShowWindow *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Flags *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing StdErr *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing YSize *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing XCountChars *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing FillAttribute *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Title *st.VariableSymbol
+syscall *uint16 has type *st.PointerTypeSymbol
+syscall fixing YCountChars *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing X *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Desktop *st.VariableSymbol
+syscall *uint16 has type *st.PointerTypeSymbol
+syscall fixing SockaddrInet6 *st.StructTypeSymbol
+syscall fixing Addr *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Port *st.VariableSymbol
+syscall int has type *st.BasicTypeSymbol
+syscall fixing Log2phys_t *st.StructTypeSymbol
+syscall fixing Flags *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Devoffset *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing Contigbytes *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing ProcessInformation *st.StructTypeSymbol
+syscall fixing Thread *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing ProcessId *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing ThreadId *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Process *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing EpollEvent *st.StructTypeSymbol
+syscall fixing Fd *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Events *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Pad *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing RawSockaddrUnix *st.StructTypeSymbol
+syscall fixing Family *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Path *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing RawSockaddrInet4 *st.StructTypeSymbol
+syscall fixing Family *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Addr *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Zero *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Port *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Overlapped *st.StructTypeSymbol
+syscall fixing Internal *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing OffsetHigh *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing InternalHigh *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing HEvent *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Offset *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Utsname *st.StructTypeSymbol
+syscall fixing Sysname *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Domainname *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Machine *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Release *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Version *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Nodename *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Linger *st.StructTypeSymbol
+syscall fixing Onoff *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Linger *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Sysinfo_t *st.StructTypeSymbol
+syscall fixing Unit *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Totalram *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Freeswap *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Sharedram *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Bufferram *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Procs *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Freehigh *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Totalswap *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Freeram *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Pad *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Totalhigh *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing Loads *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Uptime *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing X_f *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing DNSSRVData *st.StructTypeSymbol
+syscall fixing Priority *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Pad *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Target *st.VariableSymbol
+syscall *uint16 has type *st.PointerTypeSymbol
+syscall fixing Port *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Weight *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Radvisory_t *st.StructTypeSymbol
+syscall fixing Count *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Offset *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing Pad0 *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Flock_t *st.StructTypeSymbol
+syscall fixing Len *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing Whence *st.VariableSymbol
+syscall int16 has type *st.BasicTypeSymbol
+syscall fixing Sysid *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Start *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing Pid *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Type *st.VariableSymbol
+syscall int16 has type *st.BasicTypeSymbol
+syscall fixing Dirent *st.StructTypeSymbol
+syscall fixing Ino *st.VariableSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+syscall fixing Name *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Reclen *st.VariableSymbol
+syscall uint16 has type *st.BasicTypeSymbol
+syscall fixing Off *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing Type *st.VariableSymbol
+syscall uint8 has type *st.BasicTypeSymbol
+syscall fixing Pad0 *st.VariableSymbol
+syscall  has type *st.ArrayTypeSymbol
+syscall fixing  *st.ArrayTypeSymbol
+syscall fixing Fbootstraptransfer_t *st.StructTypeSymbol
+syscall fixing Buffer *st.VariableSymbol
+syscall *byte has type *st.PointerTypeSymbol
+syscall fixing Length *st.VariableSymbol
+syscall uint64 has type *st.BasicTypeSymbol
+syscall fixing Offset *st.VariableSymbol
+syscall int64 has type *st.BasicTypeSymbol
+syscall fixing Utimbuf *st.StructTypeSymbol
+syscall fixing Actime *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing Modtime *st.VariableSymbol
+syscall int32 has type *st.BasicTypeSymbol
+syscall fixing ByHandleFileInformation *st.StructTypeSymbol
+syscall fixing NumberOfLinks *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing VolumeSerialNumber *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing FileIndexLow *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing LastAccessTime *st.VariableSymbol
+syscall Filetime has type *st.StructTypeSymbol
+syscall fixing FileIndexHigh *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing FileSizeHigh *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing FileAttributes *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing FileSizeLow *st.VariableSymbol
+syscall uint32 has type *st.BasicTypeSymbol
+syscall fixing LastWriteTime *st.VariableSymbol
+syscall Filetime has type *st.StructTypeSymbol
+syscall fixing CreationTime *st.VariableSymbol
+syscall Filetime has type *st.StructTypeSymbol
+===================All packages stopped fixing 
 /home/rulerr/go/src/pkg/go/token :
 /home/rulerr/go/src/pkg/runtime :
 /home/rulerr/go/src/pkg/strconv :
@@ -1977,313 +2711,37 @@ fixing *unnamed0* *st.VariableSymbol
 /home/rulerr/go/src/pkg/io :
 /home/rulerr/go/src/pkg/go/ast :
 ------------------------------------------------------------
-[packages:
- types:
-    type *Package
-    type *SymbolTable
-    type *TypeSymbol
-    type *Vector
-    type *ast.Object
-    type *ast.Package
-    type AliasTypeSymbol struct {
-BaseType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-*TypeSymbol
-}
-    type ArrayTypeSymbol struct {
-ElemType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-Len int
-*TypeSymbol
-}
-    type BasicTypeSymbol struct {
-*TypeSymbol
-}
-    type ChanTypeSymbol struct {
-*TypeSymbol
-ValueType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-}
-    type FunctionSymbol struct {
-Locals *SymbolTable
-FunctionType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-Obj *ast.Object
-Posits *Vector
-ReadOnly bool
-}
-    type FunctionTypeSymbol struct {
-Reciever *SymbolTable
-Results *SymbolTable
-Parameters *SymbolTable
-*TypeSymbol
-}
-    type ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-    type InterfaceTypeSymbol struct {
-*TypeSymbol
-}
-    type MapTypeSymbol struct {
-KeyType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-*TypeSymbol
-ValueType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-}
-    type Occurence struct {
-Pos Position struct {
-Filename string
-Line int
-Column int
-Offset int
-}
-}
-    type Package struct {
-Imports  map[string]*Vector
-QualifiedPath string
-Communication chan int
-AstPackage *ast.Package
-IsGoPackage bool
-SymbolTablePool *Vector
-Symbols *SymbolTable
-}
-    type PackageSymbol struct {
-Obj *ast.Object
-Posits *Vector
-Package *Package
-HasLocalName bool
-Path string
-}
-    type PointerTypeSymbol struct {
-BaseType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-Fields *SymbolTable
-*TypeSymbol
-}
-    type StructTypeSymbol struct {
-Fields *SymbolTable
-*TypeSymbol
-}
-    type Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-    type SymbolTable struct {
-Table  map[string]Symbol
-OpenedScopes *Vector
-Package *Package
-}
-    type TypeSymbol struct {
-Meths *SymbolTable
-Obj *ast.Object
-Posits *Vector
-ReadOnly bool
-}
-    type UnresolvedTypeSymbol struct {
-Declaration ?ast.Expr?
-*TypeSymbol
-}
-    type VariableSymbol struct {
-Obj *ast.Object
-Posits *Vector
-ReadOnly bool
-VariableType ITypeSymbol interface {
-Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-}
-SetMethods (*unnamed0* *SymbolTable,)()
-Copy ()(*unnamed0* ?ITypeSymbol?,)
-Methods ()(*unnamed0* *SymbolTable,)
-AddMethod (meth Symbol interface {
-String ()(*unnamed0* string,)
-IsReadOnly ()(*unnamed0* bool,)
-SetObject (obj *ast.Object,)()
-Positions ()(*unnamed0* *Vector,)
-Object ()(*unnamed0* *ast.Object,)
-Name ()(*unnamed0* string,)
-AddPosition (*unnamed0* ?Occurence?,)()
-},)()
-}
-}
- methods:
- vars:
-]
+/home/rulerr/go/src/pkg/go/token :
+/home/rulerr/go/src/pkg/runtime :
+/home/rulerr/go/src/pkg/strconv :
+/home/rulerr/go/src/pkg/sort :
+/home/rulerr/go/src/pkg/container/vector :
+/home/rulerr/go/src/pkg/path :
+/home/rulerr/go/src/pkg/go/parser :
+/home/rulerr/go/src/pkg/reflect :
+/home/rulerr/GoRefactor/src/utils/stack :
+/home/rulerr/go/src/pkg/utf8 :
+/home/rulerr/GoRefactor/src/program :
+/home/rulerr/GoRefactor/src/packageParser :
+/home/rulerr/GoRefactor/src/utils/utils :
+/home/rulerr/go/src/pkg/unicode :
+/home/rulerr/GoRefactor/src/st :
+/home/rulerr/go/src/pkg/fmt :
+/home/rulerr/go/src/pkg/math :
+/home/rulerr/go/src/pkg/utf16 :
+/home/rulerr/go/src/pkg/flag :
+/home/rulerr/go/src/pkg/io/ioutil :
+/home/rulerr/GoRefactor/src/tests :
+/home/rulerr/go/src/pkg/os :
+/home/rulerr/go/src/pkg/syscall :
+/home/rulerr/go/src/pkg/rand :
+/home/rulerr/go/src/pkg/go/scanner :
+/home/rulerr/go/src/pkg/time :
+/home/rulerr/go/src/pkg/bytes :
+/home/rulerr/go/src/pkg/strings :
+/home/rulerr/go/src/pkg/unsafe :
+/home/rulerr/go/src/pkg/testing :
+/home/rulerr/go/src/pkg/sync :
+/home/rulerr/go/src/pkg/io :
+/home/rulerr/go/src/pkg/go/ast :
+0 symbols unresolved

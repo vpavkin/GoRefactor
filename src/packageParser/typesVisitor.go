@@ -9,7 +9,6 @@ import (
 import "fmt"
 
 
-var visited map[string]bool
 //Represents an ast.Visitor, walking along ast.tree and registering all the types met
 type typesVisitor struct {
 	Parser *packageParser
@@ -28,7 +27,7 @@ func (tv *typesVisitor) Visit(node interface{}) (w ast.Visitor) {
 			ts.SetObject(tsp.Name.Obj)
 		} else {
 			//There is an equal type symbol with different name => create alias
-			ts = &st.AliasTypeSymbol{&st.TypeSymbol{Obj: tsp.Name.Obj, Posits: new(vector.Vector)}, ts}
+			ts = &st.AliasTypeSymbol{&st.TypeSymbol{Obj: tsp.Name.Obj, Posits: new(vector.Vector),PackFrom:tv.Parser.Package}, ts}
 		}
 
 		ts.AddPosition(st.NewOccurence(tsp.Name.Pos()))
@@ -41,7 +40,7 @@ func (tv *typesVisitor) Visit(node interface{}) (w ast.Visitor) {
 
 func (pp *packageParser) fixRootTypes() {
 
-	visited = make(map[string]bool)
+	pp.visited = make(map[string]bool)
 	pp.fixTypesInSymbolTable(pp.RootSymbolTable)
 }
 
@@ -51,49 +50,39 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 	}
 	for _, sym := range table.Table {
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
-			if newType, ok := pp.RootSymbolTable.LookUp(sym.Name(),uts.Declaration.Pos().Filename); ok {
-				newType.Positions().AppendVector(sym.Positions())
-				//rewrites sym because names are identical
-				fmt.Printf("rewrited %v with %v\n", sym.Name(), newType.Name())
-				table.AddSymbol(newType)
-			}
+			pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+			table.AddSymbol(pp.parseTypeSymbol(uts.Declaration));
+			fmt.Printf("rewrited %v \n", sym.Name())
 		} else {
 			//Start recursive walk
-			//fmt.Printf("fixing %v\n",sym.Name());
 			pp.fixType(sym)
-			//fmt.Printf("fixing %v finished\n",sym.Name());
 		}
 	}
 }
 
 func (pp *packageParser) fixAliasTypeSymbol(t *st.AliasTypeSymbol) {
-	if _, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.BaseType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.BaseType.Positions())
-			t.BaseType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.BaseType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.BaseType)
 	}
 }
 
 func (pp *packageParser) fixPointerTypeSymbol(t *st.PointerTypeSymbol) {
-	if _, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.BaseType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.BaseType.Positions())
-			t.BaseType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.BaseType = pp.parseTypeSymbol(uts.Declaration);
+		fmt.Printf("%s %s set to %s\n",pp.Package.AstPackage.Name,uts.Name(),t.BaseType.Name());
 	} else {
 		pp.fixType(t.BaseType)
 	}
 }
 
 func (pp *packageParser) fixArrayTypeSymbol(t *st.ArrayTypeSymbol) {
-	if _, ok := t.ElemType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.ElemType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.ElemType.Positions())
-			t.ElemType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.ElemType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.ElemType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.ElemType)
 	}
@@ -108,31 +97,25 @@ func (pp *packageParser) fixInterfaceTypeSymbol(t *st.InterfaceTypeSymbol) {
 }
 
 func (pp *packageParser) fixMapTypeSymbol(t *st.MapTypeSymbol) {
-	if _, ok := t.KeyType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.KeyType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.KeyType.Positions())
-			t.KeyType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.KeyType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.KeyType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.KeyType)
 	}
 
-	if _, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.ValueType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.ValueType.Positions())
-			t.ValueType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.ValueType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.ValueType)
 	}
 }
 
 func (pp *packageParser) fixChanTypeSymbol(t *st.ChanTypeSymbol) {
-	if _, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.ValueType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.ValueType.Positions())
-			t.ValueType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.ValueType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.ValueType)
 	}
@@ -144,21 +127,18 @@ func (pp *packageParser) fixFunctionTypeSymbol(t *st.FunctionTypeSymbol) {
 	//fixTypesInSymbolTable(t.Reciever)
 }
 func (pp *packageParser) fixVariableSymbol(t *st.VariableSymbol) {
-	if _, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.VariableType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.VariableType.Positions())
-			t.VariableType = newType.(st.ITypeSymbol)
-		}
+	fmt.Printf("%s %s has type %T\n",pp.Package.AstPackage.Name,t.VariableType.Name(),t.VariableType);
+	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.VariableType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.VariableType)
 	}
 }
 func (pp *packageParser) fixFunctionSymbol(t *st.FunctionSymbol) {
-	if _, ok := t.FunctionType.(*st.UnresolvedTypeSymbol); ok {
-		if newType, ok := pp.RootSymbolTable.LookUp(t.FunctionType.Name(),uts.Declaration.Pos().Filename); ok {
-			newType.Positions().AppendVector(t.FunctionType.Positions())
-			t.FunctionType = newType.(st.ITypeSymbol)
-		}
+	if uts, ok := t.FunctionType.(*st.UnresolvedTypeSymbol); ok {
+		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
+		t.FunctionType = pp.parseTypeSymbol(uts.Declaration);
 	} else {
 		pp.fixType(t.FunctionType)
 	}
@@ -173,10 +153,16 @@ func (pp *packageParser) fixType(sym st.Symbol) {
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
 	}
-	fmt.Printf("fixing %v %T\n", sym.Name(), sym)
-	if checkIsVisited(sym) {
+	
+	if(sym.PackageFrom() != pp.Package){
+		return;
+	}
+	if pp.checkIsVisited(sym) {
 		return
 	}
+	
+	fmt.Printf("%s fixing %v %T\n",pp.Package.AstPackage.Name, sym.Name(), sym)
+	
 
 	switch t := sym.(type) {
 	case *st.AliasTypeSymbol:
@@ -204,7 +190,7 @@ func (pp *packageParser) fixType(sym st.Symbol) {
 
 func (pp *packageParser) openFields(sym st.Symbol) {
 
-	if checkIsVisited(sym) {
+	if pp.checkIsVisited(sym) {
 		return
 	}
 	if st.IsPredeclaredIdentifier(sym.Name()) {
@@ -272,12 +258,15 @@ func (pp *packageParser) openFields(sym st.Symbol) {
 	}
 }
 
-func checkIsVisited(sym st.Symbol) bool {
+func (pp *packageParser)checkIsVisited(sym st.Symbol) bool {
+	if _,ok := sym.(st.ITypeSymbol);!ok{
+		return false;
+	}
 	symName := sym.Name()
-	if v, ok := visited[symName]; ok && v { //Symbol already checked
+	if v, ok := pp.visited[symName]; ok && v { //Symbol already checked
 		return true
-	} else if symName != "" { //Mark as checked
-		visited[symName] = true
+	} else if _,ok := sym.(st.ITypeSymbol); symName!="" && ok { //Mark as checked
+		pp.visited[symName] = true
 	}
 	return false
 }

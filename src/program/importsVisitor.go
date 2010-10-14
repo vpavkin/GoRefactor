@@ -74,7 +74,7 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 			iv.Package.Imports[iv.FileName] = new(vector.Vector)
 		}
 		ob := &ast.Object{Kind: ast.Pkg, Name: name}
-		sym := &st.PackageSymbol{Obj: ob, Path: Path, Posits: new(vector.Vector), Package: pack, HasLocalName: hasLocalName}
+		sym := &st.PackageSymbol{Obj: ob, Path: Path, Posits: new(vector.Vector), Package: pack, PackFrom: iv.Package, HasLocalName: hasLocalName}
 
 		if is.Name != nil {
 			is.Name.Obj = ob

@@ -128,7 +128,7 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 
 				if resT, found = pp.RootSymbolTable.LookUpPointerType(tt.Name(), pd+1); !found {
 
-					resT = &st.PointerTypeSymbol{&st.TypeSymbol{Obj: tt.Object(), Meths: nil, Posits: new(vector.Vector)}, tt, nil}
+					resT = &st.PointerTypeSymbol{&st.TypeSymbol{Obj: tt.Object(), Meths: nil, Posits: new(vector.Vector),PackFrom:pp.Package}, tt, nil}
 					pp.RootSymbolTable.AddSymbol(resT)
 				}
 
@@ -252,7 +252,7 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 		}
 	} else {
 		//sould be resolved later
-		res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Obj, Posits: new(vector.Vector)}, e})
+		res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Obj, Posits: new(vector.Vector),PackFrom:nil}, e})
 	}
 
 	return
@@ -339,7 +339,7 @@ func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Ve
 	}
 
 	//Sould be resolved
-	res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Sel.Obj, Posits: new(vector.Vector)}, e})
+	res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Sel.Obj, Posits: new(vector.Vector),PackFrom:nil}, e})
 	return
 }
 func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) {
@@ -379,7 +379,7 @@ func (pp *packageParser) eParseStarExpr(e *ast.StarExpr) (res *vector.Vector) {
 		return
 	}
 
-	result := &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: new(vector.Vector)}, base, nil}
+	result := &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: new(vector.Vector),PackFrom:pp.Package}, base, nil}
 	res.Push(result)
 
 	//Solve where to place new pointer
@@ -430,7 +430,7 @@ func (pp *packageParser) eParseUnaryExpr(e *ast.UnaryExpr) (res *vector.Vector) 
 			return
 		}
 
-		result := &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: new(vector.Vector)}, base, nil}
+result := &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: new(vector.Vector),PackFrom:pp.Package}, base, nil}
 		res.Push(result)
 
 		//Solve where to place new pointer
@@ -453,6 +453,7 @@ func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.Fu
 	ft := fft.(*st.FunctionTypeSymbol)
 
 	newFt := &st.FunctionTypeSymbol{Parameters: st.NewSymbolTable(pp.Package)}
+
 	if ft.Reciever == nil {
 		fmt.Println("ERROR : f.Reciever == nil. makeMethodExpression,parseExpr.go")
 	}
