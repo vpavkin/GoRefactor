@@ -182,8 +182,8 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 	case *st.FunctionTypeSymbol:
 		ft := x.(*st.FunctionTypeSymbol)
 		if ft.Results != nil { //Correct order is not guarantied
-			for _, v := range ft.Results.Table {
-				res.Insert(0, v.(*st.VariableSymbol).VariableType)
+			for v := range ft.Results.Iter() {
+				res.Push(v.(*st.VariableSymbol).VariableType)
 			}
 		}
 	}
@@ -457,17 +457,17 @@ func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.Fu
 	if ft.Reciever == nil {
 		fmt.Println("ERROR : f.Reciever == nil. makeMethodExpression,parseExpr.go")
 	}
-	for _, sym := range ft.Reciever.Table {
+	for sym := range ft.Reciever.Iter() {
 		newFt.Parameters.AddSymbol(sym)
 	}
 	if ft.Parameters != nil {
-		for _, sym := range ft.Parameters.Table {
+		for sym := range ft.Parameters.Iter() {
 			newFt.Parameters.AddSymbol(sym)
 		}
 	}
 	if ft.Results != nil {
 		newFt.Results = st.NewSymbolTable(pp.Package)
-		for _, sym := range ft.Results.Table {
+		for sym := range ft.Results.Iter() {
 			newFt.Results.AddSymbol(sym)
 		}
 	}

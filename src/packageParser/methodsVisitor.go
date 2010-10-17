@@ -70,7 +70,7 @@ func (pp *packageParser) fixMethods() {
 
 	pp.visited = make(map[string]bool)
 
-	for _, s := range pp.RootSymbolTable.Table {
+	for s := range pp.RootSymbolTable.Iter() {
 		pp.openMethods(s)
 	}
 
@@ -92,13 +92,13 @@ func (pp *packageParser) openMethods(sym st.Symbol) {
 		pp.openMethods(t.ValueType)
 	case *st.FunctionTypeSymbol:
 		if t.Parameters != nil {
-			for _, variable := range t.Parameters.Table {
+			for variable := range t.Parameters.Iter() {
 				v := variable.(*st.VariableSymbol)
 				pp.openMethods(v.VariableType)
 			}
 		}
 		if t.Results != nil {
-			for _, variable := range t.Results.Table {
+			for variable := range t.Results.Iter() {
 				v := variable.(*st.VariableSymbol)
 				pp.openMethods(v.VariableType)
 			}
@@ -107,7 +107,7 @@ func (pp *packageParser) openMethods(sym st.Symbol) {
 		pp.openMethods(t.KeyType)
 		pp.openMethods(t.ValueType)
 	case *st.StructTypeSymbol:
-		for _, variable := range t.Fields.Table {
+		for variable := range t.Fields.Iter() {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 
 				ts := variable.(st.ITypeSymbol)

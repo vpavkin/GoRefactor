@@ -48,7 +48,7 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 	if table == nil {
 		return
 	}
-	for _, sym := range table.Table {
+	for sym := range table.Iter() {
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
 			pp.CurrentFileName = uts.Declaration.Pos().Filename; 
 			table.AddSymbol(pp.parseTypeSymbol(uts.Declaration));
@@ -207,32 +207,32 @@ func (pp *packageParser) openFields(sym st.Symbol) {
 		pp.openFields(t.ValueType)
 	case *st.FunctionTypeSymbol:
 		if t.Parameters != nil {
-			for _, variable := range t.Parameters.Table {
+			for variable := range t.Parameters.Iter() {
 				v := variable.(*st.VariableSymbol)
 				pp.openFields(v.VariableType)
 			}
 		}
 		if t.Results != nil {
-			for _, variable := range t.Results.Table {
+			for variable := range t.Results.Iter() {
 				v := variable.(*st.VariableSymbol)
 				pp.openFields(v.VariableType)
 			}
 		}
 	case *st.InterfaceTypeSymbol:
 		if t.Meths != nil {
-			for _, sym := range t.Meths.Table {
+			for sym := range t.Meths.Iter() {
 				if _, ok := sym.(*st.FunctionSymbol); !ok {
 					//EmbeddedInterface
 					ts := sym.(*st.InterfaceTypeSymbol)
 					t.Meths.AddOpenedScope(ts.Meths)
-					//Delete now useles functionSymbol from interface
-					t.Meths.Table[sym.Name()] = nil, false
+					//Delete functionSymbol which is now useles from interface
+					t.Meths.RemoveSymbol(sym.Name())
 				}
 				pp.openFields(sym)
 			}
 		}
 	case *st.StructTypeSymbol:
-		for _, variable := range t.Fields.Table {
+		for variable := range t.Fields.Iter() {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 				//Embedded struct
 				ts := variable.(st.ITypeSymbol)

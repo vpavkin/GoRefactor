@@ -48,7 +48,8 @@ func main() {
 	i:=0;
 	for	 _,pack := range p.Packages{
 		fmt.Printf("%s :\n",pack.QualifiedPath);
-		for name,sym := range pack.Symbols.Table{
+		for sym := range pack.Symbols.Iter(){
+			name := sym.Name();
 			if _,ok := sym.(*st.UnresolvedTypeSymbol);ok{
 				fmt.Printf("	%s\n",name);
 				i++;

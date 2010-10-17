@@ -559,12 +559,12 @@ func (fs FunctionTypeSymbol) String() string {
 	s1 := ""
 	s2 := ""
 	if fs.Parameters != nil {
-		for _, v := range fs.Parameters.Table {
+		for v := range fs.Parameters.Iter() {
 			s1 += v.String() + ","
 		}
 	}
 	if fs.Results != nil {
-		for _, v := range fs.Results.Table {
+		for v := range fs.Results.Iter() {
 			s2 += v.String() + ","
 		}
 	}
@@ -577,7 +577,7 @@ func (its InterfaceTypeSymbol) String() string {
 	//if its.Name() != "" { return its.Name()}
 	s := "\n"
 	if its.Methods() != nil {
-		for _, sym := range its.Methods().Table {
+		for sym := range its.Methods().Iter() {
 			s += sym.String() + "\n"
 		}
 	}
@@ -600,7 +600,7 @@ func (pts PointerTypeSymbol) String() string {
 func (ts StructTypeSymbol) String() string {
 
 	s := "\n"
-	for _, v := range ts.Fields.Table {
+	for v := range ts.Fields.Iter() {
 		s += v.String() + "\n"
 	}
 	return ts.Name() + " struct {" + s + "}"
@@ -612,7 +612,7 @@ func (fs FunctionSymbol) String() string {
 	s := ""
 	if fts, ok := fs.FunctionType.(*FunctionTypeSymbol); ok && fts != nil {
 		if fs.FunctionType.(*FunctionTypeSymbol).Reciever != nil {
-			for _, r := range fs.FunctionType.(*FunctionTypeSymbol).Reciever.Table {
+			for r := range fs.FunctionType.(*FunctionTypeSymbol).Reciever.Iter() {
 				s = "(" + r.String() + ")"
 			}
 		}
