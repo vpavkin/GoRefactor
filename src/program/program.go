@@ -69,7 +69,7 @@ func locatePackages(srcDir string) {
 		}
 	}
 	if isPackageDir {
-		//fmt.Printf("%s: \n", path.Join(srcDir))
+
 		packs, _ := parser.ParseDir(srcDir, utils.GoFilter, parser.ParseComments)
 
 		_, d := path.Split(srcDir)
@@ -117,8 +117,6 @@ func ParseProgram(srcDir string) *Program {
 	}
 
 	for _, pack := range program.Packages {
-		
-		fmt.Printf("PACKAGE %s:\n", pack.AstPackage.Name);
 		
 		pack.Symbols.AddOpenedScope(program.BaseSymbolTable)
 		go packageParser.ParsePackage(pack);

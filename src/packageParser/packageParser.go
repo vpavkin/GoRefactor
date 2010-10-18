@@ -11,7 +11,7 @@ import (
 	//"utils"
 )
 import "fmt"
-import "path"
+//import "path"
 
 const (
 	INITIAL_STATE = iota
@@ -51,15 +51,6 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 	pp.Mode = TYPES_MODE
 	for fName, atree := range rootPack.AstPackage.Files {
 		
-		_,f := path.Split(fName);
-		fmt.Printf("	File %s:\n",f);
-		
-		if v,ok := rootPack.Imports[fName]; ok && v!=nil {
-			for	_,s := range *v{
-				sym := s.(*st.PackageSymbol);
-				fmt.Printf("		%s \"%s\"\n",sym.Obj.Name,sym.Path);
-			}
-		}
 		pp.CurrentFileName = fName;
 		ast.Walk(pp.TypesParser, atree.Decls)
 	}
@@ -76,11 +67,13 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 	
 	pp.Package.Communication <- 0
 	
-	/*
-	pp.Mode = METHODS_MODE
-	for _, atree := range rootPack.AstPackage.Files {
+	
+	/*pp.Mode = METHODS_MODE
+	for fName, atree := range rootPack.AstPackage.Files {
+		pp.CurrentFileName = fName;
 		ast.Walk(pp.MethodsParser, atree.Decls)
-	}
+	}*/
+	/*
 	pp.fixMethods()
 
 	pp.Mode = GLOBALS_MODE
@@ -243,16 +236,18 @@ func (pp *packageParser) tParseMapType(t *ast.MapType) (result *st.MapTypeSymbol
 	return
 }
 func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
-
+	
 	if sym, found := pp.CurrentSymbolTable.LookUp(t.Name,pp.CurrentFileName); found {
 		result = sym.(st.ITypeSymbol)
 		t.Obj = sym.Object()
 		sym.AddPosition(st.NewOccurence(t.Pos()))
 	} else {
-		t.Obj = &ast.Object{Kind: ast.Var, Name: t.Name}
 
-	result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: t.Obj, Posits: new(vector.Vector),PackFrom:pp.Package}, t,}
-		//result.AddPosition(st.NewOccurence(t.Pos()))
+		t.Obj = &ast.Object{Kind: ast.Var, Name: t.Name}
+		result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: t.Obj, Posits: new(vector.Vector),PackFrom:pp.Package}, t,}
+		if pp.Mode != TYPES_MODE{
+			fmt.Printf("**************** %s\n", t.Name)
+		}
 	}
 	return
 }
@@ -307,10 +302,14 @@ func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructT
 		}
 		for _, name := range field.Names {
 			name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
-
+			
 			toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: new(vector.Vector),PackFrom:pp.Package}
 			toAdd.AddPosition(st.NewOccurence(name.Pos()))
 			res.Fields.AddSymbol(toAdd)
+			if name.Name == "Rparen"{
+				fmt.Printf(">>>>>>>>>>>>>>>Rparen %s\n",ftype.Name())
+			}
+			
 		}
 	}
 	result = res

@@ -35,12 +35,26 @@ func (table *SymbolTable) AddOpenedScope(scope *SymbolTable) {
 
 //Adds a symbol to local symbol table
 func (table *SymbolTable) AddSymbol(sym Symbol) bool {
+	if sym == nil{
+		panic("Invalid argument! Argument must not be nil")
+		return false;
+	}
 	if _,ok := sym.(Symbol);!ok{
 		panic("Invalid argument! Argument must implement Symbol interface")
 		return false;
 	}
 	table.Table.Push(sym); //since LookUp goes in reverse order, the latest symbol will be find earlier if there's two identicaly named symbols
 	return true
+}
+
+func (table *SymbolTable) ReplaceSymbol(name string,with Symbol){
+	for i := 0; i < len(*table.Table); i++ {
+		sym := table.Table.At(i).(Symbol);
+		if(sym.Name() == name){
+			fmt.Printf("replaced %s with %s\n",table.Table.At(i).(Symbol).Name(),with.Name())
+			table.Table.Set(i,with);
+		}
+	}
 }
 
 func (table *SymbolTable) RemoveSymbol(name string) (r bool){
@@ -50,6 +64,7 @@ func (table *SymbolTable) RemoveSymbol(name string) (r bool){
 		
 		sym := table.Table.At(i).(Symbol);
 		if(sym.Name() == name){
+			fmt.Printf("removed %s\n",table.Table.At(i).(Symbol).Name())
 			table.Table.Delete(i);
 			i--;
 			j++;
@@ -84,16 +99,15 @@ func (table *SymbolTable) IterReverse() <- chan Symbol {
 //Searches symbol table and it's opened scopes for a symbol with a given name
 func (table SymbolTable) LookUp(name string,fileName string) (sym Symbol, found bool) {
 
-	for sym := range table.IterReverse() {
+	for sym = range table.IterReverse() {
 		
-		if(sym.Name() == name){
+		if sym.Name() == name {
 			found = true;
 			break;
 		}
 	}
-	
-	if !found {
 
+	if !found {
 		for _, x := range *table.OpenedScopes {
 			v, _ := x.(*SymbolTable)
 			if sym, found = v.LookUp(name,fileName); found {

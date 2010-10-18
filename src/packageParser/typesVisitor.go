@@ -49,10 +49,16 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 		return
 	}
 	for sym := range table.Iter() {
+		if sym.Name() == "Rparen"{
+			fmt.Printf("^^^^^^^^^^^^\n");
+		}
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
 			pp.CurrentFileName = uts.Declaration.Pos().Filename; 
-			table.AddSymbol(pp.parseTypeSymbol(uts.Declaration));
-			fmt.Printf("rewrited %v \n", sym.Name())
+			
+			newT:=pp.parseTypeSymbol(uts.Declaration);
+			table.ReplaceSymbol(uts.Name(),newT);
+			
+			fmt.Printf("rewrited %s with %s \n", sym.Name(),newT.Name())
 		} else {
 			//Start recursive walk
 			pp.fixType(sym)
@@ -127,10 +133,16 @@ func (pp *packageParser) fixFunctionTypeSymbol(t *st.FunctionTypeSymbol) {
 	//fixTypesInSymbolTable(t.Reciever)
 }
 func (pp *packageParser) fixVariableSymbol(t *st.VariableSymbol) {
-	fmt.Printf("%s %s has type %T\n",pp.Package.AstPackage.Name,t.VariableType.Name(),t.VariableType);
+	//fmt.Printf("%s %s has type %T\n",pp.Package.AstPackage.Name,t.VariableType.Name(),t.VariableType);
+	if t.Name() == "Rparen"{
+		fmt.Printf("!!!!!!!!!!!!!!!!!!!!!!!Rparen %s", t.VariableType.Name())
+	}
 	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
 		pp.CurrentFileName = uts.Declaration.Pos().Filename; 
 		t.VariableType = pp.parseTypeSymbol(uts.Declaration);
+		if t.Name() == "Rparen"{
+			fmt.Printf(" %s\n", t.VariableType.Name())
+		}
 	} else {
 		pp.fixType(t.VariableType)
 	}
