@@ -6,7 +6,6 @@ import (
 	"st"
 	"container/vector"
 	"path"
-	"utils/utils"
 )
 //import "fmt"
 
@@ -54,7 +53,7 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if !found {
 			_, f := path.Split(Path)
 			for _, dir := range *externPackageTrees {
-				dirTree, _ := parser.ParseDir(path.Join(dir, Path), utils.GoFilter, parser.ParseComments)
+				dirTree, _ := parser.ParseDir(path.Join(dir, Path), makeFilter(path.Join(dir, Path)), parser.ParseComments)
 				if dirTree != nil {
 					if packTree, found = dirTree[f]; found {
 						pack = st.NewPackage(path.Join(dir, Path), packTree)

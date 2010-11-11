@@ -121,8 +121,23 @@ func checkFunctionSymbol(t *st.FunctionSymbol) {
 func checkType(sym st.Symbol) {
 	
 	if sym == nil {
-		fmt.Printf("ERROR: sym == nil. func fixType, typesVisitor.go")
+		fmt.Printf("ERROR: sym == nil. func fixType, typesVisitor.go\n")
 	}
+	
+	fmt.Printf("%T\n",sym)
+// 	on := ""
+// 	if sym.Object() != nil{
+// 		on = sym.Object().Name;
+// 	}
+// 	
+// 	pn:="";
+// 	if sym.PackageFrom() != nil{
+// 		pn= sym.PackageFrom().AstPackage.Name;
+// 	}
+// 	
+// 	
+// 	fmt.Printf("%s: %s %T\n",pn, on ,sym);
+
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
 	}
@@ -173,7 +188,7 @@ func checkIsVisited(sym st.Symbol) bool {
 func main() {
 
 
-	p := program.ParseProgram("/home/rulerr/GoRefactor/src");
+	p:=program.ParseProgram("/home/rulerr/GoRefactor/src");
 	
 	//print imports
 	/*
@@ -206,5 +221,22 @@ func main() {
 	
 	fmt.Printf("%d symbols unresolved\n",countUnres);
 	
+	/*fmt.Printf("Methods:\n");
+	
+	for	 _,pack := range p.Packages{
+		fmt.Printf("%s :\n",pack.QualifiedPath);
+		for sym := range pack.Symbols.Iter(){
+			switch ts:= sym.(type){
+				case st.ITypeSymbol:
+					if ts.Methods() != nil{
+						for meth := range ts.Methods().Iter(){
+							fmt.Printf("	%s\n",meth.String());
+						}
+					}
+				case *st.FunctionSymbol:
+					fmt.Printf("	%s\n",ts.String());
+			}
+		}
+	}*/
 	
 }

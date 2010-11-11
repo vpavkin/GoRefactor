@@ -9,10 +9,10 @@ import "fmt"
 
 //Represents an ast.Visitor, walking along ast.tree and registering all the global variables met
 type globalsVisitor struct {
-	Parser *packageParser
+	Parser   *packageParser
+	iotaType st.ITypeSymbol
 }
 
-var iotaType st.ITypeSymbol
 /*^GlobalsVisitor Methods^^*/
 
 //ast.Visitor.Visit(). Looks for top-level ast.ValueSpec nodes of ast.Tree to register global vars
@@ -24,14 +24,14 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 		ts := gv.Parser.parseTypeSymbol(t.Type)
 
 		if ts == nil && t.Values == nil {
-			ts = iotaType
+			ts = gv.iotaType
 		}
 
 		for i, n := range t.Names {
 
-			fmt.Printf("VARIABLE %s\n", n.Name)
+			fmt.Printf("%s:	Variable %s\n", gv.Parser.Package.AstPackage.Name, n.Name)
 
-			var exprT st.ITypeSymbol = nil
+			var exprT st.ITypeSymbol
 
 			if t.Values != nil {
 				exprT = gv.Parser.parseExpr(t.Values[i]).At(0).(st.ITypeSymbol)
@@ -47,7 +47,7 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
 
-			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: new(vector.Vector),PackFrom:gv.Parser.Package}
+			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: new(vector.Vector), PackFrom: gv.Parser.Package}
 			toAdd.AddPosition(st.NewOccurence(n.Pos()))
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}
@@ -64,7 +64,7 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 				if ts == nil {
 					ts, _ = st.PredeclaredTypes["int"]
 				}
-				iotaType = ts
+				gv.iotaType = ts
 			}
 		}
 

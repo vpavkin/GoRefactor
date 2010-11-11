@@ -3,7 +3,7 @@ mkdir -p ../bin/utils
 8g -o ../bin/st.8 ../src/st/symbolTable.go ../src/st/symbols.go
 8g -o ../bin/utils/stack.8 ../src/utils/stack/stack.go
 8g -o ../bin/utils/utils.8 ../src/utils/utils/utils.go
-8g -I ../bin -o ../bin/packageParser.8 ../src/packageParser/packageParser.go ../src/packageParser/typesVisitor.go ../src/packageParser/methodsVisitor.go ../src/packageParser/globalsVisitor.go ../src/packageParser/parseExpr.go
+8g -I ../bin -o ../bin/packageParser.8 ../src/packageParser/packageParser.go ../src/packageParser/typesVisitor.go ../src/packageParser/methodsVisitor.go ../src/packageParser/globalsVisitor.go ../src/packageParser/globalsFixVisitor.go ../src/packageParser/parseExpr.go
 
 8g -I ../bin -o ../bin/program.8 ../src/program/program.go ../src/program/importsVisitor.go
 

@@ -8,7 +8,8 @@ import (
 	"path"
 	"packageParser"
 	"go/parser"
-	"go/ast"
+	"bufio"
+	//"go/ast"
 	"strings"
 )
 import "fmt"
@@ -17,6 +18,8 @@ import "fmt"
 var program *Program
 var externPackageTrees *vector.StringVector // [dir][packagename]package
 var goSrcDir string
+var specificFiles map[string]*vector.StringVector
+var specificFilesPackages []string = []string{"syscall", "os"}
 
 func initialize() {
 
@@ -36,6 +39,8 @@ func initialize() {
 	externPackageTrees = new(vector.StringVector)
 	externPackageTrees.Push(goSrcDir)
 	externPackageTrees.Push("/home/rulerr/GoRefactor/src") // for tests on self
+	
+	specificFiles = make(map[string] *vector.StringVector)
 
 }
 
@@ -44,50 +49,95 @@ type Program struct {
 	Packages        map[string]*st.Package //map[qualifiedPath] package
 }
 
-func locatePackages(srcDir string) {
+func loadConfig(packageName string) *vector.StringVector {
+	fd, err := os.Open(packageName+".cfg", os.O_RDONLY, 0)
+	if err != nil {
+		println(err.String())
+		panic("Couldn't open " + packageName + " config")
+	}
+	defer fd.Close()
 
-	var isPackageDir bool
+	res := new(vector.StringVector)
+
+	reader := bufio.NewReader(fd)
+	for {
+		
+		str, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		res.Push(str[:len(str) - 1])
+		
+	}
+	fmt.Printf("%s:\n%v\n", packageName, res)
+
+	return res
+}
+
+func isPackageDir(fileInIt *os.FileInfo)bool {
+	return !fileInIt.IsDirectory() && utils.IsGoFile(fileInIt.Name)
+}
+
+func makeFilter(srcDir string) (func (f *os.FileInfo) bool){
+	_, d := path.Split(srcDir);
+	println("^&*^&* Specific files for " + d);
+	if files,ok := specificFiles[d];ok{
+		println("^&*^&* found " + d);
+		return func(f *os.FileInfo)bool{
+			print("\n" + f.Name);
+			for _,fName := range *files{
+				print(" " + fName);
+				if fName == f.Name{return true}
+			}
+			return false;
+		}
+	}
+	return utils.GoFilter
+		
+}
+func parsePack(srcDir string) {
+
+	packs, _ := parser.ParseDir(srcDir, makeFilter(srcDir), parser.ParseComments)
+
+	_, d := path.Split(srcDir)
+	if packTree, ok := packs[d]; !ok {
+		fmt.Printf("Couldn't find a package " + d + " in " + d + " directory\n")
+		return
+	} else {
+		pack := st.NewPackage(srcDir, packTree)
+		program.Packages[srcDir] = pack
+	}
+}
+
+func locatePackages(srcDir string) {
 
 	fd, err := os.Open(srcDir, os.O_RDONLY, 0)
 	if err != nil {
 		panic("Couldn't open src directory")
-		return
 	}
 	defer fd.Close()
 
 	list, err := fd.Readdir(-1)
 	if err != nil {
 		panic("Couldn't read src directory")
-		return
 	}
 
 	for i := 0; i < len(list); i++ {
 		d := &list[i]
-		if !d.IsDirectory() && utils.IsGoFile(d.Name) { //current dir describes a package
-			isPackageDir = true
-			break
-		}
-	}
-	if isPackageDir {
-
-		packs, _ := parser.ParseDir(srcDir, utils.GoFilter, parser.ParseComments)
-
-		_, d := path.Split(srcDir)
-		if packTree, ok := packs[d]; !ok {
-			fmt.Printf("Couldn't find a package " + d + " in " + d + " directory\n")
+		if isPackageDir(d) { //current dir describes a package
+			parsePack(srcDir);
 			return
-		} else {
-			pack := st.NewPackage(srcDir, packTree)
-			program.Packages[srcDir] = pack
-		}
-	} else {
-		for i := 0; i < len(list); i++ {
-			d := &list[i]
-			if d.IsDirectory() { //current dir describes a package
-				locatePackages(path.Join(srcDir, d.Name))
-			}
 		}
 	}
+
+	//no package in this dir, look inside dirs' dirs
+	for i := 0; i < len(list); i++ {
+		d := &list[i]
+		if d.IsDirectory() { //can still contain packages inside
+			locatePackages(path.Join(srcDir, d.Name))
+		}
+	}
+
 }
 
 func ParseProgram(srcDir string) *Program {
@@ -95,6 +145,10 @@ func ParseProgram(srcDir string) *Program {
 	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package)}
 
 	initialize()
+
+	for _, pName := range specificFilesPackages {
+		specificFiles[pName] = loadConfig(pName)
+	}
 
 	locatePackages(srcDir)
 
@@ -112,42 +166,62 @@ func ParseProgram(srcDir string) *Program {
 	for _, pack := range program.Packages {
 		if IsGoSrcPackage(pack) {
 			pack.IsGoPackage = true
-			ast.PackageExports(pack.AstPackage)
+			//ast.PackageExports(pack.AstPackage)
 		}
 	}
 
 	for _, pack := range program.Packages {
-		
+
 		pack.Symbols.AddOpenedScope(program.BaseSymbolTable)
-		go packageParser.ParsePackage(pack);
+		go packageParser.ParsePackage(pack)
 	}
-	
+	for _, pack := range program.Packages {
+		<-pack.Communication
+	}
 	// type resolving
 	for _, pack := range program.Packages {
-		<- pack.Communication;
+		<-pack.Communication
 	}
 	for _, pack := range program.Packages {
-		pack.Communication <- 0;
+		pack.Communication <- 0
 	}
 	for _, pack := range program.Packages {
-		<- pack.Communication;
+		<-pack.Communication
 	}
-	fmt.Printf("===================All packages stopped fixing \n");
-	
-	/*df,err := os.Open(path.Join(srcDir, d.Name), os.O_RDONLY, 0)
-	if err != nil {
-		panic("Couldn't open package" + d.Name + " directory")
-		return nil
+	fmt.Printf("===================All packages stopped fixing \n")
+
+	for _, pack := range program.Packages {
+		pack.Communication <- 0
+		<-pack.Communication
 	}
-	fileList, err := df.Readdir(-1)
-	if err != nil {
-		panic("Couldn't read package " + d.Name + " directory")
-		return nil
-	}
-	for j := 0; j < len(fileList); j++ {
-		f := &fileList[j]
-		fmt.Printf("	%s: \n", f.Name)
+
+	/*for _, pack := range program.Packages {
+		<-pack.Communication
 	}*/
+	fmt.Printf("===================All packages stopped opening \n")
+
+	st.RegisterPositions = false
+
+	for _, pack := range program.Packages {
+		pack.Communication <- 0
+		<-pack.Communication
+	}
+
+	// 	for _, pack := range program.Packages {
+	// 		<-pack.Communication
+	// 	}
+	fmt.Printf("===================All packages stopped parsing globals \n")
+	st.RegisterPositions = true
+	for _, pack := range program.Packages {
+		pack.Communication <- 0
+		<-pack.Communication
+
+	}
+
+	// 	for _, pack := range program.Packages {
+	// 		<-pack.Communication
+	// 	}
+	fmt.Printf("===================All packages stopped fixing globals \n")
 	return program
 }
 

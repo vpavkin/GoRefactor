@@ -21,6 +21,10 @@ func (p PrintNodeVisitor) Visit(node interface{}) (w ast.Visitor) {
 		
 		fmt.Printf("%T", node)
 		
+		if bl, ok := node.(*ast.BasicLit); ok {
+			fmt.Printf(" (%s) ", bl.Kind)
+		}
+		
 		if id, ok := node.(*ast.Ident); ok {
 			fmt.Printf(" (%s) ", id.Name)
 			if id.Obj != nil{
@@ -37,7 +41,7 @@ func (p PrintNodeVisitor) Visit(node interface{}) (w ast.Visitor) {
 func main(){
 
 	
-	tree,err := parser.ParseFile("/home/rulerr/GoRefactor/src/tests/testTypes.go",nil,parser.ParseComments);
+	tree,err := parser.ParseFile("/home/rulerr/go/src/pkg/unicode/tables.go",nil,parser.ParseComments);
 	if err != nil {
 		fmt.Println(err);
 		return;
