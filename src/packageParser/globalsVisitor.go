@@ -29,12 +29,15 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 		for i, n := range t.Names {
 
-			fmt.Printf("%s:	Variable %s\n", gv.Parser.Package.AstPackage.Name, n.Name)
+			//fmt.Printf("%s:	Variable %s\n", gv.Parser.Package.AstPackage.Name, n.Name)
 
 			var exprT st.ITypeSymbol
 
 			if t.Values != nil {
 				exprT = gv.Parser.parseExpr(t.Values[i]).At(0).(st.ITypeSymbol)
+				if n.Name == "BothDir" {
+					fmt.Printf("((((( %p, %T\n", exprT, exprT)
+				}
 			}
 			if arrT, ok := ts.(*st.ArrayTypeSymbol); ok {
 				if arrT.Len == st.ELLIPSIS {
@@ -48,7 +51,9 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
 
 			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: new(vector.Vector), PackFrom: gv.Parser.Package}
-			toAdd.AddPosition(st.NewOccurence(n.Pos()))
+			if gv.Parser.RegisterPositions {
+				toAdd.AddPosition(st.NewOccurence(n.Pos()))
+			}
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}
 
@@ -56,10 +61,14 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 		if len(t.Specs) > 0 {
 			if vs, ok := t.Specs[0].(*ast.ValueSpec); ok {
-
-				st.RegisterPositions = false
-				ts := gv.Parser.parseTypeSymbol(vs.Type)
-				st.RegisterPositions = true
+				var ts st.ITypeSymbol
+				if gv.Parser.RegisterPositions {
+					gv.Parser.RegisterPositions = false
+					ts = gv.Parser.parseTypeSymbol(vs.Type)
+					gv.Parser.RegisterPositions = true
+				} else {
+					ts = gv.Parser.parseTypeSymbol(vs.Type)
+				}
 
 				if ts == nil {
 					ts, _ = st.PredeclaredTypes["int"]
@@ -70,6 +79,7 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 	case *ast.ForStmt, *ast.FuncDecl, *ast.FuncLit, *ast.IfStmt, *ast.RangeStmt, *ast.SelectStmt, *ast.SwitchStmt, *ast.TypeSwitchStmt:
 		//InnerScope, omitted
+		gv.iotaType = nil
 		return nil
 	}
 	return gv

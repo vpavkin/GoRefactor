@@ -54,7 +54,9 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 					name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
 					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: rtype, Posits: new(vector.Vector), PackFrom: mv.Parser.Package}
-					toAdd.AddPosition(st.NewOccurence(name.Pos()))
+					if mv.Parser.RegisterPositions {
+						toAdd.AddPosition(st.NewOccurence(name.Pos()))
+					}
 					ft.Reciever.AddSymbol(toAdd)
 				}
 			}
@@ -62,7 +64,9 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		f.Name.Obj = &ast.Object{Kind: ast.Var, Name: f.Name.Name}
 
 		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: new(vector.Vector), PackFrom: mv.Parser.Package}
-		toAdd.AddPosition(st.NewOccurence(f.Name.Pos()))
+		if mv.Parser.RegisterPositions {
+			toAdd.AddPosition(st.NewOccurence(f.Name.Pos()))
+		}
 		if f.Recv != nil {
 			rtype.AddMethod(toAdd)
 		} else {

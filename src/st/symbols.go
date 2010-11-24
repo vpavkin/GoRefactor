@@ -83,9 +83,6 @@ var PredeclaredConsts map[string]*VariableSymbol
 var predeclaredFunctionTypes map[string]*FunctionTypeSymbol
 
 
-var RegisterPositions bool = true
-
-
 /* Interfaces */
 //Main interface, implemented by every symbol
 type Symbol interface {
@@ -93,7 +90,7 @@ type Symbol interface {
 	Object() *ast.Object       //Returns corresponding object
 	SetObject(obj *ast.Object) //Defines an object for symbol
 	Name() string
-	AddPosition(Occurence)
+	AddPosition(*Occurence)
 	IsReadOnly() bool
 	PackageFrom() *Package
 
@@ -243,33 +240,33 @@ type Occurence struct {
 	Pos token.Position
 }
 
-func NewOccurence(pos token.Position) Occurence {
-	return Occurence{pos}
+func NewOccurence(pos token.Position) *Occurence {
+	return &Occurence{pos}
 }
 
 
 /*^^Other Symbol Methods^^*/
 
-func (ts TypeSymbol) Name() string {
+func (ts *TypeSymbol) Name() string {
 	if ts.Obj != nil {
 		return ts.Obj.Name
 	}
 	return ""
 }
 
-func (bts BasicTypeSymbol) Name() string {
+func (bts *BasicTypeSymbol) Name() string {
 	if bts.Obj == nil {
 		fmt.Printf("AAAAAAAAAA\n")
 	}
 	return bts.Obj.Name
 }
 
-func (pts PointerTypeSymbol) Name() string {
+func (pts *PointerTypeSymbol) Name() string {
 
 	s := "*"
 	return s + pts.BaseType.Name()
 }
-func (pts PointerTypeSymbol) BaseName() string {
+func (pts *PointerTypeSymbol) BaseName() string {
 
 	s := pts.BaseType.Name()
 	for s[0] == '*' {
@@ -278,60 +275,60 @@ func (pts PointerTypeSymbol) BaseName() string {
 	return s
 }
 
-func (ps PackageSymbol) Name() string {
+func (ps *PackageSymbol) Name() string {
 	return ps.Obj.Name // will not be nil
 }
 
-func (vs VariableSymbol) Name() string {
+func (vs *VariableSymbol) Name() string {
 	if vs.Obj != nil {
 		return vs.Obj.Name
 	}
 	return ""
 }
 
-func (fs FunctionSymbol) Name() string {
+func (fs *FunctionSymbol) Name() string {
 	if fs.Obj != nil {
 		return fs.Obj.Name
 	}
 	return ""
 }
 
-func (ats ArrayTypeSymbol) Name() string {
+func (ats *ArrayTypeSymbol) Name() string {
 	if ats.Obj != nil {
 		return ats.Obj.Name
 	}
 	return ""
 }
 
-func (cts ChanTypeSymbol) Name() string {
+func (cts *ChanTypeSymbol) Name() string {
 	if cts.Obj != nil {
 		return cts.Obj.Name
 	}
 	return ""
 }
 
-func (fs FunctionTypeSymbol) Name() string {
+func (fs *FunctionTypeSymbol) Name() string {
 	if fs.Obj != nil {
 		return fs.Obj.Name
 	}
 	return ""
 }
 
-func (its InterfaceTypeSymbol) Name() string {
+func (its *InterfaceTypeSymbol) Name() string {
 	if its.Obj != nil {
 		return its.Obj.Name
 	}
 	return ""
 }
 
-func (mts MapTypeSymbol) Name() string {
+func (mts *MapTypeSymbol) Name() string {
 	if mts.Obj != nil {
 		return mts.Obj.Name
 	}
 	return ""
 }
 
-func (ts StructTypeSymbol) Name() string {
+func (ts *StructTypeSymbol) Name() string {
 	if ts.Obj != nil {
 		return ts.Obj.Name
 	}
@@ -376,24 +373,24 @@ func (vs VariableSymbol) IsReadOnly() bool { return vs.ReadOnly }
 func (fs FunctionSymbol) IsReadOnly() bool { return fs.ReadOnly }
 
 
-func (ts TypeSymbol) AddPosition(o Occurence) {
-	if RegisterPositions {
-		ts.Posits.Push(o)
+func (ts TypeSymbol) AddPosition(o *Occurence) {
+	if ts.Positions() != nil {
+		ts.Positions().Push(o)
 	}
 }
-func (ts PackageSymbol) AddPosition(o Occurence) {
-	if RegisterPositions {
-		ts.Posits.Push(o)
+func (ts PackageSymbol) AddPosition(o *Occurence) {
+	if ts.Positions() != nil {
+		ts.Positions().Push(o)
 	}
 }
-func (ts VariableSymbol) AddPosition(o Occurence) {
-	if RegisterPositions {
-		ts.Posits.Push(o)
+func (ts VariableSymbol) AddPosition(o *Occurence) {
+	if ts.Positions() != nil {
+		ts.Positions().Push(o)
 	}
 }
-func (ts FunctionSymbol) AddPosition(o Occurence) {
-	if RegisterPositions {
-		ts.Posits.Push(o)
+func (ts FunctionSymbol) AddPosition(o *Occurence) {
+	if ts.Positions() != nil {
+		ts.Positions().Push(o)
 	}
 }
 
@@ -424,7 +421,7 @@ func (ts MapTypeSymbol) Copy() ITypeSymbol {
 	return &MapTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.KeyType, ts.ValueType}
 }
 func (ts PointerTypeSymbol) Copy() ITypeSymbol {
-	return &PointerTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.BaseType, ts.Fields}
+	return &PointerTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: nil, PackFrom: ts.PackFrom}, ts.BaseType, ts.Fields}
 }
 func (ts StructTypeSymbol) Copy() ITypeSymbol {
 	return &StructTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.Fields}

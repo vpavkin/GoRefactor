@@ -77,6 +77,7 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 
 		if is.Name != nil {
 			is.Name.Obj = ob
+			//Positions surely register
 			sym.AddPosition(st.NewOccurence(is.Name.Pos()))
 
 			if is.Name.Name == "." {

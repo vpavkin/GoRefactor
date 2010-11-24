@@ -8,6 +8,7 @@ import (
 	//"packageParser"
 	"st"
 	//"container/vector"
+	"path"
 )
 
 func init(){
@@ -101,6 +102,7 @@ func checkVariableSymbol(t *st.VariableSymbol) {
 	if t.Name() == "Rparen"{
 		fmt.Printf("??????????????????Rparen %s\n", t.VariableType.Name())
 	}
+	//fmt.Printf("/// %s %s\n", t.Name(),t.PackageFrom().QualifiedPath)
 	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
 		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
 		countUnres++;
@@ -124,7 +126,11 @@ func checkType(sym st.Symbol) {
 		fmt.Printf("ERROR: sym == nil. func fixType, typesVisitor.go\n")
 	}
 	
-	fmt.Printf("%T\n",sym)
+// 	if pr,ok := sym.(*st.BasicTypeSymbol); ok{
+// 		//fmt.Printf("%T %v\n",pr.BaseType,pr.BaseType.Name());
+// 		//fmt.Printf("%p %p\n",sym,pr);
+// 	}
+	
 // 	on := ""
 // 	if sym.Object() != nil{
 // 		on = sym.Object().Name;
@@ -221,6 +227,20 @@ func main() {
 	
 	fmt.Printf("%d symbols unresolved\n",countUnres);
 	
+	sst := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols
+	sst.ForEach(func (sym st.Symbol){
+		fmt.Printf("%s(%d):\ns",sym.Name(),sym.Positions().Len());
+		for _,ppos := range *sym.Positions(){
+			pos:= (ppos.(*st.Occurence)).Pos;
+			_,f:=path.Split(pos.Filename)
+			fmt.Printf("\t[%s,%d,%d]\n",f,pos.Line,pos.Column)
+		}
+		
+	})
+	
+	ssst := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols;
+	vect := ssst.String();
+	fmt.Println(*vect);
 	/*fmt.Printf("Methods:\n");
 	
 	for	 _,pack := range p.Packages{

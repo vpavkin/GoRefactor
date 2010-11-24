@@ -39,8 +39,8 @@ func initialize() {
 	externPackageTrees = new(vector.StringVector)
 	externPackageTrees.Push(goSrcDir)
 	externPackageTrees.Push("/home/rulerr/GoRefactor/src") // for tests on self
-	
-	specificFiles = make(map[string] *vector.StringVector)
+
+	specificFiles = make(map[string]*vector.StringVector)
 
 }
 
@@ -61,39 +61,41 @@ func loadConfig(packageName string) *vector.StringVector {
 
 	reader := bufio.NewReader(fd)
 	for {
-		
+
 		str, err := reader.ReadString('\n')
 		if err != nil {
 			break
 		}
-		res.Push(str[:len(str) - 1])
-		
+		res.Push(str[:len(str)-1])
+
 	}
 	fmt.Printf("%s:\n%v\n", packageName, res)
 
 	return res
 }
 
-func isPackageDir(fileInIt *os.FileInfo)bool {
+func isPackageDir(fileInIt *os.FileInfo) bool {
 	return !fileInIt.IsDirectory() && utils.IsGoFile(fileInIt.Name)
 }
 
-func makeFilter(srcDir string) (func (f *os.FileInfo) bool){
-	_, d := path.Split(srcDir);
-	println("^&*^&* Specific files for " + d);
-	if files,ok := specificFiles[d];ok{
-		println("^&*^&* found " + d);
-		return func(f *os.FileInfo)bool{
-			print("\n" + f.Name);
-			for _,fName := range *files{
-				print(" " + fName);
-				if fName == f.Name{return true}
+func makeFilter(srcDir string) func(f *os.FileInfo) bool {
+	_, d := path.Split(srcDir)
+	println("^&*^&* Specific files for " + d)
+	if files, ok := specificFiles[d]; ok {
+		println("^&*^&* found " + d)
+		return func(f *os.FileInfo) bool {
+			print("\n" + f.Name)
+			for _, fName := range *files {
+				print(" " + fName)
+				if fName == f.Name {
+					return true
+				}
 			}
-			return false;
+			return false
 		}
 	}
 	return utils.GoFilter
-		
+
 }
 func parsePack(srcDir string) {
 
@@ -125,7 +127,7 @@ func locatePackages(srcDir string) {
 	for i := 0; i < len(list); i++ {
 		d := &list[i]
 		if isPackageDir(d) { //current dir describes a package
-			parsePack(srcDir);
+			parsePack(srcDir)
 			return
 		}
 	}
@@ -192,35 +194,28 @@ func ParseProgram(srcDir string) *Program {
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-		<-pack.Communication
 	}
 
-	/*for _, pack := range program.Packages {
+	for _, pack := range program.Packages {
 		<-pack.Communication
-	}*/
+	}
 	fmt.Printf("===================All packages stopped opening \n")
 
-	st.RegisterPositions = false
-
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-		<-pack.Communication
 	}
 
-	// 	for _, pack := range program.Packages {
-	// 		<-pack.Communication
-	// 	}
+	for _, pack := range program.Packages {
+		<-pack.Communication
+	}
 	fmt.Printf("===================All packages stopped parsing globals \n")
-	st.RegisterPositions = true
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-		<-pack.Communication
-
 	}
 
-	// 	for _, pack := range program.Packages {
-	// 		<-pack.Communication
-	// 	}
+	for _, pack := range program.Packages {
+		<-pack.Communication
+	}
 	fmt.Printf("===================All packages stopped fixing globals \n")
 	return program
 }
