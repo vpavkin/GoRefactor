@@ -2,7 +2,7 @@ package packageParser
 
 import (
 	"go/ast"
-	"container/vector"
+	"go/token"
 	"st"
 )
 import "fmt"
@@ -50,10 +50,10 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
 
-			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: new(vector.Vector), PackFrom: gv.Parser.Package}
-			if gv.Parser.RegisterPositions {
-				toAdd.AddPosition(st.NewOccurence(n.Pos()))
-			}
+			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: make(map[string]token.Position), PackFrom: gv.Parser.Package}
+
+			toAdd.AddPosition(n.Pos())
+
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}
 
@@ -62,13 +62,8 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 		if len(t.Specs) > 0 {
 			if vs, ok := t.Specs[0].(*ast.ValueSpec); ok {
 				var ts st.ITypeSymbol
-				if gv.Parser.RegisterPositions {
-					gv.Parser.RegisterPositions = false
-					ts = gv.Parser.parseTypeSymbol(vs.Type)
-					gv.Parser.RegisterPositions = true
-				} else {
-					ts = gv.Parser.parseTypeSymbol(vs.Type)
-				}
+
+				ts = gv.Parser.parseTypeSymbol(vs.Type)
 
 				if ts == nil {
 					ts, _ = st.PredeclaredTypes["int"]

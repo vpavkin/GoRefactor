@@ -46,7 +46,7 @@ func (gv globalsFixVisitor) Visit(node interface{}) ast.Visitor {
 					arrT.Len = exprT.(*st.ArrayTypeSymbol).Len
 				}
 			}
-			v.AddPosition(st.NewOccurence(n.Pos()))
+			v.AddPosition(n.Pos())
 		}
 	case *ast.ForStmt, *ast.FuncDecl, *ast.FuncLit, *ast.IfStmt, *ast.RangeStmt, *ast.SelectStmt, *ast.SwitchStmt, *ast.TypeSwitchStmt:
 		//InnerScope, omitted

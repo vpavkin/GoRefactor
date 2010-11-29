@@ -5,6 +5,7 @@ import (
 	"go/parser"
 	"st"
 	"container/vector"
+	"go/token"
 	"path"
 )
 //import "fmt"
@@ -73,12 +74,12 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 			iv.Package.Imports[iv.FileName] = new(vector.Vector)
 		}
 		ob := &ast.Object{Kind: ast.Pkg, Name: name}
-		sym := &st.PackageSymbol{Obj: ob, Path: Path, Posits: new(vector.Vector), Package: pack, PackFrom: iv.Package, HasLocalName: hasLocalName}
+		sym := &st.PackageSymbol{Obj: ob, Path: Path, Posits: make(map[string]token.Position), Package: pack, PackFrom: iv.Package, HasLocalName: hasLocalName}
 
 		if is.Name != nil {
 			is.Name.Obj = ob
 			//Positions surely register
-			sym.AddPosition(st.NewOccurence(is.Name.Pos()))
+			sym.AddPosition(is.Name.Pos())
 
 			if is.Name.Name == "." {
 				iv.Package.Symbols.AddOpenedScope(pack.Symbols)

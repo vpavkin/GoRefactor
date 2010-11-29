@@ -12,7 +12,7 @@ type (
     AA A
     P *T
     PP P
-    R *R
+    //R *R
     F func(A) I
     Y interface {
         f(A) I
@@ -24,11 +24,11 @@ type (
 
 type (
 
-    t *t
+    //t *t
 
-    U V
-    V W
-    W *U
+    //U V
+    //V W
+    //W *U
 
     P1 *S1
     P2 P1

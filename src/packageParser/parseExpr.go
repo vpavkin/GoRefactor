@@ -22,6 +22,7 @@ func (pp *packageParser) parseExpr(exp ast.Expr) (res *vector.Vector) {
 		fmt.Printf("((nil expr\n")
 		return nil
 	}
+	//fmt.Printf("%T\n",exp);
 	res = new(vector.Vector)
 
 	switch e := exp.(type) {
@@ -34,13 +35,8 @@ func (pp *packageParser) parseExpr(exp ast.Expr) (res *vector.Vector) {
 	case *ast.CompositeLit:
 		return pp.eParseCompositeLit(e)
 	case *ast.FuncLit: //later in locals visitor
-		if pp.RegisterPositions {
-			pp.RegisterPositions = false
-			res.Push(pp.parseExpr(e.Type).At(0))
-			pp.RegisterPositions = true
-		} else {
-			res.Push(pp.parseExpr(e.Type).At(0))
-		}
+
+		res.Push(pp.parseExpr(e.Type).At(0))
 
 	case *ast.Ident:
 		return pp.eParseIdent(e)
@@ -99,7 +95,7 @@ func (pp *packageParser) eParseBinaryExpr(e *ast.BinaryExpr) (res *vector.Vector
 		panic("aaaa")
 	}
 
-	if e.Op == token.OR {
+	if e.Op == token.ADD {
 		fmt.Printf("%T,%T,%v,%v\n", xType, yType, xType.Name(), yType.Name())
 	}
 	switch e.Op {
@@ -143,6 +139,10 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 	}
 
 	tt := pp.parseExpr(e.Fun).At(0).(st.ITypeSymbol)
+	if tt == nil {
+		fmt.Printf("HOLY CRAP!\n")
+	}
+	//fmt.Printf("HOLY CRAP! %s-\n",tt.Name())
 
 	if vect, ok := pp.eParseRegularFunctionCall(tt); ok {
 		return vect
@@ -171,8 +171,10 @@ func (pp *packageParser) eParseCompositeLit(e *ast.CompositeLit) (res *vector.Ve
 		panic("ERROR: cycle wasn't expected. eParseCompositeLit, parseExpr.go")
 	}
 
+	tempB := pp.ExprParser.SearchInFields
+	tempST := pp.ExprParser.FieldsSymbolTable
 	pp.detectWhereToLookUpKeysIfAny(realClType, e)
-	defer func() { pp.ExprParser.SearchInFields = false; pp.ExprParser.FieldsSymbolTable = nil }()
+	defer func() { pp.ExprParser.SearchInFields = tempB; pp.ExprParser.FieldsSymbolTable = tempST }()
 
 	max := pp.eParseCLElementsAndGetMaxIndex(e)
 
@@ -194,27 +196,42 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 	lookupST := pp.detectWhereToLookUpIdent()
 
 	if t, found := lookupST.LookUp(e.Name, pp.CurrentFileName); found {
+		fmt.Printf("found sym %s %s %p\n", t.Name(),
+			func(v st.Symbol) string {
+				if vv, ok := t.(*st.VariableSymbol); ok {
+					return vv.VariableType.Name()
+				}
+				return ""
+			}(t),
+			func(v st.Symbol) st.ITypeSymbol {
+				if vv, ok := t.(*st.VariableSymbol); ok {
+					return vv.VariableType
+				}
+				return nil
+			}(t))
 		e.Obj = t.Object()
-		if pp.RegisterPositions {
-			t.AddPosition(st.NewOccurence(e.Pos()))
-		}
+
+		t.AddPosition(e.Pos())
 
 		switch v := t.(type) {
 		case *st.VariableSymbol:
 			res.Push(v.VariableType)
 		case *st.FunctionSymbol:
+			if v.FunctionType.(*st.FunctionTypeSymbol).TypeSymbol == nil {
+				fmt.Printf("HHOOLLYY\n")
+			}
 			res.Push(v.FunctionType)
 		default: //PackageSymbol or type
 			if _, ok := t.(*st.PackageSymbol); !ok {
 				fmt.Printf("%s:	<><><><>  %v - %T \n", pp.Package.AstPackage.Name, t.Name(), t)
-				pp.ExprParser.IsTypeNameUsed = true
+				//pp.ExprParser.IsTypeNameUsed = true
 			}
 			res.Push(v)
 		}
 	} else {
 		//sould be resolved later
 		fmt.Printf("%s:	WARNING! Ident %v wasn't found\n", pp.Package.AstPackage.Name, e.Name)
-		res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Obj, Posits: new(vector.Vector), PackFrom: nil}, e})
+		res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Obj, Posits: make(map[string]token.Position), PackFrom: nil}, e})
 	}
 
 	return
@@ -243,8 +260,12 @@ func (pp *packageParser) eParseIndexExpr(e *ast.IndexExpr) (res *vector.Vector) 
 }
 func (pp *packageParser) eParseKeyValueExpr(e *ast.KeyValueExpr) (res *vector.Vector) {
 
+	temp := pp.ExprParser.SearchInFields
 	pp.parseExpr(e.Key) // struct fields or array indexes
+	pp.ExprParser.SearchInFields = false
 	pp.parseExpr(e.Value)
+	//fmt.Println(pp.ExprParser.SearchInFields);
+	pp.ExprParser.SearchInFields = temp
 
 	res = new(vector.Vector)
 	//return array index to count it's length
@@ -278,7 +299,7 @@ func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Ve
 
 	res = new(vector.Vector)
 	//Sould be resolved
-	res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Sel.Obj, Posits: new(vector.Vector), PackFrom: nil}, e})
+	res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Sel.Obj, Posits: make(map[string]token.Position), PackFrom: nil}, e})
 	return
 }
 func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) {
@@ -343,47 +364,23 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 	var tt st.ITypeSymbol
 	switch name {
 	case "new":
-		if pp.RegisterPositions {
-			pp.RegisterPositions = false
-			tt = pp.parseTypeSymbol(e.Args[0])
-			pp.RegisterPositions = true
-		} else {
-			tt = pp.parseTypeSymbol(e.Args[0])
-		}
-		var resT st.ITypeSymbol
-		// LookUp or create a pointer type
-		// check if it's possible to call new(*T)
-		pd, found := 0, false
-		if p, ok := tt.(*st.PointerTypeSymbol); ok {
-			pd = p.Depth()
-		}
 
-		if resT, found = pp.RootSymbolTable.LookUpPointerType(tt.Name(), pd+1); !found {
+		tt = pp.parseTypeSymbol(e.Args[0])
 
-			resT = &st.PointerTypeSymbol{&st.TypeSymbol{Obj: tt.Object(), Meths: nil, Posits: new(vector.Vector), PackFrom: pp.Package}, tt, nil}
-			pp.RootSymbolTable.AddSymbol(resT)
-		}
+		resT := pp.getOrAddPointer(tt)
 
 		res.Push(resT)
 		return
 	case "make":
-		if pp.RegisterPositions {
-			pp.RegisterPositions = false
-			tt = pp.parseTypeSymbol(e.Args[0])
-			pp.RegisterPositions = true
-		} else {
-			tt = pp.parseTypeSymbol(e.Args[0])
-		}
+
+		tt = pp.parseTypeSymbol(e.Args[0])
+
 		res.Push(tt)
 		return
 	case "real", "imag":
-		if pp.RegisterPositions {
-			pp.RegisterPositions = false
-			tt = pp.parseTypeSymbol(e.Args[0])
-			pp.RegisterPositions = true
-		} else {
-			tt = pp.parseTypeSymbol(e.Args[0])
-		}
+
+		tt = pp.parseTypeSymbol(e.Args[0])
+
 		switch tt.Name() {
 		case "cmplx":
 			res.Push(st.PredeclaredTypes["float"])
@@ -395,15 +392,9 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 		return
 	case "cmplx":
 		var t1, t2 st.ITypeSymbol
-		if pp.RegisterPositions {
-			pp.RegisterPositions = false
-			t1 = pp.parseTypeSymbol(e.Args[0])
-			t2 = pp.parseTypeSymbol(e.Args[1])
-			pp.RegisterPositions = true
-		} else {
-			t1 = pp.parseTypeSymbol(e.Args[0])
-			t2 = pp.parseTypeSymbol(e.Args[1])
-		}
+
+		t1 = pp.parseTypeSymbol(e.Args[0])
+		t2 = pp.parseTypeSymbol(e.Args[1])
 
 		switch {
 		case t1.Name() == "float64" || t2.Name() == "float64":
@@ -415,17 +406,18 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 		}
 		return
 	case "append":
-		if pp.RegisterPositions {
 
-			pp.RegisterPositions = false
-			tt = pp.parseTypeSymbol(e.Args[0])
-			pp.RegisterPositions = true
-		} else {
-			tt = pp.parseTypeSymbol(e.Args[0])
-		}
+		tt = pp.parseTypeSymbol(e.Args[0])
+
 		res.Push(tt)
 
 		return
+		// 	default:
+		// 		if sym,ok:=pp.RootSymbolTable.LookUp(name,"");ok{
+		// 			return pp.eParseRegularFunctionCall(sym.(st.ITypeSymbol));
+		// 		}else{
+		// 			panic("didn't find built In function")
+		// 		}
 	}
 
 	return nil, false
@@ -464,7 +456,7 @@ func (pp *packageParser) eParseCLElementsAndGetMaxIndex(e *ast.CompositeLit) (ma
 func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorExpr) (res *vector.Vector, success bool) {
 
 	lookupST := pp.detectWhereToLookUpMethodSelector(t)
-
+	//if(t.Name() == "Error"){fmt.Println(*lookupST.String())}    //ok
 	if lookupST != nil {
 		if ff, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 			if f, ok := ff.(*st.FunctionSymbol); ok {
@@ -472,17 +464,21 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 				res = new(vector.Vector)
 
 				e.Sel.Obj = f.Object()
-				if pp.RegisterPositions {
-					f.AddPosition(st.NewOccurence(e.Sel.Pos()))
-				}
+
+				f.AddPosition(e.Sel.Pos())
 
 				if pp.ExprParser.IsTypeNameUsed {
 					pp.ExprParser.IsTypeNameUsed = false
 					f = pp.makeMethodExpression(f)
 				}
 				res.Push(f.FunctionType)
+				if t.Name() == "Error" {
+					fmt.Printf("asd %s\n", res.At(0).(st.ITypeSymbol).Name())
+				}
 				return res, true
 			}
+		} else {
+			fmt.Println("WHat the fuck????")
 		}
 	}
 	return nil, false
@@ -493,15 +489,21 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 	if cyc {
 		panic("ERROR: cycle wasn't expected. eParseSelectorExpr, parseExpr.go")
 	}
+	fmt.Printf("%s %T %T\n", t.Name(), x, t)
+	if t.Name() == "*Package" {
+		//fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()));
+		fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()))
+	}
+	var lookupST = pp.detectWhereToLookUpFieldSelector(t)
 
-	var lookupST = pp.detectWhereToLookUpFieldSelector(x)
-
+	if lookupST == nil {
+		fmt.Printf("FUCK FUCK FUCK!!! with %s\n", e.Sel.Name)
+	}
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
 			e.Sel.Obj = va.Obj
-			if pp.RegisterPositions {
-				va.AddPosition(st.NewOccurence(e.Sel.Pos()))
-			}
+
+			va.AddPosition(e.Sel.Pos())
 
 			res = new(vector.Vector)
 			res.Push(va.VariableType)
@@ -514,12 +516,13 @@ func (pp *packageParser) eParsePackageEntitySelector(t st.ITypeSymbol, e *ast.Se
 	if s, ok := t.(*st.PackageSymbol); ok {
 		if tt, ok := s.Package.Symbols.LookUp(e.Sel.Name, ""); ok {
 			e.Sel.Obj = tt.Object()
-			if pp.RegisterPositions {
-				tt.AddPosition(st.NewOccurence(e.Sel.Pos()))
-			}
+
+			tt.AddPosition(e.Sel.Pos())
+
 			res = new(vector.Vector)
 			res.Push(tt)
-			pp.ExprParser.IsTypeNameUsed = true
+			//pp.ExprParser.IsTypeNameUsed = true
+			//fmt.Printf("ISTY !!!\n");
 			return res, true
 		}
 	}
@@ -535,6 +538,7 @@ func (pp *packageParser) processCLType(e *ast.CompositeLit) (clType st.ITypeSymb
 	} else {
 		clType = pp.ExprParser.CompositeLiteralElementType
 	}
+	fmt.Printf("CLTYPE = %s\n", clType.Name())
 	return
 }
 
@@ -560,6 +564,9 @@ func (pp *packageParser) detectWhereToLookUpMethodSelector(source st.ITypeSymbol
 	if s, ok := source.(*st.PackageSymbol); ok {
 		lookupST = s.Package.Symbols
 	} else if source.Methods() != nil {
+		if source.Name() == "FunctionSymbol" {
+			fmt.Printf("YEAHHNNN FunctionSymbol:\n %s", *source.Methods().String())
+		}
 		lookupST = source.Methods()
 	}
 	return

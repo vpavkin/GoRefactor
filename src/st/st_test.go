@@ -28,6 +28,14 @@ func TestLookUp(t *testing.T) {
 	if r, ok := s.LookUp("vvs", ""); !ok || r != vvsym {
 		t.Fatalf("LookUp in OpenedScope failed")
 	}
+
+	sss := NewSymbolTable(nil)
+	vvvsym := &VariableSymbol{Obj: &ast.Object{Name: "vvvs"}}
+	sss.Table.Push(vvvsym)
+	ss.AddOpenedScope(sss)
+	if r, ok := s.LookUp("vvvs", ""); !ok || r != vvvsym {
+		t.Fatalf("LookUp in OpenedScope failed")
+	}
 }
 
 func TestAddSymbol(t *testing.T) {

@@ -5,291 +5,364 @@ import (
 	"go/token"
 	"container/vector"
 	"st"
+	"fmt"
 )
 
-type InMethodsVisitor struct {
-	Stb *SymbolTableBuilder
+type localsVisitor struct {
+	Parser *packageParser
 }
 
-type LocalsVisitor struct {
-	Method   *FunctionSymbol
-	Current  *SymbolTable
-	Stb      *SymbolTableBuilder
-	IotaType ITypeSymbol
+type innerScopeVisitor struct {
+	Method   *st.FunctionSymbol
+	Current  *st.SymbolTable
+	Parser   *packageParser
+	IotaType st.ITypeSymbol
 }
 
-func (mv InMethodsVisitor) Visit(node interface{}) (w ast.Visitor) {
-	w = mv
+func (lv *localsVisitor) Visit(node interface{}) (w ast.Visitor) {
+	w = lv
 	switch f := node.(type) {
-	case *ast.ValueSpec: //global var/const spec
-		for _, e := range f.Values {
-			mv.Stb.ParseExpr(e, mv.Stb.RootSymbolTable)
-		}
+
 	case *ast.FuncDecl:
 
-		scope := mv.Stb.RootSymbolTable
+		scope := lv.Parser.CurrentSymbolTable
 		if f.Recv != nil {
 			for _, field := range f.Recv.List {
-				st.RegisterPositions = false
-				rtype := mv.Stb.BuildTypeSymbol(field.Type)
-				st.RegisterPositions = true
+				rtype := lv.Parser.parseTypeSymbol(field.Type)
+				if _, ok := rtype.(*st.UnresolvedTypeSymbol); ok || rtype == nil {
+					panic("couldn't find method reciever")
+				}
 				scope = rtype.Methods()
 			}
 		}
-		m, _ := scope.LookUp(f.Name.Name())
-		meth := m.(*FunctionSymbol)
-		meth.Locals.AddOpenedScope(mv.Stb.RootSymbolTable)
-
-		w = LocalsVisitor{meth, meth.Locals, mv.Stb, nil}
+		m, ok := scope.LookUp(f.Name.Name, "")
+		if !ok {
+			panic("couldn't find method " + f.Name.Name)
+		}
+		meth := m.(*st.FunctionSymbol)
+		meth.Locals.AddOpenedScope(lv.Parser.RootSymbolTable)
+		fmt.Printf("method %s\n", meth.Name())
+		ww := &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil}
+		ast.Walk(ww, f.Body)
+		w = nil
 	}
 	return
 }
 
-func (lv LocalsVisitor) ParseStmt(node interface{}) (w ast.Visitor) {
-	w = lv
-	temp := lv.Stb.CurrentSymbolTable
-	lv.Stb.CurrentSymbolTable = lv.Current
+func (lv *innerScopeVisitor) getValuesTypesAss(s *ast.AssignStmt) (valuesTypes *vector.Vector) {
+	if len(s.Rhs) == 1 && len(s.Rhs) < len(s.Lhs) {
+		valuesTypes = lv.Parser.parseExpr(s.Rhs[0])
+	} else {
+		valuesTypes = new(vector.Vector)
+		for _, n := range s.Rhs {
+			valuesTypes.Push(lv.Parser.parseExpr(n).At(0))
+		}
+	}
+	return
+}
+func (lv *innerScopeVisitor) getValuesTypesValSpec(s *ast.ValueSpec) (valuesTypes *vector.Vector) {
+	if len(s.Values) == 1 && len(s.Values) < len(s.Names) {
+		valuesTypes = lv.Parser.parseExpr(s.Values[0])
+	} else {
+		valuesTypes = new(vector.Vector)
+		for _, n := range s.Values {
+			valuesTypes.Push(lv.Parser.parseExpr(n).At(0))
+		}
+	}
+	return
+}
 
+func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
+	if node == nil {
+		return nil
+	}
+	w = lv
+	fmt.Printf("ps %p %p %p %T ", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals, node)
+	if id, ok := node.(*ast.Ident); ok {
+		fmt.Printf("%s ", id.Name)
+	}
+	println()
+	temp := lv.Parser.CurrentSymbolTable
+	lv.Parser.CurrentSymbolTable = lv.Current
+	defer func() { lv.Parser.CurrentSymbolTable = temp }()
 	switch s := node.(type) {
 
 	case *ast.GenDecl:
-		var IotaType ITypeSymbol = nil
+		var IotaType st.ITypeSymbol = nil
 		if len(s.Specs) > 0 {
 			if vs, ok := s.Specs[0].(*ast.ValueSpec); ok {
-				ts := lv.Stb.BuildTypeSymbol(vs.Type)
-				if ts == nil {
-					ts = &TypeSymbol{Obj: &ast.Object{Name: "int"}, Posits: new(vector.Vector)}
+				switch{
+					case vs.Type != nil:
+						ts := lv.Parser.parseTypeSymbol(vs.Type)
+						if _, ok := ts.(*st.UnresolvedTypeSymbol); (ts == nil) || ok {
+							panic("unresolved type at locals scope: " + ts.Name())
+						}
+						IotaType = ts;
+					case vs.Values!=nil && len(vs.Values) > 0:
+						ts := lv.Parser.parseExpr(vs.Values[0]).At(0).(st.ITypeSymbol)
+						IotaType = ts;
+					default:
+						panic("decl without either type or value????")
 				}
-				IotaType = ts
 			}
 		}
-		w = LocalsVisitor{lv.Method, lv.Current, lv.Stb, IotaType}
+		w = &innerScopeVisitor{lv.Method, lv.Current, lv.Parser, IotaType}
 
 	case *ast.ValueSpec: //Specify a new variable
 
-		ts := lv.Stb.BuildTypeSymbol(s.Type)
+		ts := lv.Parser.parseTypeSymbol(s.Type)
 
 		if ts == nil {
 			ts = lv.IotaType
 		}
-
+		valuesTypes := lv.getValuesTypesValSpec(s)
 		for i, n := range s.Names {
 			curTs := ts
-			if len(s.Values) > i {
-				curTs = lv.Stb.ParseExpr(s.Values[i], lv.Stb.CurrentSymbolTable).At(0).(ITypeSymbol)
+			if ts == nil {
+				curTs = valuesTypes.At(i).(st.ITypeSymbol)
 			}
-			toAdd := &VariableSymbol{Obj: CopyObject(n), VariableType: curTs, Posits: new(vector.Vector)}
-			toAdd.AddPosition(NewOccurence(n.Pos()))
-			lv.Stb.CurrentSymbolTable.AddSymbol(toAdd)
+			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
+
+			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: curTs, Posits: make(map[string]token.Position), PackFrom: lv.Parser.Package}
+			toAdd.AddPosition(n.Pos())
+			lv.Parser.CurrentSymbolTable.AddSymbol(toAdd)
 		}
 
 	case *ast.AssignStmt:
+		valuesTypes := lv.getValuesTypesAss(s)
 		switch s.Tok {
 		case token.DEFINE: //Specify a new variable
-			eTypes := &vector.Vector{}
-			for _, e := range s.Rhs {
-				res := lv.Stb.ParseExpr(e, lv.Current)
-				eTypes.AppendVector(res)
-			}
-			for i, n := range s.Lhs {
-				if n.(*ast.Ident).Name() != "_" {
-					if i < eTypes.Len() {
-						toAdd := &VariableSymbol{Obj: CopyObject(n.(*ast.Ident)), VariableType: eTypes.At(i).(ITypeSymbol), Posits: new(vector.Vector)}
-						toAdd.Posits.Push(NewOccurence(n.Pos()))
-						lv.Current.AddSymbol(toAdd)
 
-					} else {
-						toAdd := &VariableSymbol{Obj: CopyObject(n.(*ast.Ident)), VariableType: &ImportedType{&TypeSymbol{Obj: &ast.Object{Name: "imported"}, Posits: new(vector.Vector)}}, Posits: new(vector.Vector)}
-						toAdd.Posits.Push(NewOccurence(n.Pos()))
-						lv.Current.AddSymbol(toAdd)
-					}
+			for i, nn := range s.Lhs {
+				n := nn.(*ast.Ident)
+				if n.Name != "_" {
+					n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
+					toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: valuesTypes.At(i).(st.ITypeSymbol), Posits: make(map[string]token.Position), PackFrom: lv.Parser.Package}
+					toAdd.AddPosition(n.Pos())
+					lv.Current.AddSymbol(toAdd)
+					fmt.Printf("DEFINED %s\n", toAdd.Name())
 				}
 			}
 		case token.ASSIGN: //Pos
-			for _, e := range s.Rhs {
-				lv.Stb.ParseExpr(e, lv.Current)
+			for _, nn := range s.Lhs {
+				fmt.Printf("<!>")
+				lv.Parser.parseExpr(nn)
 			}
-			for _, n := range s.Lhs {
-				lv.Stb.ParseExpr(n, lv.Current)
-			}
+			w = nil
 		}
 	case *ast.TypeSpec: //Specify a new type
-		ts := lv.Stb.BuildTypeSymbol(s.Type)
+		ts := lv.Parser.parseTypeSymbol(s.Type)
 
 		switch ts.(type) {
-		case *ImportedType, *PointerTypeSymbol, *ArrayTypeSymbol, *StructTypeSymbol, *InterfaceTypeSymbol, *MapTypeSymbol, *ChanTypeSymbol, *FunctionTypeSymbol:
+		case *st.PointerTypeSymbol, *st.ArrayTypeSymbol, *st.StructTypeSymbol, *st.InterfaceTypeSymbol, *st.MapTypeSymbol, *st.ChanTypeSymbol, *st.FunctionTypeSymbol:
+
+			s.Name.Obj = &ast.Object{Kind: ast.Typ, Name: s.Name.Name}
+
 			if ts.Object() == nil {
 				//No such symbol in CurrentSymbolTable
-				ts.SetObject(CopyObject(s.Name))
+				ts.SetObject(s.Name.Obj)
 			} else {
 				//There is an equal type symbol with different name => create alias
-				ts = &AliasTypeSymbol{&TypeSymbol{Obj: CopyObject(s.Name), Meths: NewSymbolTable(), Posits: new(vector.Vector)}, ts}
+				ts = &st.AliasTypeSymbol{&st.TypeSymbol{Obj: s.Name.Obj, Posits: make(map[string]token.Position), PackFrom: lv.Parser.Package}, ts}
 			}
+		default:
+			panic("shit, no type symbol returned")
 		}
-		ts.AddPosition(NewOccurence(s.Name.Pos()))
+		ts.AddPosition(s.Name.Pos())
 		lv.Current.AddSymbol(ts)
 	case *ast.ExprStmt:
-		lv.Stb.ParseExpr(s.X, lv.Current)
+		lv.Parser.parseExpr(s.X)
 	case *ast.DeferStmt:
-		lv.Stb.ParseExpr(s.Call, lv.Current)
+		lv.Parser.parseExpr(s.Call)
 	case *ast.GoStmt:
-		lv.Stb.ParseExpr(s.Call, lv.Current)
+		lv.Parser.parseExpr(s.Call)
 	case *ast.IncDecStmt:
-		lv.Stb.ParseExpr(s.X, lv.Current)
+		lv.Parser.parseExpr(s.X)
 	case *ast.ReturnStmt:
 		if s.Results != nil { //mb not needed
 			for _, exp := range s.Results {
-				lv.Stb.ParseExpr(exp, lv.Current)
+				lv.Parser.parseExpr(exp)
 			}
 		}
 	case *ast.SwitchStmt, *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.FuncLit, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.TypeCaseClause, *ast.CommClause:
-		table := NewSymbolTable()
-		table.AddOpenedScope(lv.Current)
-		ww := LocalsVisitor{lv.Method, table, lv.Stb, nil}
-		switch inNode := node.(type) {
-		case *ast.ForStmt:
-			ww.ParseStmt(inNode.Init)
-			ww.Stb.ParseExpr(inNode.Cond, ww.Current)
-			ww.ParseStmt(inNode.Post)
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.IfStmt:
-			ww.ParseStmt(inNode.Init)
-			ww.Stb.ParseExpr(inNode.Cond, ww.Current)
-			ww1 := LocalsVisitor{lv.Method, NewSymbolTable(), lv.Stb, nil}
-			ww2 := LocalsVisitor{lv.Method, NewSymbolTable(), lv.Stb, nil}
-			ww1.Current.AddOpenedScope(ww.Current)
-			ww2.Current.AddOpenedScope(ww.Current)
-			ast.Walk(ww1, inNode.Body)
-			ast.Walk(ww2, inNode.Else)
-			w = nil
-		case *ast.RangeStmt:
-			rangeType := ww.Stb.ParseExpr(inNode.X, ww.Current).At(0).(ITypeSymbol)
-			switch inNode.Tok {
-			case token.DEFINE:
-				rangeType = GetBaseType(rangeType)
-				var kT, vT ITypeSymbol
-				switch rT := rangeType.(type) {
-				case *ArrayTypeSymbol:
-					kT = &TypeSymbol{Obj: &ast.Object{Name: "int"}, Meths: nil, Posits: new(vector.Vector)}
-					vT = rT.ElemType
-				case *MapTypeSymbol:
-					kT = rT.KeyType
-					vT = rT.ValueType
-				case *TypeSymbol: //string
-					kT = &TypeSymbol{Obj: &ast.Object{Name: "int"}, Meths: nil, Posits: new(vector.Vector)}
-					vT = &TypeSymbol{Obj: &ast.Object{Name: "char"}, Meths: nil, Posits: new(vector.Vector)}
-				case *ChanTypeSymbol:
-					kT = rT.ValueType
-				case *ImportedType:
-					kT = rT
-					vT = rT
-				}
-				iK := inNode.Key.(*ast.Ident)
-				if iK.Name() != "_" {
-					toAdd := &VariableSymbol{Obj: CopyObject(iK), VariableType: kT, Posits: new(vector.Vector)}
-					toAdd.Posits.Push(NewOccurence(iK.Pos())
-					ww.Current.AddSymbol(toAdd)
-				}
-				if inNode.Value != nil { // not channel, two range vars
-					iV := inNode.Value.(*ast.Ident)
-					if iV.Name() != "_" {
-						toAdd := &VariableSymbol{Obj: CopyObject(iV), VariableType: vT, Posits: new(vector.Vector)}
-						toAdd.Posits.Push(NewOccurence(iV.Pos())
-						ww.Current.AddSymbol(toAdd)
-					}
-				}
-			case token.ASSIGN:
-				ww.Stb.ParseExpr(inNode.Key, ww.Current)
-				if inNode.Value != nil {
-					ww.Stb.ParseExpr(inNode.Value, ww.Current)
-				}
-			}
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.SelectStmt:
-			w = ww
-		case *ast.SwitchStmt:
-			ww.ParseStmt(inNode.Init)
-			ww.Stb.ParseExpr(inNode.Tag, ww.Current)
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.TypeSwitchStmt:
-			ww.ParseStmt(inNode.Init)
-			switch tsT := inNode.Assign.(type) {
-			case *ast.AssignStmt:
-				tsVar := tsT.Lhs[0].(*ast.Ident)
-				tsTypeAss := tsT.Rhs[0].(*ast.TypeAssertExpr)
-				tsType := ww.Stb.ParseExpr(tsTypeAss.X, ww.Current).At(0).(ITypeSymbol)
-				toAdd := &VariableSymbol{Obj: CopyObject(tsVar), VariableType: tsType, Posits: new(vector.Vector)}
-				toAdd.Posits.Push(NewOccurence(tsVar.Pos()))
-				toAdd.Obj.Kind = -1 //TypeSwitch var
-				ww.Current.AddSymbol(toAdd)
-			case *ast.ExprStmt:
-				tsTypeAss := tsT.X.(*ast.TypeAssertExpr)
-				ww.Stb.ParseExpr(tsTypeAss.X, ww.Current)
-			}
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.CaseClause:
-			if inNode.Values != nil {
-				for _, v := range inNode.Values {
-					ww.Stb.ParseExpr(v, ww.Current)
-				}
-			}
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.CommClause:
-			switch {
-			case inNode.Lhs != nil:
-				switch inNode.Tok {
-				case token.DEFINE:
-					ccVar := inNode.Lhs.(*ast.Ident)
-					ccType := ww.Stb.ParseExpr(inNode.Rhs, ww.Current).At(0).(ITypeSymbol)
 
-					toAdd := &VariableSymbol{Obj: CopyObject(ccVar), VariableType: ccType, Posits: new(vector.Vector)}
-					toAdd.Posits.Push(NewOccurence(ccVar.Pos()))
-					ww.Current.AddSymbol(toAdd)
-				case token.ASSIGN:
-					ww.Stb.ParseExpr(inNode.Lhs, ww.Current)
-					ww.Stb.ParseExpr(inNode.Rhs, ww.Current)
-				}
-			case inNode.Rhs != nil:
-				ww.Stb.ParseExpr(inNode.Rhs, ww.Current)
-			}
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.TypeCaseClause:
-			switch {
-			case inNode.Types == nil:
-				//default
-			case len(inNode.Types) == 1:
-				tsType := ww.Stb.ParseExpr(inNode.Types[0], ww.Current).At(0).(ITypeSymbol)
-				if tsVar, ok := lv.Current.FindTypeSwitchVar(); ok {
-					toAdd := &VariableSymbol{Obj: tsVar.Obj, VariableType: tsType, Posits: tsVar.Posits}
-					//No position, just register symbol
-					ww.Current.AddSymbol(toAdd)
-				}
-			case len(inNode.Types) > 1:
-				for _, t := range inNode.Types {
-					ww.Stb.ParseExpr(t, ww.Current)
-				}
-			}
-			ast.Walk(ww, inNode.Body)
-			w = nil
-		case *ast.FuncLit:
-			meth := &FunctionSymbol{Obj: &ast.Object{Name: "#"}, FunctionType: lv.Stb.BuildTypeSymbol(inNode.Type), Locals: NewSymbolTable(), Posits: new(vector.Vector)}
-			meth.Locals.AddOpenedScope(lv.Current)
-			meth.Locals.AddOpenedScope(meth.FunctionType.(*FunctionTypeSymbol).Parameters)
-			meth.Locals.AddOpenedScope(meth.FunctionType.(*FunctionTypeSymbol).Results)
-			w = LocalsVisitor{meth, meth.Locals, lv.Stb, nil}
-		}
+		w = lv.parseBlockStmt(node)
+
 	}
-	lv.Stb.CurrentSymbolTable = temp
+
 	return
 }
-func (lv LocalsVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
+	if node == nil {
+		return nil
+	}
+	w = lv
+	table := lv.Parser.registerNewSymbolTable()
+	fmt.Printf(" %p %p %p \n", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals)
+	table.AddOpenedScope(lv.Current)
+	ww := &innerScopeVisitor{lv.Method, table, lv.Parser, nil}
 
-	w = lv.ParseStmt(node)
-	return
+	temp := lv.Parser.CurrentSymbolTable
+	lv.Parser.CurrentSymbolTable = table
+	defer func() { lv.Parser.CurrentSymbolTable = temp }()
+
+	switch inNode := node.(type) {
+	case *ast.ForStmt:
+		ww.parseStmt(inNode.Init)
+		ww.Parser.parseExpr(inNode.Cond)
+		ww.parseStmt(inNode.Post)
+		ast.Walk(ww, inNode.Body)
+		w = nil
+	case *ast.IfStmt:
+		ww.parseStmt(inNode.Init)
+		ww.Parser.parseExpr(inNode.Cond)
+		ww1 := &innerScopeVisitor{lv.Method, lv.Parser.registerNewSymbolTable(), lv.Parser, nil}
+		ww2 := &innerScopeVisitor{lv.Method, lv.Parser.registerNewSymbolTable(), lv.Parser, nil}
+		ww1.Current.AddOpenedScope(ww.Current)
+		ww2.Current.AddOpenedScope(ww.Current)
+		ast.Walk(ww1, inNode.Body)
+		ast.Walk(ww2, inNode.Else)
+		w = nil
+	case *ast.RangeStmt:
+		rangeType := ww.Parser.parseExpr(inNode.X).At(0).(st.ITypeSymbol)
+		fmt.Printf("range type = %s, %T\n", rangeType.Name(), rangeType)
+		switch inNode.Tok {
+		case token.DEFINE:
+			if rangeType, _ = st.GetBaseType(rangeType); rangeType == nil {
+				panic("unexpected cycle")
+			}
+
+			var kT, vT st.ITypeSymbol
+			switch rT := rangeType.(type) {
+			case *st.ArrayTypeSymbol:
+				kT = st.PredeclaredTypes["int"]
+				vT = rT.ElemType
+			case *st.MapTypeSymbol:
+				kT = rT.KeyType
+				vT = rT.ValueType
+			case *st.TypeSymbol: //string
+				kT = st.PredeclaredTypes["int"]
+				vT = st.PredeclaredTypes["byte"]
+			case *st.ChanTypeSymbol:
+				kT = rT.ValueType
+			case *st.UnresolvedTypeSymbol:
+				panic("unresolved at range")
+			}
+			iK := inNode.Key.(*ast.Ident)
+			if iK.Name != "_" {
+				iK.Obj = &ast.Object{Kind: ast.Var, Name: iK.Name}
+				toAdd := &st.VariableSymbol{Obj: iK.Obj, VariableType: kT, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
+				toAdd.AddPosition(iK.Pos())
+				ww.Current.AddSymbol(toAdd)
+				fmt.Printf("range key added %s %T\n", toAdd.Name(), toAdd)
+			}
+			if inNode.Value != nil { // not channel, two range vars
+				iV := inNode.Value.(*ast.Ident)
+				if iV.Name != "_" {
+					iV.Obj = &ast.Object{Kind: ast.Var, Name: iV.Name}
+					toAdd := &st.VariableSymbol{Obj: iV.Obj, VariableType: vT, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
+					toAdd.AddPosition(iV.Pos())
+					ww.Current.AddSymbol(toAdd)
+					fmt.Printf("range value added %s %T\n", toAdd.Name(), toAdd)
+				}
+			}
+		case token.ASSIGN:
+			ww.Parser.parseExpr(inNode.Key)
+			if inNode.Value != nil {
+				ww.Parser.parseExpr(inNode.Value)
+			}
+		}
+		ast.Walk(ww, inNode.Body)
+		fmt.Printf("end of range\n")
+		w = nil
+	case *ast.SelectStmt:
+		w = ww
+	case *ast.SwitchStmt:
+		ww.parseStmt(inNode.Init)
+		ww.Parser.parseExpr(inNode.Tag)
+		ast.Walk(ww, inNode.Body)
+		w = nil
+	case *ast.TypeSwitchStmt:
+		ww.parseStmt(inNode.Init)
+		switch tsT := inNode.Assign.(type) {
+		case *ast.AssignStmt:
+			tsVar := tsT.Lhs[0].(*ast.Ident)
+			tsTypeAss := tsT.Rhs[0].(*ast.TypeAssertExpr)
+			tsType := ww.Parser.parseExpr(tsTypeAss.X).At(0).(st.ITypeSymbol)
+
+			tsVar.Obj = &ast.Object{Kind: ast.Var, Name: tsVar.Name}
+			toAdd := &st.VariableSymbol{Obj: tsVar.Obj, VariableType: tsType, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
+			toAdd.AddPosition(tsVar.Pos())
+			toAdd.Obj.Kind = -1 //TypeSwitch var
+			ww.Current.AddSymbol(toAdd)
+		case *ast.ExprStmt:
+			tsTypeAss := tsT.X.(*ast.TypeAssertExpr)
+			ww.Parser.parseExpr(tsTypeAss.X)
+		}
+		ast.Walk(ww, inNode.Body)
+		w = nil
+	case *ast.CaseClause:
+		if inNode.Values != nil {
+			for _, v := range inNode.Values {
+				ww.Parser.parseExpr(v)
+			}
+		}
+		ast.Walk(ww, inNode.Body)
+		w = nil
+	case *ast.CommClause:
+		switch {
+		case inNode.Lhs != nil:
+			switch inNode.Tok {
+			case token.DEFINE:
+				ccVar := inNode.Lhs.(*ast.Ident)
+				ccType := ww.Parser.parseExpr(inNode.Rhs).At(0).(st.ITypeSymbol)
+
+				ccVar.Obj = &ast.Object{Kind: ast.Var, Name: ccVar.Name}
+				toAdd := &st.VariableSymbol{Obj: ccVar.Obj, VariableType: ccType, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
+				toAdd.AddPosition(ccVar.Pos())
+				ww.Current.AddSymbol(toAdd)
+			case token.ASSIGN:
+				ww.Parser.parseExpr(inNode.Lhs)
+				ww.Parser.parseExpr(inNode.Rhs)
+			}
+		case inNode.Rhs != nil:
+			ww.Parser.parseExpr(inNode.Rhs)
+		}
+		ast.Walk(ww, inNode.Body)
+		w = nil
+	case *ast.TypeCaseClause:
+		switch {
+		case inNode.Types == nil:
+			//default
+		case len(inNode.Types) == 1:
+			tsType := ww.Parser.parseExpr(inNode.Types[0]).At(0).(st.ITypeSymbol)
+			if tsVar, ok := lv.Current.FindTypeSwitchVar(); ok {
+				toAdd := &st.VariableSymbol{Obj: tsVar.Obj, VariableType: tsType, Posits: tsVar.Posits, PackFrom: ww.Parser.Package}
+				//No position, just register symbol
+				ww.Current.AddSymbol(toAdd)
+			}
+		case len(inNode.Types) > 1:
+			for _, t := range inNode.Types {
+				ww.Parser.parseExpr(t)
+			}
+		}
+		ast.Walk(ww, inNode.Body)
+		w = nil
+	case *ast.FuncLit:
+		meth := &st.FunctionSymbol{Obj: &ast.Object{Name: "#"}, FunctionType: lv.Parser.parseTypeSymbol(inNode.Type), Locals: lv.Parser.registerNewSymbolTable(), Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
+		meth.Locals.AddOpenedScope(lv.Current)
+		if meth.FunctionType.(*st.FunctionTypeSymbol).Parameters != nil {
+			meth.Locals.AddOpenedScope(meth.FunctionType.(*st.FunctionTypeSymbol).Parameters)
+		}
+		if meth.FunctionType.(*st.FunctionTypeSymbol).Results != nil {
+			meth.Locals.AddOpenedScope(meth.FunctionType.(*st.FunctionTypeSymbol).Results)
+		}
+		w = &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil}
+	}
+	return w
+}
+func (isv *innerScopeVisitor) Visit(node interface{}) (w ast.Visitor) {
+
+	return isv.parseStmt(node)
+
 }

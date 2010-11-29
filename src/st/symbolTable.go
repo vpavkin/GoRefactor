@@ -20,14 +20,17 @@ type SymbolTable struct {
 	}
 	lookUpOut chan Symbol
 
-	addIn chan Symbol
+	addIn  chan Symbol
+	addOut chan bool
 
 	replaceIn chan struct {
 		replace string
 		with    Symbol
 	}
+	replaceOut chan bool
 
-	removeIn chan string
+	removeIn  chan string
+	removeOut chan bool
 
 	iterIn  chan func(sym Symbol)
 	iterOut chan bool
@@ -38,7 +41,8 @@ type SymbolTable struct {
 	}
 	lookUpPointerOut chan *PointerTypeSymbol
 
-	addOpenedScopeIn chan *SymbolTable
+	addOpenedScopeIn  chan *SymbolTable
+	addOpenedScopeOut chan bool
 
 	iterOpenedScopesIn  chan func(scope *SymbolTable)
 	iterOpenedScopesOut chan bool
@@ -54,12 +58,16 @@ func (table *SymbolTable) mainCycle() {
 			table.lookUpPointerOut <- table.lookUpPointerType(str.name, str.depth)
 		case sym := <-table.addIn:
 			table.addSymbol(sym)
+			table.addOut <- true
 		case st := <-table.addOpenedScopeIn:
 			table.addOpenedScope(st)
+			table.addOpenedScopeOut <- true
 		case str := <-table.replaceIn:
 			table.replaceSymbol(str.replace, str.with)
+			table.replaceOut <- true
 		case name := <-table.removeIn:
 			table.removeSymbol(name)
+			table.removeOut <- true
 		case toDo := <-table.iterOpenedScopesIn:
 			table.forEachOpenedScope(toDo)
 			table.iterOpenedScopesOut <- true
@@ -81,13 +89,16 @@ func NewSymbolTable(p *Package) *SymbolTable {
 	st.lookUpOut = make(chan Symbol)
 
 	st.addIn = make(chan Symbol)
+	st.addOut = make(chan bool)
 
 	st.replaceIn = make(chan struct {
 		replace string
 		with    Symbol
 	})
+	st.replaceOut = make(chan bool)
 
 	st.removeIn = make(chan string)
+	st.removeOut = make(chan bool)
 
 	st.iterIn = make(chan func(sym Symbol))
 	st.iterOut = make(chan bool)
@@ -99,6 +110,7 @@ func NewSymbolTable(p *Package) *SymbolTable {
 	st.lookUpPointerOut = make(chan *PointerTypeSymbol)
 
 	st.addOpenedScopeIn = make(chan *SymbolTable)
+	st.addOpenedScopeOut = make(chan bool)
 
 	st.iterOpenedScopesIn = make(chan func(scope *SymbolTable))
 	st.iterOpenedScopesOut = make(chan bool)
@@ -160,10 +172,12 @@ func (table *SymbolTable) AddOpenedScope(scope *SymbolTable) {
 		return
 	}
 	table.addOpenedScopeIn <- scope
+	<-table.addOpenedScopeOut
 }
 
 func (table *SymbolTable) addOpenedScope(scope *SymbolTable) {
 	table.OpenedScopes.Push(scope)
+	//fmt.Printf("%p opened scope added to %p \n", scope,table)
 }
 
 //Adds a symbol to local symbol table
@@ -177,11 +191,14 @@ func (table *SymbolTable) AddSymbol(sym Symbol) bool {
 		return false
 	}
 	table.addIn <- sym
-
+	<-table.addOut
 	return true
 }
 
 func (table *SymbolTable) addSymbol(sym Symbol) {
+	if _, ok := sym.(ITypeSymbol); ok && (sym.Name() == "*Package" || sym.Name() == "Package" || sym.Name() == "st.Package" || sym.Name() == "ast.Package" || sym.Name() == "*st.Package" || sym.Name() == "*ast.Package") {
+		fmt.Printf("ADDING %s %p from %s to symbols of %s\n", sym.Name(), sym, sym.PackageFrom().AstPackage.Name, table.Package.AstPackage.Name)
+	}
 	table.Table.Push(sym) //since LookUp goes in reverse order, the latest symbol will be find earlier if there's two identicaly named symbols
 }
 func (table *SymbolTable) ReplaceSymbol(replace string, with Symbol) {
@@ -193,14 +210,14 @@ func (table *SymbolTable) ReplaceSymbol(replace string, with Symbol) {
 		replace string
 		with    Symbol
 	}{replace, with}
-
+	<-table.replaceOut
 }
 func (table *SymbolTable) replaceSymbol(replace string, with Symbol) {
 
 	for i := 0; i < len(*table.Table); i++ {
 		sym := table.Table.At(i).(Symbol)
 		if sym.Name() == replace {
-			fmt.Printf("replaced %s with %s\n", table.Table.At(i).(Symbol).Name(), with.Name())
+			//fmt.Printf("replaced %s with %s\n", table.Table.At(i).(Symbol).Name(), with.Name())
 			table.Table.Set(i, with)
 		}
 	}
@@ -209,6 +226,7 @@ func (table *SymbolTable) replaceSymbol(replace string, with Symbol) {
 func (table *SymbolTable) RemoveSymbol(name string) {
 
 	table.removeIn <- name
+	<-table.removeOut
 }
 func (table *SymbolTable) removeSymbol(name string) {
 
@@ -257,6 +275,12 @@ func (table *SymbolTable) IterReverse() <-chan Symbol {
 //Searches symbol table and it's opened scopes for a symbol with a given name
 func (table *SymbolTable) LookUp(name string, fileName string) (Symbol, bool) {
 
+	if table == nil {
+		fmt.Printf("FFFUUUUUUCCCKKKK\n")
+	}
+	if table.lookUpIn == nil {
+		fmt.Printf("FFFUUUUUUUUUUUU\n")
+	}
 	table.lookUpIn <- struct {
 		name     string
 		fileName string
@@ -419,8 +443,7 @@ func (table *SymbolTable) String() *vector.StringVector {
 func (table *SymbolTable) FindSymbolByPosition(fileName string, line int, column int) (sym Symbol, found bool) {
 	c := table.IterReverse()
 	for sym := range c {
-		for _, p := range *sym.Positions() {
-			pos := p.(Occurence).Pos
+		for _, pos := range sym.Positions() {
 			if pos.Filename == fileName && pos.Line == line && pos.Column == column {
 				found = true
 				close(c)

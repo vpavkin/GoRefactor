@@ -7,6 +7,7 @@ import (
 	"container/vector"
 	//"path"
 	"st"
+	"go/token"
 	//"os"
 	//"utils"
 )
@@ -36,12 +37,12 @@ type packageParser struct {
 	GlobalsParser *globalsVisitor    // An ast.Visitor to register all global variables
 	GlobalsFixer  *globalsFixVisitor // An ast.Visitor to register all global variables
 	MethodsParser *methodsVisitor    // An ast.Visitor to register all methods
-	//	LocalsParser       *localsVisitor 	 // An ast.Visitor to register inner scopes of methods
+	LocalsParser  *localsVisitor     // An ast.Visitor to register inner scopes of methods
 
 	ExprParser *exprParser
 
-	Mode              int  // Current builder mode (TYPE_MODE, GLOBALS_MODE, FUNCTIONS_MODE or LOCALS_MODE)
-	RegisterPositions bool // If true, information about positions is gathered
+	Mode int // Current builder mode (TYPE_MODE, GLOBALS_MODE, FUNCTIONS_MODE or LOCALS_MODE)
+	//	RegisterPositions bool // If true, information about positions is gathered
 
 	CurrentFileName string //Used for resolving packages local names
 
@@ -52,7 +53,7 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 
 	pp := newPackageParser(rootPack)
 
-	pp.Package.Communication <- 0
+	<-pp.Package.Communication
 	pp.Mode = TYPES_MODE
 	for fName, atree := range rootPack.AstPackage.Files {
 
@@ -89,12 +90,12 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 	<-pp.Package.Communication
 
 	pp.Mode = GLOBALS_MODE
-	pp.RegisterPositions = false
+	fmt.Printf("gggggggg parsing globals at pack %s\n", rootPack.AstPackage.Name)
 	for fName, atree := range rootPack.AstPackage.Files {
 		pp.CurrentFileName = fName
 		ast.Walk(pp.GlobalsParser, atree.Decls)
 	}
-	pp.RegisterPositions = true
+
 	pp.Package.Communication <- 0
 
 	// fix globals
@@ -108,14 +109,18 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 	}
 	pp.Package.Communication <- 0
 
-	/*
-		//Locals
-		for filename, atree := range pack.Files {
-			if IsGoFile(filename) {
-				ast.Walk(pp.LocalsBuilder, atree.Decls)
+	//Locals
+	<-pp.Package.Communication
+
+	if !pp.Package.IsGoPackage {
+		fmt.Printf("@@@@@@@@ parsing locals at pack %s\n", rootPack.AstPackage.Name)
+		for fName, atree := range rootPack.AstPackage.Files {
+			pp.CurrentFileName = fName
+			ast.Walk(pp.LocalsParser, atree.Decls)
 		}
-		}
-	*/
+	}
+
+	pp.Package.Communication <- 0
 	return pp.RootSymbolTable, pp.Package.SymbolTablePool
 
 }
@@ -141,14 +146,13 @@ func (pp *packageParser) findSymbolByPosition(fileName string, line int, column 
 /*^^SymbolTableBuilder Methods^^*/
 func newPackageParser(p *st.Package) *packageParser {
 
-	pp := &packageParser{p, p.Symbols, p.Symbols, nil, nil, nil, nil, new(exprParser), INITIAL_STATE, true, "", nil}
+	pp := &packageParser{p, p.Symbols, p.Symbols, nil, nil, nil, nil, nil, new(exprParser), INITIAL_STATE, "", nil}
 
 	pp.TypesParser = &typesVisitor{pp}
 	pp.MethodsParser = &methodsVisitor{pp}
 	pp.GlobalsParser = &globalsVisitor{pp, nil}
 	pp.GlobalsFixer = &globalsFixVisitor{pp}
-
-	//imv := &localsVisitor{pp}
+	pp.LocalsParser = &localsVisitor{pp}
 
 	return pp
 }
@@ -159,6 +163,11 @@ func getIntValue(t *ast.BasicLit) int {
 }
 //Builds a type symbol according to given ast.Expression
 func (pp *packageParser) parseTypeSymbol(typ ast.Expr) (result st.ITypeSymbol) {
+
+	if typ == nil {
+		return nil
+	}
+
 	switch t := typ.(type) {
 	case *ast.StarExpr:
 		result = pp.tParseStarExpr(t)
@@ -201,20 +210,41 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 		nameToFind = p.BaseName()
 	}
 
-	if result, found = pp.CurrentSymbolTable.LookUpPointerType(nameToFind, pd+1); found {
-		fmt.Printf("Searched Pointer Type %s,%d\n", nameToFind, pd+1)
+	var toLookUp *st.SymbolTable
+	if base.PackageFrom() == pp.Package || base.PackageFrom() == nil {
+		toLookUp = pp.Package.Symbols
+	} else {
+		toLookUp = base.PackageFrom().Symbols
+	}
+	if base.Name() == "typesVisitor" {
+		fmt.Printf("goap %v and pp is in %v.  toLookUp is from %s\n", base.PackageFrom().AstPackage.Name, pp.Package.AstPackage.Name, toLookUp.Package.AstPackage.Name)
+	}
+
+	if result, found = toLookUp.LookUpPointerType(nameToFind, pd+1); found {
+		fmt.Printf("Searched Pointer Type %s (%p) ,%d, from package %s\n", nameToFind, result, pd+1, func(p *st.Package) string {
+			if p == nil {
+				return "nil"
+			}
+			return p.AstPackage.Name
+		}(result.PackageFrom()))
 		return
 	}
 
-	result = &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: new(vector.Vector), PackFrom: pp.Package}, base, nil}
-	fmt.Printf(" %s Adding Pointer Type %s\n", pp.Package.AstPackage.Name, result.Name())
+	result = &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: make(map[string]token.Position), PackFrom: toLookUp.Package}, base, nil}
+	fmt.Printf("Adding Pointer Type %s to %s at file of %s\n", result.Name(), func(p *st.Package) string {
+		if p == nil {
+			return "nil"
+		}
+		return p.AstPackage.Name
+	}(base.PackageFrom()), pp.Package.AstPackage.Name)
 
 	//Solve where to place new pointer
-	if _, found := pp.RootSymbolTable.LookUp(nameToFind, ""); found {
-		pp.RootSymbolTable.AddSymbol(result)
-	} else {
-		pp.CurrentSymbolTable.AddSymbol(result)
-	}
+	// 	if _, found := pp.RootSymbolTable.LookUp(nameToFind, ""); found {
+	// 		pp.RootSymbolTable.AddSymbol(result)
+	// 	} else {
+	// 		pp.CurrentSymbolTable.AddSymbol(result)
+	// 	}
+	toLookUp.AddSymbol(result)
 	return
 }
 
@@ -222,11 +252,11 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 func (pp *packageParser) tParseStarExpr(t *ast.StarExpr) (result *st.PointerTypeSymbol) {
 	base := pp.parseTypeSymbol(t.X)
 	result = pp.getOrAddPointer(base)
-	return result;
+	return result
 }
 
 func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayTypeSymbol) {
-	result = &st.ArrayTypeSymbol{TypeSymbol: &st.TypeSymbol{Posits: new(vector.Vector), PackFrom: pp.Package}, ElemType: pp.parseTypeSymbol(t.Elt)}
+	result = &st.ArrayTypeSymbol{TypeSymbol: &st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, ElemType: pp.parseTypeSymbol(t.Elt)}
 	if t.Len == nil {
 		result.Len = st.SLICE
 	} else {
@@ -240,11 +270,11 @@ func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayType
 	return
 }
 func (pp *packageParser) tParseChanType(t *ast.ChanType) (result *st.ChanTypeSymbol) {
-	result = &st.ChanTypeSymbol{&st.TypeSymbol{Posits: new(vector.Vector), PackFrom: pp.Package}, pp.parseTypeSymbol(t.Value)}
+	result = &st.ChanTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, pp.parseTypeSymbol(t.Value)}
 	return
 }
 func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.InterfaceTypeSymbol) {
-	result = &st.InterfaceTypeSymbol{&st.TypeSymbol{Posits: new(vector.Vector), PackFrom: pp.Package}}
+	result = &st.InterfaceTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}}
 	if len(t.Methods.List) > 0 {
 		result.Meths = pp.registerNewSymbolTable()
 		for _, method := range t.Methods.List {
@@ -257,10 +287,10 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 
 				name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-				toAdd := &st.FunctionSymbol{Obj: name.Obj, FunctionType: ft, Locals: nil, Posits: new(vector.Vector), PackFrom: pp.Package}
-				if pp.RegisterPositions {
-					toAdd.AddPosition(st.NewOccurence(method.Pos()))
-				}
+				toAdd := &st.FunctionSymbol{Obj: name.Obj, FunctionType: ft, Locals: nil, Posits: make(map[string]token.Position), PackFrom: pp.Package}
+
+				toAdd.AddPosition(method.Pos())
+
 				result.AddMethod(toAdd)
 			}
 		}
@@ -268,7 +298,7 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 	return
 }
 func (pp *packageParser) tParseMapType(t *ast.MapType) (result *st.MapTypeSymbol) {
-	result = &st.MapTypeSymbol{&st.TypeSymbol{Posits: new(vector.Vector), PackFrom: pp.Package}, pp.parseTypeSymbol(t.Key), pp.parseTypeSymbol(t.Value)}
+	result = &st.MapTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, pp.parseTypeSymbol(t.Key), pp.parseTypeSymbol(t.Value)}
 	return
 }
 func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
@@ -276,40 +306,39 @@ func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
 	if sym, found := pp.CurrentSymbolTable.LookUp(t.Name, pp.CurrentFileName); found {
 		result = sym.(st.ITypeSymbol)
 		t.Obj = sym.Object()
-		
+
 	} else {
 
 		t.Obj = &ast.Object{Kind: ast.Var, Name: t.Name}
-		result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: t.Obj, Posits: new(vector.Vector), PackFrom: pp.Package}, t}
-		
+		result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: t.Obj, Posits: make(map[string]token.Position), PackFrom: pp.Package}, t}
+
 		if pp.Mode != TYPES_MODE {
 			fmt.Printf("**************** %s\n", t.Name)
 		}
 	}
-	if pp.RegisterPositions {
-		fmt.Printf("AOAOAOAO %s %v\n",t.Name,t.Pos())
-		result.AddPosition(st.NewOccurence(t.Pos()))
-	}
+
+	//fmt.Printf("AOAOAOAO %s %v\n", t.Name, t.Pos())
+	result.AddPosition(t.Pos())
+
 	return
 }
 func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTypeSymbol) {
-	res := &st.FunctionTypeSymbol{&st.TypeSymbol{Posits: new(vector.Vector), PackFrom: pp.Package}, nil, nil, nil}
+	res := &st.FunctionTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, nil, nil, nil}
 	if t.Params != nil {
 		res.Parameters = pp.registerNewSymbolTable()
 		e_count := 0
 		for _, field := range t.Params.List {
 			ftype := pp.parseTypeSymbol(field.Type)
 			if len(field.Names) == 0 { // unnamed parameter. separate names are given to distinct parameters in symbolTable
-				res.Parameters.AddSymbol(&st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed" + strconv.Itoa(e_count)}, VariableType: ftype, Posits: new(vector.Vector), PackFrom: pp.Package})
+				res.Parameters.AddSymbol(&st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed" + strconv.Itoa(e_count)}, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package})
 				e_count += 1
 			}
 			for _, name := range field.Names {
 				name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: new(vector.Vector), PackFrom: pp.Package}
-				if pp.RegisterPositions {
-					toAdd.AddPosition(st.NewOccurence(name.Pos()))
-				}
+				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
+
+				toAdd.AddPosition(name.Pos())
 				res.Parameters.AddSymbol(toAdd)
 			}
 		}
@@ -320,16 +349,16 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 		for _, field := range t.Results.List {
 			ftype := pp.parseTypeSymbol(field.Type)
 			if len(field.Names) == 0 { //unnamed result
-				res.Results.AddSymbol(&st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed" + strconv.Itoa(e_count)}, VariableType: ftype, Posits: new(vector.Vector), PackFrom: pp.Package})
+				res.Results.AddSymbol(&st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed" + strconv.Itoa(e_count)}, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package})
 				e_count += 1
 			}
 			for _, name := range field.Names {
 				name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: new(vector.Vector), PackFrom: pp.Package}
-				if pp.RegisterPositions {
-					toAdd.AddPosition(st.NewOccurence(name.Pos()))
-				}
+				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
+
+				toAdd.AddPosition(name.Pos())
+
 				res.Results.AddSymbol(toAdd)
 			}
 		}
@@ -339,7 +368,7 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 }
 func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructTypeSymbol) {
 
-	res := &st.StructTypeSymbol{&st.TypeSymbol{Posits: new(vector.Vector), PackFrom: pp.Package}, pp.registerNewSymbolTable()}
+	res := &st.StructTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, pp.registerNewSymbolTable()}
 	for _, field := range t.Fields.List {
 		ftype := pp.parseTypeSymbol(field.Type)
 		if len(field.Names) == 0 { //Embedded field
@@ -348,10 +377,10 @@ func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructT
 		for _, name := range field.Names {
 			name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-			toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: new(vector.Vector), PackFrom: pp.Package}
-			if pp.RegisterPositions {
-				toAdd.AddPosition(st.NewOccurence(name.Pos()))
-			}
+			toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
+
+			toAdd.AddPosition(name.Pos())
+
 			res.Fields.AddSymbol(toAdd)
 			if name.Name == "Rparen" {
 				fmt.Printf(">>>>>>>>>>>>>>>Rparen %s\n", ftype.Name())
@@ -367,17 +396,17 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 	if pp.Mode == TYPES_MODE {
 		if sym, found := pp.CurrentSymbolTable.LookUp(t.X.(*ast.Ident).Name, pp.CurrentFileName); found {
 			pack := sym.(*st.PackageSymbol)
-			pack.AddPosition(st.NewOccurence(t.X.Pos()))
-			name := t.X.(*ast.Ident).Name + "." + t.Sel.Name;
-			var res st.Symbol;
-			if res,found = pp.RootSymbolTable.LookUp(name,pp.CurrentFileName);!found{
-				res = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: t.X.(*ast.Ident).Name + "." + t.Sel.Name}, Posits: new(vector.Vector), PackFrom: pack.Package}, t}
-				pp.RootSymbolTable.AddSymbol(res);
+			pack.AddPosition(t.X.Pos())
+			name := t.Sel.Name
+			var res st.Symbol
+			if res, found = pack.Package.Symbols.LookUp(name, ""); !found {
+				res = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: t.Sel.Name}, Posits: make(map[string]token.Position), PackFrom: pack.Package}, t}
+				pack.Package.Symbols.AddSymbol(res)
 			}
-			if pp.RegisterPositions {
-				res.AddPosition(st.NewOccurence(t.Sel.Pos()))
-			}
-			result = res.(st.ITypeSymbol);
+
+			res.AddPosition(t.Sel.Pos())
+
+			result = res.(st.ITypeSymbol)
 		} else {
 			panic("Can't find package " + pp.Package.QualifiedPath + " " + pp.CurrentFileName + " " + t.X.(*ast.Ident).Name + "." + t.Sel.Name + "\n")
 		}
@@ -385,21 +414,21 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 	} else {
 		pref := pp.parseTypeSymbol(t.X)
 		if pref.Name() == "vector" {
-			fmt.Printf("GGG vector package at %v\n", t.X.Pos());
+			fmt.Printf("GGG vector package at %v\n", t.X.Pos())
 		}
 		switch p := pref.(type) {
 		case *st.PackageSymbol:
 			if sym, found := p.Package.Symbols.LookUp(t.Sel.Name, ""); found {
 				result = sym.(st.ITypeSymbol)
 				if sym.Name() == "Vector" {
-					fmt.Printf("GGG Vector symbol at %v\n", t.Sel.Pos());
+					fmt.Printf("GGG Vector symbol at %v\n", t.Sel.Pos())
 				}
 				t.Sel.Obj = sym.Object()
-				if pp.RegisterPositions {
-					sym.AddPosition(st.NewOccurence(t.X.Pos()))
-				}
+
+				sym.AddPosition(t.X.Pos())
+
 			} else {
-				//result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: pref.Name() + "." + t.Sel.Name}, Posits: new(vector.Vector)}, t}
+				//result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: pref.Name() + "." + t.Sel.Name}, Posits: make(map[string]token.Position)}, t}
 				panic("Can't find symbol " + t.Sel.Name + " in package " + pp.Package.QualifiedPath + " " + pp.CurrentFileName + "\n")
 			}
 		case *st.UnresolvedTypeSymbol:
@@ -411,6 +440,6 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 // for function types
 func (pp *packageParser) tParseEllipsis(t *ast.Ellipsis) (result *st.ArrayTypeSymbol) {
 	elt := pp.parseTypeSymbol(t.Elt)
-	result = &st.ArrayTypeSymbol{&st.TypeSymbol{Posits: new(vector.Vector)}, elt, st.SLICE}
+	result = &st.ArrayTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position)}, elt, st.SLICE}
 	return
 }

@@ -18,18 +18,18 @@ func init() {
 	PredeclaredTypes = make(map[string]*BasicTypeSymbol)
 	for _, s := range ast.BasicTypes {
 		PredeclaredTypes[s] = &BasicTypeSymbol{
-			&TypeSymbol{Obj: &ast.Object{Kind: ast.Typ, Name: s}, Posits: new(vector.Vector)}}
+			&TypeSymbol{Obj: &ast.Object{Kind: ast.Typ, Name: s}, Posits: make(map[string]token.Position)}}
 	}
 
 	PredeclaredConsts = make(map[string]*VariableSymbol)
 
 	b := PredeclaredTypes["bool"]
-	n := &InterfaceTypeSymbol{&TypeSymbol{Obj: nil, Meths: nil, Posits: new(vector.Vector)}}
+	n := &InterfaceTypeSymbol{&TypeSymbol{Obj: nil, Meths: nil, Posits: make(map[string]token.Position)}}
 
-	PredeclaredConsts["true"] = &VariableSymbol{&ast.Object{Name: "true"}, b, new(vector.Vector), nil, false}
-	PredeclaredConsts["false"] = &VariableSymbol{&ast.Object{Name: "false"}, b, new(vector.Vector), nil, false}
-	PredeclaredConsts["nil"] = &VariableSymbol{&ast.Object{Name: "nil"}, n, new(vector.Vector), nil, false}
-	PredeclaredConsts["iota"] = &VariableSymbol{&ast.Object{Name: "iota"}, PredeclaredTypes["int"], new(vector.Vector), nil, false}
+	PredeclaredConsts["true"] = &VariableSymbol{&ast.Object{Name: "true"}, b, make(map[string]token.Position), nil, false}
+	PredeclaredConsts["false"] = &VariableSymbol{&ast.Object{Name: "false"}, b, make(map[string]token.Position), nil, false}
+	PredeclaredConsts["nil"] = &VariableSymbol{&ast.Object{Name: "nil"}, n, make(map[string]token.Position), nil, false}
+	PredeclaredConsts["iota"] = &VariableSymbol{&ast.Object{Name: "iota"}, PredeclaredTypes["int"], make(map[string]token.Position), nil, false}
 
 	//make,new,cmplx,imag,real,append - in concrete occasion
 	//print, println - nothing interesting
@@ -56,6 +56,11 @@ func init() {
 	recoverFts := &FunctionTypeSymbol{Results: NewSymbolTable(nil)}
 	recoverFts.Results.addSymbol(makeTypedVar("_", &InterfaceTypeSymbol{}))
 
+	lenFts := &FunctionTypeSymbol{Results: NewSymbolTable(nil)}
+	lenFts.Results.addSymbol(makeTypedVar("_", PredeclaredTypes["int"]))
+
+	noResultsFts := &FunctionTypeSymbol{}
+
 	predeclaredFunctionTypes = make(map[string]*FunctionTypeSymbol)
 	predeclaredFunctionTypes["cap"] = capFts
 	predeclaredFunctionTypes["close"] = closeFts
@@ -63,10 +68,18 @@ func init() {
 	predeclaredFunctionTypes["copy"] = copyFts
 	predeclaredFunctionTypes["panic"] = panicFts
 	predeclaredFunctionTypes["recover"] = recoverFts
+	predeclaredFunctionTypes["print"] = noResultsFts
+	predeclaredFunctionTypes["println"] = noResultsFts
+	predeclaredFunctionTypes["cmplx"] = noResultsFts
+	predeclaredFunctionTypes["imag"] = noResultsFts
+	predeclaredFunctionTypes["len"] = lenFts
+	predeclaredFunctionTypes["make"] = noResultsFts
+	predeclaredFunctionTypes["new"] = noResultsFts
+	predeclaredFunctionTypes["real"] = noResultsFts
 
 	PredeclaredFunctions = make(map[string]*FunctionSymbol)
 	for _, s := range builtIn {
-		PredeclaredFunctions[s] = &FunctionSymbol{Obj: &ast.Object{Kind: ast.Fun, Name: s}, FunctionType: predeclaredFunctionTypes[s], Posits: new(vector.Vector)}
+		PredeclaredFunctions[s] = &FunctionSymbol{Obj: &ast.Object{Kind: ast.Fun, Name: s}, FunctionType: predeclaredFunctionTypes[s], Posits: make(map[string]token.Position)}
 	}
 
 }
@@ -86,11 +99,11 @@ var predeclaredFunctionTypes map[string]*FunctionTypeSymbol
 /* Interfaces */
 //Main interface, implemented by every symbol
 type Symbol interface {
-	Positions() *vector.Vector
+	Positions() map[string]token.Position
 	Object() *ast.Object       //Returns corresponding object
 	SetObject(obj *ast.Object) //Defines an object for symbol
 	Name() string
-	AddPosition(*Occurence)
+	AddPosition(token.Position)
 	IsReadOnly() bool
 	PackageFrom() *Package
 
@@ -113,7 +126,7 @@ type TypeSymbol struct {
 	Obj *ast.Object //Corresponding program entity such as a package, constant, type, variable, or function/method
 	//List of type's methods
 	Meths    *SymbolTable
-	Posits   *vector.Vector
+	Posits   map[string]token.Position
 	PackFrom *Package
 	ReadOnly bool
 }
@@ -183,11 +196,11 @@ type StructTypeSymbol struct {
 /***Other Symbols. Implement Symbol***/
 
 type PackageSymbol struct {
-	Obj          *ast.Object    //local name of package (for unnamed - real name)
-	Path         string         // "go/ast", "fmt" etc.
-	Posits       *vector.Vector //local file name occurances
-	Package      *Package       //package entitie that's described by symbol
-	PackFrom     *Package       //package where symbol is declared
+	Obj          *ast.Object               //local name of package (for unnamed - real name)
+	Path         string                    // "go/ast", "fmt" etc.
+	Posits       map[string]token.Position //local file name occurances
+	Package      *Package                  //package entitie that's described by symbol
+	PackFrom     *Package                  //package where symbol is declared
 	HasLocalName bool
 }
 
@@ -220,7 +233,7 @@ type FunctionSymbol struct {
 	Obj          *ast.Object
 	FunctionType ITypeSymbol  //FunctionTypeSymbol
 	Locals       *SymbolTable //Local variables
-	Posits       *vector.Vector
+	Posits       map[string]token.Position
 	PackFrom     *Package
 	ReadOnly     bool //true if symbol can't be renamed
 }
@@ -229,22 +242,15 @@ type FunctionSymbol struct {
 type VariableSymbol struct {
 	Obj          *ast.Object
 	VariableType ITypeSymbol
-	Posits       *vector.Vector
+	Posits       map[string]token.Position
 	PackFrom     *Package
 	ReadOnly     bool
 }
 
 
-//Occurence type
-type Occurence struct {
-	Pos token.Position
+func makePositionKey(pos token.Position) string {
+	return pos.Filename + ": " + strconv.Itoa(pos.Line) + "," + strconv.Itoa(pos.Column)
 }
-
-func NewOccurence(pos token.Position) *Occurence {
-	return &Occurence{pos}
-}
-
-
 /*^^Other Symbol Methods^^*/
 
 func (ts *TypeSymbol) Name() string {
@@ -311,7 +317,7 @@ func (fs *FunctionTypeSymbol) Name() string {
 	if fs.Obj != nil {
 		return fs.Obj.Name
 	}
-	return ""
+	return "^^^"
 }
 
 func (its *InterfaceTypeSymbol) Name() string {
@@ -348,11 +354,11 @@ func (ps PackageSymbol) PackageFrom() *Package  { return ps.PackFrom }
 func (fs FunctionSymbol) PackageFrom() *Package { return fs.PackFrom }
 func (vs VariableSymbol) PackageFrom() *Package { return vs.PackFrom }
 
-func (ts TypeSymbol) Positions() *vector.Vector        { return ts.Posits }
-func (ps PackageSymbol) Positions() *vector.Vector     { return ps.Posits }
-func (fs FunctionSymbol) Positions() *vector.Vector    { return fs.Posits }
-func (vs VariableSymbol) Positions() *vector.Vector    { return vs.Posits }
-func (ts PointerTypeSymbol) Positions() *vector.Vector { return ts.BaseType.Positions() }
+func (ts TypeSymbol) Positions() map[string]token.Position        { return ts.Posits }
+func (ps PackageSymbol) Positions() map[string]token.Position     { return ps.Posits }
+func (fs FunctionSymbol) Positions() map[string]token.Position    { return fs.Posits }
+func (vs VariableSymbol) Positions() map[string]token.Position    { return vs.Posits }
+func (ts PointerTypeSymbol) Positions() map[string]token.Position { return ts.BaseType.Positions() }
 
 
 func (ts TypeSymbol) Object() *ast.Object     { return ts.Obj }
@@ -373,58 +379,58 @@ func (vs VariableSymbol) IsReadOnly() bool { return vs.ReadOnly }
 func (fs FunctionSymbol) IsReadOnly() bool { return fs.ReadOnly }
 
 
-func (ts TypeSymbol) AddPosition(o *Occurence) {
+func (ts TypeSymbol) AddPosition(p token.Position) {
 	if ts.Positions() != nil {
-		ts.Positions().Push(o)
+		ts.Positions()[makePositionKey(p)] = p
 	}
 }
-func (ts PackageSymbol) AddPosition(o *Occurence) {
+func (ts PackageSymbol) AddPosition(p token.Position) {
 	if ts.Positions() != nil {
-		ts.Positions().Push(o)
+		ts.Positions()[makePositionKey(p)] = p
 	}
 }
-func (ts VariableSymbol) AddPosition(o *Occurence) {
+func (ts VariableSymbol) AddPosition(p token.Position) {
 	if ts.Positions() != nil {
-		ts.Positions().Push(o)
+		ts.Positions()[makePositionKey(p)] = p
 	}
 }
-func (ts FunctionSymbol) AddPosition(o *Occurence) {
+func (ts FunctionSymbol) AddPosition(p token.Position) {
 	if ts.Positions() != nil {
-		ts.Positions().Push(o)
+		ts.Positions()[makePositionKey(p)] = p
 	}
 }
 
 /* ITypeSymbol.Copy() Methods */
 
 func (ts TypeSymbol) Copy() ITypeSymbol {
-	return &TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}
+	return &TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}
 }
 func (ts UnresolvedTypeSymbol) Copy() ITypeSymbol {
-	return &UnresolvedTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.Declaration}
+	return &UnresolvedTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.Declaration}
 }
 func (ts AliasTypeSymbol) Copy() ITypeSymbol {
-	return &AliasTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.BaseType}
+	return &AliasTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.BaseType}
 }
 func (ts ArrayTypeSymbol) Copy() ITypeSymbol {
-	return &ArrayTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.ElemType, ts.Len}
+	return &ArrayTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.ElemType, ts.Len}
 }
 func (ts InterfaceTypeSymbol) Copy() ITypeSymbol {
-	return &InterfaceTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}}
+	return &InterfaceTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}}
 }
 func (ts ChanTypeSymbol) Copy() ITypeSymbol {
-	return &ChanTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.ValueType}
+	return &ChanTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.ValueType}
 }
 func (ts FunctionTypeSymbol) Copy() ITypeSymbol {
-	return &FunctionTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.Parameters, ts.Results, ts.Reciever}
+	return &FunctionTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.Parameters, ts.Results, ts.Reciever}
 }
 func (ts MapTypeSymbol) Copy() ITypeSymbol {
-	return &MapTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.KeyType, ts.ValueType}
+	return &MapTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.KeyType, ts.ValueType}
 }
 func (ts PointerTypeSymbol) Copy() ITypeSymbol {
 	return &PointerTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: nil, PackFrom: ts.PackFrom}, ts.BaseType, ts.Fields}
 }
 func (ts StructTypeSymbol) Copy() ITypeSymbol {
-	return &StructTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: new(vector.Vector), PackFrom: ts.PackFrom}, ts.Fields}
+	return &StructTypeSymbol{&TypeSymbol{Obj: ts.Obj, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.Fields}
 }
 func (vs VariableSymbol) Copy() *VariableSymbol {
 	return &VariableSymbol{vs.Obj, vs.VariableType, vs.Posits, vs.PackFrom, vs.ReadOnly}
@@ -476,6 +482,9 @@ func getBaseType(sym ITypeSymbol, visited map[string]ITypeSymbol) (ITypeSymbol, 
 
 func (pt *PointerTypeSymbol) GetBaseStruct() (*StructTypeSymbol, bool) {
 	t, _ := GetBaseType(pt)
+	if pt.Name() == "*Package" {
+		fmt.Printf("____%s__%s__\n", t.Name(), t.PackageFrom().AstPackage.Name)
+	}
 	s, ok := t.(*StructTypeSymbol)
 	return s, ok
 }

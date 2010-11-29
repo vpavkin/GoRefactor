@@ -178,36 +178,40 @@ func ParseProgram(srcDir string) *Program {
 		go packageParser.ParsePackage(pack)
 	}
 	for _, pack := range program.Packages {
+		pack.Communication <- 0
 		<-pack.Communication
 	}
 	// type resolving
-	for _, pack := range program.Packages {
-		<-pack.Communication
-	}
+	// 	for _, pack := range program.Packages {
+	// 		
+	// 	}
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-	}
-	for _, pack := range program.Packages {
 		<-pack.Communication
 	}
+	// 	for _, pack := range program.Packages {
+	// 		
+	// 	}
 	fmt.Printf("===================All packages stopped fixing \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-	}
-
-	for _, pack := range program.Packages {
 		<-pack.Communication
 	}
+
+	// 	for _, pack := range program.Packages {
+	// 		
+	// 	}
 	fmt.Printf("===================All packages stopped opening \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-	}
-
-	for _, pack := range program.Packages {
 		<-pack.Communication
 	}
+
+	// 	for _, pack := range program.Packages {
+	// 		
+	// 	}
 	fmt.Printf("===================All packages stopped parsing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -217,6 +221,15 @@ func ParseProgram(srcDir string) *Program {
 		<-pack.Communication
 	}
 	fmt.Printf("===================All packages stopped fixing globals \n")
+	for _, pack := range program.Packages {
+		pack.Communication <- 0
+		<-pack.Communication
+	}
+
+	// 	for _, pack := range program.Packages {
+	// 		
+	// 	}
+	fmt.Printf("===================All packages stopped parsing locals \n")
 	return program
 }
 
@@ -225,7 +238,7 @@ func IsGoSrcPackage(p *st.Package) bool {
 	return strings.HasPrefix(p.QualifiedPath, goSrcDir)
 }
 
-func (p *Program) renameSymbol(sym st.Symbol, newName string) int {
+func (p *Program) renameSymbol(sym st.Symbol, newName string) {
 	sym.Object().Name = newName
 
 	/*for _,pos := range *sym.Positions() {
@@ -233,5 +246,4 @@ func (p *Program) renameSymbol(sym st.Symbol, newName string) int {
 		obj.Name = newName
 	}*/
 
-	return sym.Positions().Len()
 }

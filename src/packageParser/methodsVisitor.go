@@ -3,7 +3,7 @@ package packageParser
 import (
 	"go/ast"
 	"strconv"
-	"container/vector"
+	"go/token"
 	"st"
 )
 import "fmt"
@@ -37,14 +37,16 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 			locals.AddOpenedScope(ft.Reciever)
 			e_count := 0
 			for _, field := range f.Recv.List {
-
 				rtype = mv.Parser.parseTypeSymbol(field.Type)
+				if mv.Parser.Package.AstPackage.Name == "os" {
+					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
+				}
 				if rtype.Methods() == nil {
 					rtype.SetMethods(mv.Parser.registerNewSymbolTable())
 				}
 
 				if len(field.Names) == 0 {
-					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed receiver" + strconv.Itoa(e_count)}, VariableType: rtype, Posits: new(vector.Vector), PackFrom: mv.Parser.Package}
+					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed receiver" + strconv.Itoa(e_count)}, VariableType: rtype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
 					ft.Reciever.AddSymbol(toAdd)
 
 					e_count += 1
@@ -53,20 +55,20 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				for _, name := range field.Names {
 					name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: rtype, Posits: new(vector.Vector), PackFrom: mv.Parser.Package}
-					if mv.Parser.RegisterPositions {
-						toAdd.AddPosition(st.NewOccurence(name.Pos()))
-					}
+					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: rtype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
+
+					toAdd.AddPosition(name.Pos())
+
 					ft.Reciever.AddSymbol(toAdd)
 				}
 			}
 		}
 		f.Name.Obj = &ast.Object{Kind: ast.Var, Name: f.Name.Name}
 
-		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: new(vector.Vector), PackFrom: mv.Parser.Package}
-		if mv.Parser.RegisterPositions {
-			toAdd.AddPosition(st.NewOccurence(f.Name.Pos()))
-		}
+		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
+
+		toAdd.AddPosition(f.Name.Pos())
+
 		if f.Recv != nil {
 			rtype.AddMethod(toAdd)
 		} else {
@@ -85,10 +87,15 @@ func (pp *packageParser) fixMethodsAndFields() {
 }
 func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 
-	//fmt.Printf("opening %s %T\n", sym.Name(), sym)
 	if pp.checkIsVisited(sym) {
 		return
 	}
+	fmt.Printf("opening %s %T from %s\n", sym.Name(), sym, func(p *st.Package) string {
+		if p == nil {
+			return "nil"
+		}
+		return p.AstPackage.Name
+	}(sym.PackageFrom()))
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
 	}
@@ -128,6 +135,9 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		pp.openMethodsAndFields(t.KeyType)
 		pp.openMethodsAndFields(t.ValueType)
 	case *st.StructTypeSymbol:
+		if t.Name() == "Package" {
+			fmt.Printf("YEAHHH YEAHHH %p\n", t)
+		}
 		for variable := range t.Fields.Iter() {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 
@@ -144,8 +154,8 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 				case *st.StructTypeSymbol:
 					t.Fields.AddOpenedScope(ttt.Fields)
 				case *st.PointerTypeSymbol:
-					if table, ok1 := ttt.GetBaseStruct(); ok1 {
-						t.Fields.AddOpenedScope(table.Fields)
+					if struc, ok1 := ttt.GetBaseStruct(); ok1 {
+						t.Fields.AddOpenedScope(struc.Fields)
 					}
 				}
 				//No longer need in type thumb, replace with var
@@ -157,16 +167,27 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		//fmt.Printf("%v %T \n", t.BaseType.Name(), t.BaseType)
 
 		if str, ok := t.GetBaseStruct(); ok {
-
-			t.Fields = pp.registerNewSymbolTable()
-			t.Fields.AddOpenedScope(str.Fields)
-
-			if str.Methods() != nil {
-				if t.Methods() == nil {
-					t.SetMethods(pp.registerNewSymbolTable())
-				}
-				t.Methods().AddOpenedScope(str.Methods())
+			if t.BaseType.Name() == "Package" {
+				fmt.Printf("opened *Package from %s\n", t.PackageFrom().AstPackage.Name)
 			}
+			t.Fields = str.Fields
+			//pp.registerNewSymbolTable()
+			//t.Fields.AddOpenedScope(str.Fields)
+		}
+		if _, cyc := st.GetBaseType(t); cyc {
+			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
+			panic("cycle, don't work with that")
+		}
+
+		if t.BaseType.Methods() != nil {
+			if t.Methods() == nil {
+				t.SetMethods(pp.registerNewSymbolTable())
+			}
+			t.Methods().AddOpenedScope(t.BaseType.Methods())
+		}
+		if t.BaseType.Name() == "Package" {
+			fmt.Printf("YEAHHH YEAHHH %p %p\n", t, t.BaseType)
+			//fmt.Println(*t.Methods().String());
 		}
 		pp.openMethodsAndFields(t.BaseType)
 	}

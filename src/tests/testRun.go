@@ -199,7 +199,7 @@ func main() {
 	//print imports
 	/*
 	for	 _,pack := range p.Packages{
-		fmt.Printf("%s :\n",pack.QualifiedPath);
+		fmt.Printf("%s :\n",pack.QualifiedPast.NewOccurence(th);
 		if !pack.IsGoPackage {
 			for	f,v := range pack.Imports{
 				fmt.Printf("	%s imports:\n",f);
@@ -229,16 +229,15 @@ func main() {
 	
 	sst := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols
 	sst.ForEach(func (sym st.Symbol){
-		fmt.Printf("%s(%d):\ns",sym.Name(),sym.Positions().Len());
-		for _,ppos := range *sym.Positions(){
-			pos:= (ppos.(*st.Occurence)).Pos;
+		fmt.Printf("%s(from %s):\n",sym.Name(),sym.PackageFrom().AstPackage.Name);
+		for _,pos := range sym.Positions(){
 			_,f:=path.Split(pos.Filename)
 			fmt.Printf("\t[%s,%d,%d]\n",f,pos.Line,pos.Column)
 		}
 		
 	})
 	
-	ssst := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols;
+	ssst := p.Packages["/home/rulerr/GoRefactor/src/program"].Symbols;
 	vect := ssst.String();
 	fmt.Println(*vect);
 	/*fmt.Printf("Methods:\n");
