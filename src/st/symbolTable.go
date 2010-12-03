@@ -420,6 +420,17 @@ func (table *SymbolTable) String() *vector.StringVector {
 			}
 		}
 	}
+	table.forEachOpenedScope(func(symT *SymbolTable){
+		for sym := range symT.Iter() {
+			if ts, ok := sym.(*FunctionSymbol); ok {
+				if _, ok := PredeclaredFunctions[ts.Name()]; !ok {
+					s.Push("   func " + sym.String() + "\n")
+				}
+			}
+		}
+	})
+		
+	
 	sort.Sort(s)
 	s.Insert(0, "methods:\n")
 	res.AppendVector(s)

@@ -91,18 +91,18 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 		var IotaType st.ITypeSymbol = nil
 		if len(s.Specs) > 0 {
 			if vs, ok := s.Specs[0].(*ast.ValueSpec); ok {
-				switch{
-					case vs.Type != nil:
-						ts := lv.Parser.parseTypeSymbol(vs.Type)
-						if _, ok := ts.(*st.UnresolvedTypeSymbol); (ts == nil) || ok {
-							panic("unresolved type at locals scope: " + ts.Name())
-						}
-						IotaType = ts;
-					case vs.Values!=nil && len(vs.Values) > 0:
-						ts := lv.Parser.parseExpr(vs.Values[0]).At(0).(st.ITypeSymbol)
-						IotaType = ts;
-					default:
-						panic("decl without either type or value????")
+				switch {
+				case vs.Type != nil:
+					ts := lv.Parser.parseTypeSymbol(vs.Type)
+					if _, ok := ts.(*st.UnresolvedTypeSymbol); (ts == nil) || ok {
+						panic("unresolved type at locals scope: " + ts.Name())
+					}
+					IotaType = ts
+				case vs.Values != nil && len(vs.Values) > 0:
+					ts := lv.Parser.parseExpr(vs.Values[0]).At(0).(st.ITypeSymbol)
+					IotaType = ts
+				default:
+					panic("decl without either type or value????")
 				}
 			}
 		}

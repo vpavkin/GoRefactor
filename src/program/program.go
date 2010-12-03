@@ -215,11 +215,12 @@ func ParseProgram(srcDir string) *Program {
 	fmt.Printf("===================All packages stopped parsing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
-	}
-
-	for _, pack := range program.Packages {
 		<-pack.Communication
 	}
+
+// 	for _, pack := range program.Packages {
+// 		
+// 	}
 	fmt.Printf("===================All packages stopped fixing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0

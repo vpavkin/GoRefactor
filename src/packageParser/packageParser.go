@@ -107,8 +107,41 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 		pp.CurrentFileName = fName
 		ast.Walk(pp.GlobalsFixer, atree.Decls)
 	}
-	pp.Package.Communication <- 0
+	
 
+	if pp.Package.AstPackage.Name == "st" {
+		fmt.Printf("$$$$$$$$$ Symbols of st:\n")
+		pp.Package.Symbols.ForEach(func(sym st.Symbol) {
+			fmt.Printf("%s", sym.Name())
+			switch symt := sym.(type) {
+			case *st.PointerTypeSymbol:
+				if symt.Fields != nil {
+					fmt.Printf(":\nfields:\n %s\n", *symt.Fields.String())
+				}
+				if symt.Methods() != nil {
+					fmt.Printf("methods:\n %s\n", *symt.Methods().String())
+				}
+			case *st.StructTypeSymbol:
+				if symt.Fields != nil {
+					fmt.Printf(":\nfields:\n %s\n", *symt.Fields.String())
+				}
+				if symt.Methods() != nil {
+					fmt.Printf("methods:\n %s\n", *symt.Methods().String())
+				}
+			default:
+				if tt, ok := sym.(st.ITypeSymbol); ok {
+					if tt.Methods() != nil {
+						fmt.Printf(":\nmethods:\n %s\n", *tt.Methods().String())
+					}
+				} else if vt, ok := sym.(*st.VariableSymbol); ok {
+					fmt.Printf(" %s", vt.VariableType.Name())
+				} else if vt, ok := sym.(*st.FunctionSymbol); ok {
+					fmt.Printf(" %s", vt.FunctionType.Name())
+				}
+			}
+		})
+	}
+	pp.Package.Communication <- 0
 	//Locals
 	<-pp.Package.Communication
 
@@ -236,7 +269,8 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 			return "nil"
 		}
 		return p.AstPackage.Name
-	}(base.PackageFrom()), pp.Package.AstPackage.Name)
+	}(base.PackageFrom()),
+		pp.Package.AstPackage.Name)
 
 	//Solve where to place new pointer
 	// 	if _, found := pp.RootSymbolTable.LookUp(nameToFind, ""); found {

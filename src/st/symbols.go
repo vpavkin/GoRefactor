@@ -463,6 +463,30 @@ func GetBaseType(sym ITypeSymbol) (ITypeSymbol, bool) {
 	return sym, false
 
 }
+func GetBaseTypeOnlyPointer(sym ITypeSymbol) (ITypeSymbol, bool) {
+	switch sym.(type) {
+	case *PointerTypeSymbol:
+		visitedTypes := make(map[string]ITypeSymbol)
+		return getBaseTypeOnlyPointer(sym, visitedTypes)
+	}
+	return sym, false
+
+}
+
+func getBaseTypeOnlyPointer(sym ITypeSymbol, visited map[string]ITypeSymbol) (ITypeSymbol, bool) {
+	if _, ok := visited[sym.Name()]; ok {
+		return nil, true
+	}
+	if sym.Name() != "" {
+		visited[sym.Name()] = sym
+	}
+	switch t := sym.(type) {
+	case *PointerTypeSymbol:
+		return getBaseType(t.BaseType, visited)
+	}
+	return sym, false
+}
+
 
 func getBaseType(sym ITypeSymbol, visited map[string]ITypeSymbol) (ITypeSymbol, bool) {
 	if _, ok := visited[sym.Name()]; ok {

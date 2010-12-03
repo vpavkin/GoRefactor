@@ -84,6 +84,7 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 			table.ReplaceSymbol(uts.Name(), res)
 			movePositions(res, uts)
 			fmt.Printf("rewrited %s with %s from %s \n", sym.Name(), res.Name(), res.PackageFrom().AstPackage.Name)
+			pp.fixType(res);
 		} else {
 			//Start recursive walk
 			pp.fixType(sym)
@@ -204,7 +205,7 @@ func (pp *packageParser) fixType(sym st.Symbol) {
 		return
 	}
 
-	//fmt.Printf("%s fixing %v %T\n", pp.Package.AstPackage.Name, sym.Name(), sym)
+	fmt.Printf("%s fixing %v %T\n", pp.Package.AstPackage.Name, sym.Name(), sym)
 
 	switch t := sym.(type) {
 	case *st.AliasTypeSymbol:

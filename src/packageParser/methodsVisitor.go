@@ -17,7 +17,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 	switch f := node.(type) {
 	case *ast.FuncDecl:
 
-		var rtype st.ITypeSymbol
+		
 		fft, cyc := st.GetBaseType(mv.Parser.parseTypeSymbol(f.Type))
 		if cyc {
 			fmt.Printf("ERROR: cycle wasn't expected. Visit, methodsVisitor.go")
@@ -31,13 +31,20 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if ft.Results != nil {
 			locals.AddOpenedScope(ft.Results)
 		}
-
+		
+		var basertype,rtype st.ITypeSymbol
 		if f.Recv != nil {
 			ft.Reciever = mv.Parser.registerNewSymbolTable()
 			locals.AddOpenedScope(ft.Reciever)
 			e_count := 0
 			for _, field := range f.Recv.List {
-				rtype = mv.Parser.parseTypeSymbol(field.Type)
+				basertype = mv.Parser.parseTypeSymbol(field.Type)
+				if prtype,ok := basertype.(*st.PointerTypeSymbol);ok{
+					rtype = prtype.BaseType;
+				}else{
+					rtype = basertype
+				}
+				
 				if mv.Parser.Package.AstPackage.Name == "os" {
 					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
 				}
@@ -46,7 +53,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				}
 
 				if len(field.Names) == 0 {
-					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed receiver" + strconv.Itoa(e_count)}, VariableType: rtype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
+					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed receiver" + strconv.Itoa(e_count)}, VariableType: basertype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
 					ft.Reciever.AddSymbol(toAdd)
 
 					e_count += 1
@@ -55,7 +62,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				for _, name := range field.Names {
 					name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: rtype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
+					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: basertype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
 
 					toAdd.AddPosition(name.Pos())
 
@@ -96,6 +103,7 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		}
 		return p.AstPackage.Name
 	}(sym.PackageFrom()))
+	
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
 	}
@@ -142,6 +150,7 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 
 				ts := variable.(st.ITypeSymbol)
+				pp.openMethodsAndFields(ts)
 				//Methods
 				if ts.Methods() != nil {
 					if t.Methods() == nil {
@@ -154,26 +163,25 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 				case *st.StructTypeSymbol:
 					t.Fields.AddOpenedScope(ttt.Fields)
 				case *st.PointerTypeSymbol:
-					if struc, ok1 := ttt.GetBaseStruct(); ok1 {
-						t.Fields.AddOpenedScope(struc.Fields)
-					}
+					t.Fields.AddOpenedScope(ttt.Fields)
+					
 				}
 				//No longer need in type thumb, replace with var
 				typeVar := &st.VariableSymbol{ts.Object(), ts, ts.Positions(), pp.Package, ts.IsReadOnly()}
 				t.Fields.ReplaceSymbol(ts.Name(), typeVar) //replaces old one
 			}
+
 		}
 	case *st.PointerTypeSymbol:
 		//fmt.Printf("%v %T \n", t.BaseType.Name(), t.BaseType)
-
-		if str, ok := t.GetBaseStruct(); ok {
-			if t.BaseType.Name() == "Package" {
-				fmt.Printf("opened *Package from %s\n", t.PackageFrom().AstPackage.Name)
-			}
-			t.Fields = str.Fields
-			//pp.registerNewSymbolTable()
-			//t.Fields.AddOpenedScope(str.Fields)
+		pp.openMethodsAndFields(t.BaseType)
+		switch str := t.BaseType.(type){
+			case *st.StructTypeSymbol:
+				t.Fields = str.Fields
+			case *st.PointerTypeSymbol:
+				t.Fields = str.Fields
 		}
+		
 		if _, cyc := st.GetBaseType(t); cyc {
 			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
 			panic("cycle, don't work with that")
