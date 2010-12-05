@@ -2,10 +2,12 @@ package st
 
 import (
 	"container/vector"
+	"go/token"
 )
 
 import "fmt"
 import "sort"
+import "go/ast"
 
 
 //Represents a local SymbolTable with a number of opened scopes
@@ -117,6 +119,10 @@ func NewSymbolTable(p *Package) *SymbolTable {
 
 	go st.mainCycle()
 	return st
+}
+
+func (table *SymbolTable) ForEachNoLock(toDo func(sym Symbol)) {
+	table.forEach(toDo);
 }
 
 func (table *SymbolTable) ForEach(toDo func(sym Symbol)) {
@@ -244,34 +250,6 @@ func (table *SymbolTable) removeSymbol(name string) {
 	}
 }
 
-func (table *SymbolTable) Iter() <-chan Symbol {
-	c := make(chan Symbol)
-
-	go func() {
-		for i := 0; i < len(*table.Table); i++ {
-			c <- table.Table.At(i).(Symbol)
-		}
-		if !closed(c) {
-			close(c)
-		}
-	}()
-	return c
-}
-
-func (table *SymbolTable) IterReverse() <-chan Symbol {
-	c := make(chan Symbol)
-
-	go func() {
-		for i := len(*table.Table) - 1; i >= 0; i-- {
-			c <- table.Table.At(i).(Symbol)
-		}
-		if !closed(c) {
-			close(c)
-		}
-	}()
-	return c
-}
-
 //Searches symbol table and it's opened scopes for a symbol with a given name
 func (table *SymbolTable) LookUp(name string, fileName string) (Symbol, bool) {
 
@@ -359,14 +337,15 @@ func (table *SymbolTable) lookUpPointerType(name string, depth int) (psym *Point
 }
 
 func (table *SymbolTable) FindTypeSwitchVar() (*VariableSymbol, bool) {
-	c := table.IterReverse()
-	for ss := range c {
+	s,found := table.forEachStoppableReverse(func(ss Symbol)bool {
 		if sym, ok := ss.(*VariableSymbol); ok && sym.Obj.Kind == -1 {
-			close(c)
-			return sym, ok
+			return true
 		}
-	}
-	return nil, false
+		return false;
+	})
+	vs,_ := s.(*VariableSymbol)
+	
+	return vs, found
 }
 
 //String representation for printing
@@ -389,45 +368,45 @@ func (table *SymbolTable) String() *vector.StringVector {
 	var res = new(vector.StringVector)
 	var s = new(vector.StringVector)
 
-	for sym := range table.Iter() {
+	table.forEach(func(sym Symbol) {
 		if _, ok := sym.(*PackageSymbol); ok {
 			s.Push("   package " + sym.String() + "\n")
 		}
-	}
+	})
 
 	sort.Sort(s)
 	s.Insert(0, "packages:\n")
 	res.AppendVector(s)
 
 	s = new(vector.StringVector)
-	for sym := range table.Iter() {
+	table.forEach(func(sym Symbol)  {
 		if ts, ok := sym.(ITypeSymbol); ok {
 			if _, ok := PredeclaredTypes[ts.Name()]; !ok {
 				s.Push("   type " + sym.String() + "\n")
 			}
 		}
-	}
+	})
 
 	sort.Sort(s)
 	s.Insert(0, "types:\n")
 	res.AppendVector(s)
 
 	s = new(vector.StringVector)
-	for sym := range table.Iter() {
+	table.forEach(func(sym Symbol) {
 		if ts, ok := sym.(*FunctionSymbol); ok {
 			if _, ok := PredeclaredFunctions[ts.Name()]; !ok {
 				s.Push("   func " + sym.String() + "\n")
 			}
 		}
-	}
+	})
 	table.forEachOpenedScope(func(symT *SymbolTable){
-		for sym := range symT.Iter() {
+		symT.forEach(func(sym Symbol)  {
 			if ts, ok := sym.(*FunctionSymbol); ok {
 				if _, ok := PredeclaredFunctions[ts.Name()]; !ok {
 					s.Push("   func " + sym.String() + "\n")
 				}
 			}
-		}
+		})
 	})
 		
 	
@@ -436,13 +415,13 @@ func (table *SymbolTable) String() *vector.StringVector {
 	res.AppendVector(s)
 
 	s = new(vector.StringVector)
-	for sym := range table.Iter() {
+	table.forEach(func(sym Symbol)  {
 		if ts, ok := sym.(*VariableSymbol); ok {
 			if _, ok := PredeclaredConsts[ts.Name()]; !ok {
 				s.Push("   var " + sym.String() + "\n")
 			}
 		}
-	}
+	})
 	sort.Sort(s)
 	s.Insert(0, "vars:\n")
 	res.AppendVector(s)
@@ -451,17 +430,17 @@ func (table *SymbolTable) String() *vector.StringVector {
 }
 
 
-func (table *SymbolTable) FindSymbolByPosition(fileName string, line int, column int) (sym Symbol, found bool) {
-	c := table.IterReverse()
-	for sym := range c {
-		for _, pos := range sym.Positions() {
-			if pos.Filename == fileName && pos.Line == line && pos.Column == column {
-				found = true
-				close(c)
-				return
-			}
-		}
-	}
-	sym, found = nil, false
+func (table *SymbolTable) FindSymbolByPosition(filename string, line int, column int) (sym Symbol, found bool) {
+	pos := token.Position{Filename:filename,Line:line,Column:column};
+	sym,found = table.forEachStoppableReverse(func(eachSym Symbol) bool{
+		return eachSym.HasPosition(pos);
+	})
+	return
+}
+
+func (table *SymbolTable) FindSymbolByObject(obj *ast.Object) (sym Symbol, found bool) {
+	sym,found = table.forEachStoppableReverse(func(eachSym Symbol) bool{
+		return eachSym.Object() == obj;
+	})
 	return
 }

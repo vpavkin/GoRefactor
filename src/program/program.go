@@ -4,13 +4,15 @@ import (
 	"container/vector"
 	"st"
 	"os"
-	"utils/utils"
+	"utils"
 	"path"
 	"packageParser"
 	"go/parser"
+	"go/token"
 	"bufio"
-	//"go/ast"
+	"go/ast"
 	"strings"
+	"errors"
 )
 import "fmt"
 
@@ -19,7 +21,7 @@ var program *Program
 var externPackageTrees *vector.StringVector // [dir][packagename]package
 var goSrcDir string
 var specificFiles map[string]*vector.StringVector
-var specificFilesPackages []string = []string{"syscall", "os"}
+var specificFilesPackages []string = []string{"syscall", "os","runtime"}
 
 func initialize() {
 
@@ -38,7 +40,7 @@ func initialize() {
 
 	externPackageTrees = new(vector.StringVector)
 	externPackageTrees.Push(goSrcDir)
-	externPackageTrees.Push("/home/rulerr/GoRefactor/src") // for tests on self
+	//externPackageTrees.Push("/home/rulerr/GoRefactor/src") // for tests on self
 
 	specificFiles = make(map[string]*vector.StringVector)
 
@@ -97,9 +99,28 @@ func makeFilter(srcDir string) func(f *os.FileInfo) bool {
 	return utils.GoFilter
 
 }
+func getFullNameFiles(files *vector.StringVector,srcDir string) ([]string){
+	var res vector.StringVector;
+	for _,fName := range *files{
+		res.Push(path.Join(srcDir, fName));
+	}
+	return res;
+}
+func getAstTree(srcDir string) (map[string]*ast.Package,os.Error){
+	_, d := path.Split(srcDir);
+	
+	if files, ok := specificFiles[d]; ok {
+		return parser.ParseFiles(getFullNameFiles(files,srcDir),parser.ParseComments);	
+	}
+	return parser.ParseDir(srcDir, utils.GoFilter, parser.ParseComments)
+	
+}
 func parsePack(srcDir string) {
-
-	packs, _ := parser.ParseDir(srcDir, makeFilter(srcDir), parser.ParseComments)
+	
+	packs,err := getAstTree(srcDir)
+	if err!=nil{
+		fmt.Printf("SOME ERRORS while parsing pack "+ srcDir);
+	}
 
 	_, d := path.Split(srcDir)
 	if packTree, ok := packs[d]; !ok {
@@ -142,11 +163,15 @@ func locatePackages(srcDir string) {
 
 }
 
-func ParseProgram(srcDir string) *Program {
+func ParseProgram(srcDir string,externSourceFolders *vector.StringVector) *Program {
 
 	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package)}
 
 	initialize()
+	externPackageTrees.Push(srcDir);
+	if externSourceFolders != nil{
+		externPackageTrees.AppendVector(externSourceFolders);
+	}
 
 	for _, pName := range specificFilesPackages {
 		specificFiles[pName] = loadConfig(pName)
@@ -231,6 +256,7 @@ func ParseProgram(srcDir string) *Program {
 	// 		
 	// 	}
 	fmt.Printf("===================All packages stopped parsing locals \n")
+	
 	return program
 }
 
@@ -239,12 +265,38 @@ func IsGoSrcPackage(p *st.Package) bool {
 	return strings.HasPrefix(p.QualifiedPath, goSrcDir)
 }
 
-func (p *Program) renameSymbol(sym st.Symbol, newName string) {
-	sym.Object().Name = newName
+func(p *Program)findPackageAndFileByFilename(filename string) (*st.Package,*ast.File){
+	for _,pack:= range p.Packages{
+		for fName, file := range pack.AstPackage.Files{
+			if filename == fName{
+				return pack, file
+			}
+		}
+	}
+	return nil,nil;
+}
 
-	/*for _,pos := range *sym.Positions() {
-		obj := pos.(symbolTable.Occurence).Obj
-		obj.Name = newName
-	}*/
-
+func (p *Program) FindSymbolByPosition(filename string, line int, column int) (symbol st.Symbol,containsIn *st.SymbolTable,error *errors.GoRefactorError) {
+	packageIn,fileIn := p.findPackageAndFileByFilename(filename)
+	if packageIn == nil{
+		return nil,nil,errors.ArgumentError("filename","Program packages don't contain file '" + filename + "'");
+	}
+	
+	obj,found := findObjectByPos(fileIn,token.Position{Filename:filename,Line:line,Column:column})
+	if !found{
+		return nil,nil,errors.IdentifierNotFoundError(filename, line, column);
+	}
+	for _,el:= range *packageIn.SymbolTablePool{
+		sT:= el.(*st.SymbolTable);
+		if sym,found := sT.FindSymbolByObject(obj); found{
+			return sym,sT,nil
+		}
+	}
+	for _,el:= range *(packageIn.Imports[filename]){
+		pSym := el.(*st.PackageSymbol)
+		if sym,found := pSym.Package.Symbols.FindSymbolByObject(obj); found{
+			return sym,pSym.Package.Symbols,nil
+		}
+	}
+	return nil,nil,errors.IdentifierNotFoundError(filename, line, column);
 }

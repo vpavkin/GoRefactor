@@ -69,6 +69,25 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 	if column < 1{ return false,errors.ArgumentError("column","Must be > 1")}
 	if !isGoIdent(newName){ return false,errors.ArgumentError("newName","It's not a valid go identifier")}
 	
+// 	fd,err := os.Open(filename,os.O_RDONLY,0);
+// 	if err != nil{
+// 		return false,errors.FileError("filename","Couldn't open file")};
+// 	}
+// 	defer fd.Close()
+// 	
+// 	reader := bufio.NewReader(fd);
+// 	
+// 	for l:= 1;l < line;l++{
+// 		if _,err := reader.ReadString('\n');err!=nil{
+// 			return false,errors.FileError("filename","Couldn't read to given position")};
+// 		}
+// 	}
+// 	posLine,err := reader.ReadString('\n');
+// 	if err != nil{
+// 		return false,errors.FileError("filename","Couldn't read to given position")};
+// 	}
+// 	
+	
 	if sym, containsIn, err := programTree.FindSymbolByPosition(filename, line, column); err==nil{
 	
 		if _,ok := sym.(*st.PointerTypeSymbol);ok{

@@ -45,9 +45,7 @@ func (tv *typesVisitor) Visit(node interface{}) (w ast.Visitor) {
 func (pp *packageParser) resolveType(uts *st.UnresolvedTypeSymbol) (result st.ITypeSymbol) {
 	var res st.Symbol
 	var found bool
-	if uts.Name() == "st.Package" {
-		fmt.Printf("}}}}} %s %s\n", uts.PackageFrom().AstPackage.Name, pp.Package.AstPackage.Name)
-	}
+	
 	if uts.PackageFrom() != pp.Package {
 		//make a substring (cut off package)
 		//name := strings.Split(uts.Name(), ".", 2)[1]
@@ -55,7 +53,9 @@ func (pp *packageParser) resolveType(uts *st.UnresolvedTypeSymbol) (result st.IT
 			panic("symbol " + uts.PackageFrom().AstPackage.Name + "." + uts.Name() + " unresolved")
 		}
 	} else if res, found = pp.RootSymbolTable.LookUp(uts.Name(), ""); !found {
-		panic("symbol" + uts.Name() + " unresolved")
+		for _,pos := range uts.Positions(){
+			panic("symbol" + uts.Name() + "at " + pos.String() + " unresolved")
+		}
 	}
 	return res.(st.ITypeSymbol)
 }
@@ -74,10 +74,8 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 	if table == nil {
 		return
 	}
-	for sym := range table.Iter() {
-		if sym.Name() == "Rparen" {
-			fmt.Printf("^^^^^^^^^^^^\n")
-		}
+	table.ForEachNoLock( func(sym st.Symbol){
+		
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
 
 			res := pp.resolveType(uts)
@@ -89,7 +87,7 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 			//Start recursive walk
 			pp.fixType(sym)
 		}
-	}
+	})
 }
 
 func (pp *packageParser) fixAliasTypeSymbol(t *st.AliasTypeSymbol) {

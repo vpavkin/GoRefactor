@@ -165,16 +165,6 @@ func (pp *packageParser) registerNewSymbolTable() (table *st.SymbolTable) {
 	return
 }
 
-func (pp *packageParser) findSymbolByPosition(fileName string, line int, column int) (st.Symbol, *st.SymbolTable, bool) {
-	for _, s := range *pp.Package.SymbolTablePool {
-		table := s.(*st.SymbolTable)
-		if sym, found := table.FindSymbolByPosition(fileName, line, column); found {
-			return sym, table, true
-		}
-	}
-	return nil, nil, false
-}
-
 
 /*^^SymbolTableBuilder Methods^^*/
 func newPackageParser(p *st.Package) *packageParser {

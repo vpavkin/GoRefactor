@@ -104,6 +104,7 @@ type Symbol interface {
 	SetObject(obj *ast.Object) //Defines an object for symbol
 	Name() string
 	AddPosition(token.Position)
+	HasPosition(token.Position) bool
 	IsReadOnly() bool
 	PackageFrom() *Package
 
@@ -348,6 +349,25 @@ func (ts *StructTypeSymbol) Name() string {
 	// 	return "struct {" + s + "}"
 }
 
+func hasPosition(sym Symbol,pos token.Position)bool{
+	if _,ok := sym.Positions()[makePositionKey(pos)];ok{
+		return true
+	}
+	return false;
+}
+
+func (ts *TypeSymbol) HasPosition(pos token.Position) bool { 
+	return hasPosition(ts,pos)
+}
+func (ts *PackageSymbol) HasPosition(pos token.Position) bool     { 
+	return hasPosition(ts,pos)
+}
+func (ts *FunctionSymbol) HasPosition(pos token.Position) bool { 
+	return hasPosition(ts,pos)
+}
+func (ts *VariableSymbol) HasPosition(pos token.Position) bool{ 
+	return hasPosition(ts,pos)
+}
 
 func (ts TypeSymbol) PackageFrom() *Package     { return ts.PackFrom }
 func (ps PackageSymbol) PackageFrom() *Package  { return ps.PackFrom }
@@ -371,7 +391,6 @@ func (ts *TypeSymbol) SetObject(obj *ast.Object)     { ts.Obj = obj }
 func (ps *PackageSymbol) SetObject(obj *ast.Object)  { ps.Obj = obj }
 func (vs *VariableSymbol) SetObject(obj *ast.Object) { vs.Obj = obj }
 func (fs *FunctionSymbol) SetObject(obj *ast.Object) { fs.Obj = obj }
-
 
 func (ps PackageSymbol) IsReadOnly() bool  { return false }
 func (ts TypeSymbol) IsReadOnly() bool     { return ts.ReadOnly }
@@ -521,6 +540,10 @@ func (pt *PointerTypeSymbol) Depth() int {
 	return 1
 }
 
+func (fs *FunctionSymbol) IsInterfaceMethod()bool {
+	return fs.Locals == nil;
+}
+
 func (ps *PackageSymbol) SetMethods(*SymbolTable) {
 	panic("mustn't call ITypeSymbol methods on PackageSymbol")
 }
@@ -606,14 +629,14 @@ func (fs FunctionTypeSymbol) String() string {
 	s1 := ""
 	s2 := ""
 	if fs.Parameters != nil {
-		for v := range fs.Parameters.Iter() {
+		fs.Parameters.forEach(func(v Symbol)  {
 			s1 += v.String() + ","
-		}
+		})
 	}
 	if fs.Results != nil {
-		for v := range fs.Results.Iter() {
+		fs.Results.forEach(func(v Symbol) {
 			s2 += v.String() + ","
-		}
+		})
 	}
 	return fs.Name() + "(" + s1 + ")(" + s2 + ")"
 
@@ -624,9 +647,9 @@ func (its InterfaceTypeSymbol) String() string {
 	//if its.Name() != "" { return its.Name()}
 	s := "\n"
 	if its.Methods() != nil {
-		for sym := range its.Methods().Iter() {
+		its.Methods().forEach(func(sym Symbol) {
 			s += sym.String() + "\n"
-		}
+		})
 	}
 	return its.Name() + " interface {" + s + "}"
 }
@@ -647,9 +670,9 @@ func (pts PointerTypeSymbol) String() string {
 func (ts StructTypeSymbol) String() string {
 
 	s := "\n"
-	for v := range ts.Fields.Iter() {
+	ts.Fields.forEach(func(v Symbol)  {
 		s += v.String() + "\n"
-	}
+	})
 	return ts.Name() + " struct {" + s + "}"
 }
 
@@ -658,10 +681,10 @@ func (fs FunctionSymbol) String() string {
 
 	s := ""
 	if fts, ok := fs.FunctionType.(*FunctionTypeSymbol); ok && fts != nil {
-		if fs.FunctionType.(*FunctionTypeSymbol).Reciever != nil {
-			for r := range fs.FunctionType.(*FunctionTypeSymbol).Reciever.Iter() {
+		if fts.Reciever != nil {
+			fts.Reciever.forEach(func(r Symbol)  {
 				s = "(" + r.String() + ")"
-			}
+			})
 		}
 	}
 	fss := ""

@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	//"go/parser"
-	//"os"
+	"go/printer"
+	"os"
 	"program"
 	//"packageParser"
 	"st"
 	//"container/vector"
 	"path"
+	
+	"refactoring"
 )
 
 func init(){
@@ -22,7 +24,7 @@ func checkTypesInSymbolTable(table *st.SymbolTable) {
 	if table == nil {
 		return
 	}
-	for sym := range table.Iter() {
+	table.ForEachNoLock(func(sym st.Symbol) {
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
 			fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
 			countUnres++;
@@ -30,7 +32,7 @@ func checkTypesInSymbolTable(table *st.SymbolTable) {
 			//Start recursive walk
 			checkType(sym)
 		}
-	}
+	})
 }
 
 func checkAliasTypeSymbol(t *st.AliasTypeSymbol) {
@@ -194,7 +196,7 @@ func checkIsVisited(sym st.Symbol) bool {
 func main() {
 
 
-	p:=program.ParseProgram("/home/rulerr/GoRefactor/src");
+	p:=program.ParseProgram("/home/rulerr/GoRefactor/src",nil);
 	
 	//print imports
 	/*
@@ -240,7 +242,16 @@ func main() {
 	ssst := p.Packages["/home/rulerr/GoRefactor/src/program"].Symbols;
 	vect := ssst.String();
 	fmt.Println(*vect);
-	/*fmt.Printf("Methods:\n");
+	
+	if ok,err := refactoring.Rename(p,"/home/rulerr/GoRefactor/src/utils/utils.go",14,6,"IssssGoFIle");!ok{
+		fmt.Println(err.Message);
+	}else{
+		cfg:=&printer.Config{printer.TabIndent,8,nil}
+		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/utils"].AstPackage.Files["/home/rulerr/GoRefactor/src/utils/utils.go"])
+		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].AstPackage.Files["/home/rulerr/GoRefactor/src/refactoring/rename.go"])
+	}
+	
+	/*fmt.Printf("Methods:\n")
 	
 	for	 _,pack := range p.Packages{
 		fmt.Printf("%s :\n",pack.QualifiedPath);

@@ -433,9 +433,9 @@ func (pp *packageParser) eParseRegularFunctionCall(fType st.ITypeSymbol) (res *v
 
 	if ft, ok := x.(*st.FunctionTypeSymbol); ok { //regular case - function
 		if ft.Results != nil {
-			for v := range ft.Results.Iter() {
-				res.Push(v.(*st.VariableSymbol).VariableType)
-			}
+			ft.Results.ForEachNoLock(func(sym st.Symbol) {
+				res.Push(sym.(*st.VariableSymbol).VariableType)
+			})
 		}
 		return res, true
 	}
@@ -598,19 +598,19 @@ func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.Fu
 	if ft.Reciever == nil {
 		fmt.Println("ERROR : f.Reciever == nil. makeMethodExpression,parseExpr.go")
 	}
-	for sym := range ft.Reciever.Iter() {
+	ft.Reciever.ForEachNoLock(func(sym st.Symbol){
 		newFt.Parameters.AddSymbol(sym)
-	}
+	})
 	if ft.Parameters != nil {
-		for sym := range ft.Parameters.Iter() {
+		ft.Parameters.ForEachNoLock(func(sym st.Symbol) {
 			newFt.Parameters.AddSymbol(sym)
-		}
+		})
 	}
 	if ft.Results != nil {
 		newFt.Results = st.NewSymbolTable(pp.Package)
-		for sym := range ft.Results.Iter() {
+		ft.Results.ForEachNoLock(func(sym st.Symbol){
 			newFt.Results.AddSymbol(sym)
-		}
+		})
 	}
 	res.FunctionType = newFt
 	return

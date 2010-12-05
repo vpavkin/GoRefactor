@@ -2,7 +2,7 @@ package program
 
 import (
 	"go/ast"
-	"go/parser"
+	//"go/parser"
 	"st"
 	"container/vector"
 	"go/token"
@@ -54,7 +54,8 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if !found {
 			_, f := path.Split(Path)
 			for _, dir := range *externPackageTrees {
-				dirTree, _ := parser.ParseDir(path.Join(dir, Path), makeFilter(path.Join(dir, Path)), parser.ParseComments)
+				//dirTree, _ := parser.ParseDir(path.Join(dir, Path), makeFilter(path.Join(dir, Path)), parser.ParseComments)
+				dirTree, _ := getAstTree(path.Join(dir, Path))
 				if dirTree != nil {
 					if packTree, found = dirTree[f]; found {
 						pack = st.NewPackage(path.Join(dir, Path), packTree)
@@ -73,6 +74,7 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if _, isIn := iv.Package.Imports[iv.FileName]; !isIn {
 			iv.Package.Imports[iv.FileName] = new(vector.Vector)
 		}
+		
 		ob := &ast.Object{Kind: ast.Pkg, Name: name}
 		sym := &st.PackageSymbol{Obj: ob, Path: Path, Posits: make(map[string]token.Position), Package: pack, PackFrom: iv.Package, HasLocalName: hasLocalName}
 

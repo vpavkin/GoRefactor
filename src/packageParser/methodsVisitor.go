@@ -88,9 +88,9 @@ func (pp *packageParser) fixMethodsAndFields() {
 
 	pp.visited = make(map[string]bool)
 
-	for s := range pp.RootSymbolTable.Iter() {
-		pp.openMethodsAndFields(s)
-	}
+	pp.RootSymbolTable.ForEachNoLock( func(sym st.Symbol){
+		pp.openMethodsAndFields(sym)
+	})
 }
 func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 
@@ -115,29 +115,30 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		pp.openMethodsAndFields(t.ValueType)
 	case *st.FunctionTypeSymbol:
 		if t.Parameters != nil {
-			for variable := range t.Parameters.Iter() {
-				v := variable.(*st.VariableSymbol)
+			t.Parameters.ForEachNoLock(func (sym st.Symbol){
+				v := sym.(*st.VariableSymbol)
 				pp.openMethodsAndFields(v.VariableType)
-			}
+			})
 		}
 		if t.Results != nil {
-			for variable := range t.Results.Iter() {
-				v := variable.(*st.VariableSymbol)
+			t.Results.ForEachNoLock(func (sym st.Symbol){
+				v := sym.(*st.VariableSymbol)
 				pp.openMethodsAndFields(v.VariableType)
-			}
+			})
 		}
 	case *st.InterfaceTypeSymbol:
 		if t.Meths != nil {
-			for sym := range t.Meths.Iter() {
+			t.Meths.ForEachNoLock(func (sym st.Symbol){
 				if _, ok := sym.(*st.FunctionSymbol); !ok {
 					//EmbeddedInterface
+					pp.openMethodsAndFields(sym)
+					
 					ts := sym.(*st.InterfaceTypeSymbol)
 					t.Meths.AddOpenedScope(ts.Meths)
 					//Delete functionSymbol which is now useles from interface
 					t.Meths.RemoveSymbol(sym.Name())
 				}
-				pp.openMethodsAndFields(sym)
-			}
+			})
 		}
 	case *st.MapTypeSymbol:
 		pp.openMethodsAndFields(t.KeyType)
@@ -146,7 +147,7 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		if t.Name() == "Package" {
 			fmt.Printf("YEAHHH YEAHHH %p\n", t)
 		}
-		for variable := range t.Fields.Iter() {
+		t.Fields.ForEachNoLock(func(variable st.Symbol) {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 
 				ts := variable.(st.ITypeSymbol)
@@ -171,7 +172,7 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 				t.Fields.ReplaceSymbol(ts.Name(), typeVar) //replaces old one
 			}
 
-		}
+		})
 	case *st.PointerTypeSymbol:
 		//fmt.Printf("%v %T \n", t.BaseType.Name(), t.BaseType)
 		pp.openMethodsAndFields(t.BaseType)
