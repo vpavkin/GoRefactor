@@ -211,7 +211,7 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 			}(t))
 		e.Obj = t.Object()
 
-		t.AddPosition(e.Pos())
+		t.AddPosition(pp.Package.FileSet.Position(e.Pos()))
 
 		switch v := t.(type) {
 		case *st.VariableSymbol:
@@ -465,7 +465,7 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 
 				e.Sel.Obj = f.Object()
 
-				f.AddPosition(e.Sel.Pos())
+				f.AddPosition(pp.Package.FileSet.Position(e.Sel.Pos()))
 
 				if pp.ExprParser.IsTypeNameUsed {
 					pp.ExprParser.IsTypeNameUsed = false
@@ -503,7 +503,7 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 		if va, ok := vv.(*st.VariableSymbol); ok {
 			e.Sel.Obj = va.Obj
 
-			va.AddPosition(e.Sel.Pos())
+			va.AddPosition(pp.Package.FileSet.Position(e.Sel.Pos()))
 
 			res = new(vector.Vector)
 			res.Push(va.VariableType)
@@ -517,7 +517,7 @@ func (pp *packageParser) eParsePackageEntitySelector(t st.ITypeSymbol, e *ast.Se
 		if tt, ok := s.Package.Symbols.LookUp(e.Sel.Name, ""); ok {
 			e.Sel.Obj = tt.Object()
 
-			tt.AddPosition(e.Sel.Pos())
+			tt.AddPosition(pp.Package.FileSet.Position(e.Sel.Pos()))
 
 			res = new(vector.Vector)
 			res.Push(tt)

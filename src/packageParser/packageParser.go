@@ -313,7 +313,7 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 
 				toAdd := &st.FunctionSymbol{Obj: name.Obj, FunctionType: ft, Locals: nil, Posits: make(map[string]token.Position), PackFrom: pp.Package}
 
-				toAdd.AddPosition(method.Pos())
+				toAdd.AddPosition(pp.Package.FileSet.Position(method.Pos()))
 
 				result.AddMethod(toAdd)
 			}
@@ -342,7 +342,7 @@ func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
 	}
 
 	//fmt.Printf("AOAOAOAO %s %v\n", t.Name, t.Pos())
-	result.AddPosition(t.Pos())
+	result.AddPosition(pp.Package.FileSet.Position(t.Pos()))
 
 	return
 }
@@ -362,7 +362,7 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 
 				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
 
-				toAdd.AddPosition(name.Pos())
+				toAdd.AddPosition(pp.Package.FileSet.Position(name.Pos()))
 				res.Parameters.AddSymbol(toAdd)
 			}
 		}
@@ -381,7 +381,7 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 
 				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
 
-				toAdd.AddPosition(name.Pos())
+				toAdd.AddPosition(pp.Package.FileSet.Position(name.Pos()))
 
 				res.Results.AddSymbol(toAdd)
 			}
@@ -403,7 +403,7 @@ func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructT
 
 			toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
 
-			toAdd.AddPosition(name.Pos())
+			toAdd.AddPosition(pp.Package.FileSet.Position(name.Pos()))
 
 			res.Fields.AddSymbol(toAdd)
 			if name.Name == "Rparen" {
@@ -420,7 +420,7 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 	if pp.Mode == TYPES_MODE {
 		if sym, found := pp.CurrentSymbolTable.LookUp(t.X.(*ast.Ident).Name, pp.CurrentFileName); found {
 			pack := sym.(*st.PackageSymbol)
-			pack.AddPosition(t.X.Pos())
+			pack.AddPosition(pp.Package.FileSet.Position(t.X.Pos()))
 			name := t.Sel.Name
 			var res st.Symbol
 			if res, found = pack.Package.Symbols.LookUp(name, ""); !found {
@@ -428,7 +428,7 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 				pack.Package.Symbols.AddSymbol(res)
 			}
 
-			res.AddPosition(t.Sel.Pos())
+			res.AddPosition(pp.Package.FileSet.Position(t.Sel.Pos()))
 
 			result = res.(st.ITypeSymbol)
 		} else {
@@ -449,7 +449,7 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 				}
 				t.Sel.Obj = sym.Object()
 
-				sym.AddPosition(t.X.Pos())
+				sym.AddPosition(pp.Package.FileSet.Position(t.X.Pos()))
 
 			} else {
 				//result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: pref.Name() + "." + t.Sel.Name}, Posits: make(map[string]token.Position)}, t}

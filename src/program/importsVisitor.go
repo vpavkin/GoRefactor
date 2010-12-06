@@ -54,11 +54,10 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if !found {
 			_, f := path.Split(Path)
 			for _, dir := range *externPackageTrees {
-				//dirTree, _ := parser.ParseDir(path.Join(dir, Path), makeFilter(path.Join(dir, Path)), parser.ParseComments)
-				dirTree, _ := getAstTree(path.Join(dir, Path))
+				fileSet,dirTree, _ := getAstTree(path.Join(dir, Path))
 				if dirTree != nil {
 					if packTree, found = dirTree[f]; found {
-						pack = st.NewPackage(path.Join(dir, Path), packTree)
+						pack = st.NewPackage(path.Join(dir, Path),fileSet, packTree)
 						program.Packages[pack.QualifiedPath] = pack
 
 						parseImports(pack)
@@ -81,7 +80,7 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if is.Name != nil {
 			is.Name.Obj = ob
 			//Positions surely register
-			sym.AddPosition(is.Name.Pos())
+			sym.AddPosition(iv.Package.FileSet.Position(is.Name.Pos()))
 
 			if is.Name.Name == "." {
 				iv.Package.Symbols.AddOpenedScope(pack.Symbols)

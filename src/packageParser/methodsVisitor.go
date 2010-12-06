@@ -64,7 +64,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 
 					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: basertype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
 
-					toAdd.AddPosition(name.Pos())
+					toAdd.AddPosition(mv.Parser.Package.FileSet.Position(name.Pos()))
 
 					ft.Reciever.AddSymbol(toAdd)
 				}
@@ -74,7 +74,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 
 		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
 
-		toAdd.AddPosition(f.Name.Pos())
+toAdd.AddPosition(mv.Parser.Package.FileSet.Position(f.Name.Pos()))
 
 		if f.Recv != nil {
 			rtype.AddMethod(toAdd)

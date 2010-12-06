@@ -211,6 +211,7 @@ type Package struct { //NOT A SYMBOL
 	Symbols         *SymbolTable   //top level declarations
 	SymbolTablePool *vector.Vector //links to all symbol tables including nested
 
+	FileSet	*token.FileSet
 	AstPackage  *ast.Package              //ast tree 
 	Imports     map[string]*vector.Vector //map[file] *[]packageSymbol
 	IsGoPackage bool                      //true if package source is in $GOROOT/src/pkg/
@@ -218,8 +219,8 @@ type Package struct { //NOT A SYMBOL
 	Communication chan int
 }
 
-func NewPackage(qualifiedPath string, astPackage *ast.Package) *Package {
-	p := &Package{QualifiedPath: qualifiedPath, AstPackage: astPackage}
+func NewPackage(qualifiedPath string,fileSet *token.FileSet, astPackage *ast.Package) *Package {
+	p := &Package{QualifiedPath: qualifiedPath,FileSet: fileSet, AstPackage: astPackage}
 
 	p.Symbols = NewSymbolTable(p)
 	p.SymbolTablePool = new(vector.Vector)

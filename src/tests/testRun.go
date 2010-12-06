@@ -26,7 +26,7 @@ func checkTypesInSymbolTable(table *st.SymbolTable) {
 	}
 	table.ForEachNoLock(func(sym st.Symbol) {
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
-			fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+			fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 			countUnres++;
 		} else {
 			//Start recursive walk
@@ -37,7 +37,7 @@ func checkTypesInSymbolTable(table *st.SymbolTable) {
 
 func checkAliasTypeSymbol(t *st.AliasTypeSymbol) {
 	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.BaseType)
@@ -46,7 +46,7 @@ func checkAliasTypeSymbol(t *st.AliasTypeSymbol) {
 
 func checkPointerTypeSymbol(t *st.PointerTypeSymbol) {
 	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.BaseType)
@@ -55,7 +55,7 @@ func checkPointerTypeSymbol(t *st.PointerTypeSymbol) {
 
 func checkArrayTypeSymbol(t *st.ArrayTypeSymbol) {
 	if uts, ok := t.ElemType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.ElemType)
@@ -72,14 +72,14 @@ func checkInterfaceTypeSymbol(t *st.InterfaceTypeSymbol) {
 
 func checkMapTypeSymbol(t *st.MapTypeSymbol) {
 	if uts, ok := t.KeyType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.KeyType)
 	}
 	
 	if uts, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.ValueType)
@@ -88,7 +88,7 @@ func checkMapTypeSymbol(t *st.MapTypeSymbol) {
 
 func checkChanTypeSymbol(t *st.ChanTypeSymbol) {
 	if uts, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.ValueType)
@@ -106,7 +106,7 @@ func checkVariableSymbol(t *st.VariableSymbol) {
 	}
 	//fmt.Printf("/// %s %s\n", t.Name(),t.PackageFrom().QualifiedPath)
 	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.VariableType)
@@ -114,7 +114,7 @@ func checkVariableSymbol(t *st.VariableSymbol) {
 }
 func checkFunctionSymbol(t *st.FunctionSymbol) {
 	if uts, ok := t.FunctionType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("Unresolved %v %v:%v\n", uts.Name(),uts.Declaration.Pos().Filename, uts.Declaration.Pos().Line);
+		fmt.Printf("Unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
 		countUnres++;
 	} else {
 		checkType(t.FunctionType)
@@ -247,8 +247,8 @@ func main() {
 		fmt.Println(err.Message);
 	}else{
 		cfg:=&printer.Config{printer.TabIndent,8,nil}
-		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/utils"].AstPackage.Files["/home/rulerr/GoRefactor/src/utils/utils.go"])
-		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].AstPackage.Files["/home/rulerr/GoRefactor/src/refactoring/rename.go"])
+		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/utils"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/utils"].AstPackage.Files["/home/rulerr/GoRefactor/src/utils/utils.go"])
+		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].AstPackage.Files["/home/rulerr/GoRefactor/src/refactoring/rename.go"])
 	}
 	
 	/*fmt.Printf("Methods:\n")

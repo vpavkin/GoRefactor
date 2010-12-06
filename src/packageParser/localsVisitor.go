@@ -124,7 +124,7 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
 
 			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: curTs, Posits: make(map[string]token.Position), PackFrom: lv.Parser.Package}
-			toAdd.AddPosition(n.Pos())
+			toAdd.AddPosition(lv.Parser.Package.FileSet.Position(n.Pos()))
 			lv.Parser.CurrentSymbolTable.AddSymbol(toAdd)
 		}
 
@@ -138,7 +138,7 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 				if n.Name != "_" {
 					n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
 					toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: valuesTypes.At(i).(st.ITypeSymbol), Posits: make(map[string]token.Position), PackFrom: lv.Parser.Package}
-					toAdd.AddPosition(n.Pos())
+					toAdd.AddPosition(lv.Parser.Package.FileSet.Position(n.Pos()))
 					lv.Current.AddSymbol(toAdd)
 					fmt.Printf("DEFINED %s\n", toAdd.Name())
 				}
@@ -168,7 +168,7 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 		default:
 			panic("shit, no type symbol returned")
 		}
-		ts.AddPosition(s.Name.Pos())
+		ts.AddPosition(lv.Parser.Package.FileSet.Position(s.Name.Pos()))
 		lv.Current.AddSymbol(ts)
 	case *ast.ExprStmt:
 		lv.Parser.parseExpr(s.X)
@@ -252,7 +252,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 			if iK.Name != "_" {
 				iK.Obj = &ast.Object{Kind: ast.Var, Name: iK.Name}
 				toAdd := &st.VariableSymbol{Obj: iK.Obj, VariableType: kT, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
-				toAdd.AddPosition(iK.Pos())
+				toAdd.AddPosition(lv.Parser.Package.FileSet.Position(iK.Pos()))
 				ww.Current.AddSymbol(toAdd)
 				fmt.Printf("range key added %s %T\n", toAdd.Name(), toAdd)
 			}
@@ -261,7 +261,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				if iV.Name != "_" {
 					iV.Obj = &ast.Object{Kind: ast.Var, Name: iV.Name}
 					toAdd := &st.VariableSymbol{Obj: iV.Obj, VariableType: vT, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
-					toAdd.AddPosition(iV.Pos())
+					toAdd.AddPosition(lv.Parser.Package.FileSet.Position(iV.Pos()))
 					ww.Current.AddSymbol(toAdd)
 					fmt.Printf("range value added %s %T\n", toAdd.Name(), toAdd)
 				}
@@ -292,7 +292,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 
 			tsVar.Obj = &ast.Object{Kind: ast.Var, Name: tsVar.Name}
 			toAdd := &st.VariableSymbol{Obj: tsVar.Obj, VariableType: tsType, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
-			toAdd.AddPosition(tsVar.Pos())
+			toAdd.AddPosition(lv.Parser.Package.FileSet.Position(tsVar.Pos()))
 			toAdd.Obj.Kind = -1 //TypeSwitch var
 			ww.Current.AddSymbol(toAdd)
 		case *ast.ExprStmt:
@@ -319,7 +319,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 
 				ccVar.Obj = &ast.Object{Kind: ast.Var, Name: ccVar.Name}
 				toAdd := &st.VariableSymbol{Obj: ccVar.Obj, VariableType: ccType, Posits: make(map[string]token.Position), PackFrom: ww.Parser.Package}
-				toAdd.AddPosition(ccVar.Pos())
+				toAdd.AddPosition(lv.Parser.Package.FileSet.Position(ccVar.Pos()))
 				ww.Current.AddSymbol(toAdd)
 			case token.ASSIGN:
 				ww.Parser.parseExpr(inNode.Lhs)

@@ -106,29 +106,30 @@ func getFullNameFiles(files *vector.StringVector,srcDir string) ([]string){
 	}
 	return res;
 }
-func getAstTree(srcDir string) (map[string]*ast.Package,os.Error){
+func getAstTree(srcDir string) (*token.FileSet, map[string]*ast.Package,os.Error){
 	_, d := path.Split(srcDir);
-	
+	fileSet := token.NewFileSet();
 	if files, ok := specificFiles[d]; ok {
-		return parser.ParseFiles(getFullNameFiles(files,srcDir),parser.ParseComments);	
+		pckgs,err := parser.ParseFiles(fileSet,getFullNameFiles(files,srcDir),parser.ParseComments)
+		return fileSet,pckgs,err
 	}
-	return parser.ParseDir(srcDir, utils.GoFilter, parser.ParseComments)
+	pckgs,err := parser.ParseDir(fileSet,srcDir, utils.GoFilter, parser.ParseComments)
+	return fileSet,pckgs,err
 	
 }
 func parsePack(srcDir string) {
 	
-	packs,err := getAstTree(srcDir)
+	fileSet,packs,err := getAstTree(srcDir)
 	if err!=nil{
 		fmt.Printf("SOME ERRORS while parsing pack "+ srcDir);
 	}
 
 	_, d := path.Split(srcDir)
 	if packTree, ok := packs[d]; !ok {
-		fmt.Printf("Couldn't find a package " + d + " in " + d + " directory\n")
-		return
+		panic("Couldn't find a package " + d + " in " + d + " directory")
 	} else {
-		pack := st.NewPackage(srcDir, packTree)
-		program.Packages[srcDir] = pack
+		pack := st.NewPackage( srcDir,fileSet, packTree)
+		program.Packages[srcDir] = pack;
 	}
 }
 
@@ -282,7 +283,7 @@ func (p *Program) FindSymbolByPosition(filename string, line int, column int) (s
 		return nil,nil,errors.ArgumentError("filename","Program packages don't contain file '" + filename + "'");
 	}
 	
-	obj,found := findObjectByPos(fileIn,token.Position{Filename:filename,Line:line,Column:column})
+	obj,found := findObjectByPos(packageIn,fileIn,token.Position{Filename:filename,Line:line,Column:column})
 	if !found{
 		return nil,nil,errors.IdentifierNotFoundError(filename, line, column);
 	}

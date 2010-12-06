@@ -4,6 +4,7 @@ import ("fmt"
 //"go/printer"
 "go/ast"
 "go/parser"
+"go/token"
 //"go/typechecker"
 //"packageParser"
 //"os"
@@ -41,7 +42,7 @@ func (p PrintNodeVisitor) Visit(node interface{}) (w ast.Visitor) {
 func main(){
 
 	
-	tree,err := parser.ParseFile("/home/rulerr/go/src/pkg/unicode/tables.go",nil,parser.ParseComments);
+	tree,err := parser.ParseFile(token.NewFileSet(), "/home/rulerr/go/src/pkg/unicode/tables.go",nil,parser.ParseComments);
 	if err != nil {
 		fmt.Println(err);
 		return;

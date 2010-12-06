@@ -3,8 +3,11 @@ package program
 import "go/ast"
 import "go/token"
 import "utils"
+import "st"
+
 
 type findNodeVisitor struct{
+	Package *st.Package
 	Node interface{}
 	Pos token.Position
 }
@@ -15,7 +18,7 @@ func (fv *findNodeVisitor) Visit(node interface{}) ast.Visitor{
 		if _,ok := astNode.(*ast.BasicLit);ok{
 			return fv;
 		}
-		if utils.ComparePosWithinFile(astNode.Pos(),fv.Pos) == 0{
+		if utils.ComparePosWithinFile(fv.Package.FileSet.Position(astNode.Pos()),fv.Pos) == 0{
 			fv.Node = astNode;
 			return nil;
 		}
@@ -23,9 +26,9 @@ func (fv *findNodeVisitor) Visit(node interface{}) ast.Visitor{
 	return fv;
 }
 
-func getTopLevelDecl (file *ast.File,pos token.Position) ast.Decl{
+func getTopLevelDecl (Package *st.Package,file *ast.File,pos token.Position) ast.Decl{
 	for i,decl := range file.Decls{
-		if utils.ComparePosWithinFile(decl.Pos(), pos) == 1 {
+		if utils.ComparePosWithinFile(Package.FileSet.Position(decl.Pos()), pos) == 1 {
 			return file.Decls[i-1]
 		}
 	}
@@ -33,9 +36,9 @@ func getTopLevelDecl (file *ast.File,pos token.Position) ast.Decl{
 
 }
 
-func findNodeByPos(file *ast.File,pos token.Position) (node interface{},found bool){
-	visitor := &findNodeVisitor{nil,pos}
-	declToSearch:= getTopLevelDecl(file,pos);
+func findNodeByPos(Package *st.Package,file *ast.File,pos token.Position) (node interface{},found bool){
+	visitor := &findNodeVisitor{Package,nil,pos}
+	declToSearch:= getTopLevelDecl(Package,file,pos);
 	ast.Walk(visitor,declToSearch);
 	if visitor.Node == nil{
 		return nil,false;
@@ -43,8 +46,8 @@ func findNodeByPos(file *ast.File,pos token.Position) (node interface{},found bo
 	return visitor.Node,true;
 }
 
-func findObjectByPos(file *ast.File,pos token.Position) (obj *ast.Object,found bool){
-	if node,ok := findNodeByPos(file,pos);ok{
+func findObjectByPos(Package *st.Package,file *ast.File,pos token.Position) (obj *ast.Object,found bool){
+	if node,ok := findNodeByPos(Package,file,pos);ok{
 		if id,ok :=  node.(*ast.Ident);ok{
 			return id.Obj,true;
 		}

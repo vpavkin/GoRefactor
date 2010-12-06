@@ -52,7 +52,7 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: make(map[string]token.Position), PackFrom: gv.Parser.Package}
 
-			toAdd.AddPosition(n.Pos())
+			toAdd.AddPosition(gv.Parser.Package.FileSet.Position(n.Pos()))
 
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}
