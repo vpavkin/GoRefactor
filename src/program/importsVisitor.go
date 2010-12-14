@@ -25,11 +25,11 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		Path = Path[1 : len(Path)-1] //remove quotes
 
 		var (
-			name         string
-// 			hasLocalName bool
-			found        bool
-			pack         *st.Package
-			packTree     *ast.Package
+			name string
+			// 			hasLocalName bool
+			found    bool
+			pack     *st.Package
+			packTree *ast.Package
 		)
 
 		if is.Name != nil {
@@ -37,9 +37,9 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 			case "_":
 				return // package imported only for side-effects
 			case ".":
-				name = "."//, hasLocalName = ".", false
+				name = "." //, hasLocalName = ".", false
 			default:
-				name =  is.Name.Name//, hasLocalName =, true
+				name = is.Name.Name //, hasLocalName =, true
 			}
 		} else {
 			_, name = path.Split(Path)
@@ -74,13 +74,13 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 			iv.Package.Imports[iv.FileName] = new(vector.Vector)
 		}
 
-		sym := st.MakePackage(name,iv.Package, Path, pack)
-		
+		sym := st.MakePackage(name, iv.Package.Symbols, Path, pack)
+
 		if is.Name != nil {
-			
+
 			sym.AddIdent(is.Name)
-			program.IdentMap.AddIdent(is.Name,sym)
-			
+			program.IdentMap.AddIdent(is.Name, sym)
+
 			sym.AddPosition(iv.Package.FileSet.Position(is.Name.Pos()))
 
 			if is.Name.Name == "." {

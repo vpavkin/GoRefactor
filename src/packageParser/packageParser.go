@@ -30,7 +30,7 @@ const (
 type packageParser struct {
 	Package *st.Package
 
-	IdentMap st.IdentifierMap
+	IdentMap           st.IdentifierMap
 	RootSymbolTable    *st.SymbolTable // fast link to Package.Symbols	
 	CurrentSymbolTable *st.SymbolTable // A symbol table which is currently being filled
 
@@ -50,9 +50,9 @@ type packageParser struct {
 	visited map[string]bool
 }
 
-func ParsePackage(rootPack *st.Package,identMap st.IdentifierMap) (*st.SymbolTable, *vector.Vector) {
+func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTable, *vector.Vector) {
 
-	pp := newPackageParser(rootPack,identMap)
+	pp := newPackageParser(rootPack, identMap)
 
 	<-pp.Package.Communication
 	pp.Mode = TYPES_MODE
@@ -167,9 +167,9 @@ func ParsePackage(rootPack *st.Package,identMap st.IdentifierMap) (*st.SymbolTab
 
 
 /*^^SymbolTableBuilder Methods^^*/
-func newPackageParser(p *st.Package,identMap st.IdentifierMap) *packageParser {
+func newPackageParser(p *st.Package, identMap st.IdentifierMap) *packageParser {
 
-	pp := &packageParser{p, identMap,p.Symbols, p.Symbols, nil, nil, nil, nil, nil, new(exprParser), INITIAL_STATE, "", nil}
+	pp := &packageParser{p, identMap, p.Symbols, p.Symbols, nil, nil, nil, nil, nil, new(exprParser), INITIAL_STATE, "", nil}
 
 	pp.TypesParser = &typesVisitor{pp}
 	pp.MethodsParser = &methodsVisitor{pp}
@@ -185,9 +185,9 @@ func getIntValue(t *ast.BasicLit) int {
 	return l
 }
 
-func(pp *packageParser) registerIdent(sym st.Symbol,ident *ast.Ident){
+func (pp *packageParser) registerIdent(sym st.Symbol, ident *ast.Ident) {
 	sym.AddIdent(ident)
-	pp.IdentMap.AddIdent(ident,sym);
+	pp.IdentMap.AddIdent(ident, sym)
 	sym.AddPosition(pp.Package.FileSet.Position(ident.Pos()))
 }
 //Builds a type symbol according to given ast.Expression
@@ -229,7 +229,7 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 
 	//anonymous type
 	if base.Name() == st.NO_NAME {
-		result = st.MakePointerType(base.PackageFrom(), base)
+		result = st.MakePointerType(base.Scope(), base)
 		return
 	}
 
@@ -259,7 +259,7 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 		return
 	}
 
-	result = st.MakePointerType(toLookUp.Package, base)
+	result = st.MakePointerType(toLookUp, base)
 	fmt.Printf("Adding Pointer Type %s to %s at file of %s\n", result.Name(), func(p *st.Package) string {
 		if p == nil {
 			return "nil"
@@ -268,12 +268,6 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 	}(base.PackageFrom()),
 		pp.Package.AstPackage.Name)
 
-	//Solve where to place new pointer
-	// 	if _, found := pp.RootSymbolTable.LookUp(nameToFind, ""); found {
-	// 		pp.RootSymbolTable.AddSymbol(result)
-	// 	} else {
-	// 		pp.CurrentSymbolTable.AddSymbol(result)
-	// 	}
 	toLookUp.AddSymbol(result)
 	return
 }
@@ -286,7 +280,7 @@ func (pp *packageParser) tParseStarExpr(t *ast.StarExpr) (result *st.PointerType
 }
 
 func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayTypeSymbol) {
-	result = st.MakeArrayType(st.NO_NAME, pp.Package, pp.parseTypeSymbol(t.Elt),0)
+	result = st.MakeArrayType(st.NO_NAME, pp.CurrentSymbolTable, pp.parseTypeSymbol(t.Elt), 0)
 	if t.Len == nil {
 		result.Len = st.SLICE
 	} else {
@@ -300,11 +294,11 @@ func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayType
 	return
 }
 func (pp *packageParser) tParseChanType(t *ast.ChanType) (result *st.ChanTypeSymbol) {
-	result = st.MakeChannelType(st.NO_NAME, pp.Package, pp.parseTypeSymbol(t.Value))
+	result = st.MakeChannelType(st.NO_NAME, pp.CurrentSymbolTable, pp.parseTypeSymbol(t.Value))
 	return
 }
 func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.InterfaceTypeSymbol) {
-	result = st.MakeInterfaceType(st.NO_NAME, pp.Package)
+	result = st.MakeInterfaceType(st.NO_NAME, pp.CurrentSymbolTable)
 	if len(t.Methods.List) > 0 {
 		for _, method := range t.Methods.List {
 			if len(method.Names) == 0 { //Embeded interface
@@ -314,11 +308,11 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 			for _, name := range method.Names {
 				ft := pp.parseTypeSymbol(method.Type).(*st.FunctionTypeSymbol)
 
-				toAdd := st.MakeFunction(name.Name, pp.Package,ft)
-				toAdd.IsInterfaceMethod = true;
-				
-				pp.registerIdent(toAdd,name)
-				
+				toAdd := st.MakeFunction(name.Name, result.Methods(), ft)
+				toAdd.IsInterfaceMethod = true
+
+				pp.registerIdent(toAdd, name)
+
 				result.AddMethod(toAdd)
 			}
 		}
@@ -326,7 +320,7 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 	return
 }
 func (pp *packageParser) tParseMapType(t *ast.MapType) (result *st.MapTypeSymbol) {
-	result = st.MakeMapType(st.NO_NAME, pp.Package, pp.parseTypeSymbol(t.Key), pp.parseTypeSymbol(t.Value))
+	result = st.MakeMapType(st.NO_NAME, pp.CurrentSymbolTable, pp.parseTypeSymbol(t.Key), pp.parseTypeSymbol(t.Value))
 	return
 }
 func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
@@ -334,29 +328,29 @@ func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
 	if sym, found := pp.CurrentSymbolTable.LookUp(t.Name, pp.CurrentFileName); found {
 		result = sym.(st.ITypeSymbol)
 	} else {
-		result = st.MakeUnresolvedType(t.Name,pp.Package, t)
+		result = st.MakeUnresolvedType(t.Name, pp.CurrentSymbolTable, t)
 
 		if pp.Mode != TYPES_MODE {
 			fmt.Printf("**************** %s\n", t.Name)
 		}
 	}
-	pp.registerIdent(result,t);
+	pp.registerIdent(result, t)
 	return
 }
 func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTypeSymbol) {
-	res := st.MakeFunctionType(st.NO_NAME,pp.Package)
+	res := st.MakeFunctionType(st.NO_NAME, pp.CurrentSymbolTable)
 	if t.Params != nil {
 		e_count := 0
 		for _, field := range t.Params.List {
 			ftype := pp.parseTypeSymbol(field.Type)
 			if len(field.Names) == 0 { // unnamed parameter. separate names are given to distinct parameters in symbolTable
-				res.Parameters.AddSymbol(st.MakeVariable("$unnamed" + strconv.Itoa(e_count),pp.Package, ftype))
+				res.Parameters.AddSymbol(st.MakeVariable("$unnamed"+strconv.Itoa(e_count), pp.CurrentSymbolTable, ftype))
 				e_count += 1
 			}
 			for _, name := range field.Names {
-				
-				toAdd := st.MakeVariable(name.Name,pp.Package,ftype)
-				pp.registerIdent(toAdd,name)
+
+				toAdd := st.MakeVariable(name.Name, res.Parameters, ftype)
+				pp.registerIdent(toAdd, name)
 				res.Parameters.AddSymbol(toAdd)
 			}
 		}
@@ -366,13 +360,13 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 		for _, field := range t.Results.List {
 			ftype := pp.parseTypeSymbol(field.Type)
 			if len(field.Names) == 0 { //unnamed result
-				res.Results.AddSymbol(st.MakeVariable("$unnamed" + strconv.Itoa(e_count), pp.Package,ftype))
+				res.Results.AddSymbol(st.MakeVariable("$unnamed"+strconv.Itoa(e_count), pp.CurrentSymbolTable, ftype))
 				e_count += 1
 			}
 			for _, name := range field.Names {
-				
-				toAdd := st.MakeVariable(name.Name,pp.Package, ftype)
-				pp.registerIdent(toAdd,name)
+
+				toAdd := st.MakeVariable(name.Name, res.Results, ftype)
+				pp.registerIdent(toAdd, name)
 				res.Results.AddSymbol(toAdd)
 			}
 		}
@@ -382,7 +376,7 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 }
 func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructTypeSymbol) {
 
-	res := st.MakeStructType(st.NO_NAME, pp.Package);
+	res := st.MakeStructType(st.NO_NAME, pp.CurrentSymbolTable)
 	for _, field := range t.Fields.List {
 		ftype := pp.parseTypeSymbol(field.Type)
 		if len(field.Names) == 0 { //Embedded field
@@ -390,8 +384,8 @@ func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructT
 		}
 		for _, name := range field.Names {
 
-			toAdd := st.MakeVariable(name.Name,pp.Package, ftype)
-			pp.registerIdent(toAdd,name)
+			toAdd := st.MakeVariable(name.Name, res.Fields, ftype)
+			pp.registerIdent(toAdd, name)
 			res.Fields.AddSymbol(toAdd)
 
 		}
@@ -404,16 +398,16 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 	if pp.Mode == TYPES_MODE {
 		if sym, found := pp.CurrentSymbolTable.LookUp(t.X.(*ast.Ident).Name, pp.CurrentFileName); found {
 			pack := sym.(*st.PackageSymbol)
-			pp.registerIdent(pack,t.X.(*ast.Ident));
+			pp.registerIdent(pack, t.X.(*ast.Ident))
 
 			name := t.Sel.Name
 			var res st.Symbol
 			if res, found = pack.Package.Symbols.LookUp(name, ""); !found {
-				res = st.MakeUnresolvedType(name,pack.Package, t);
+				res = st.MakeUnresolvedType(name, pack.Package.Symbols, t)
 				pack.Package.Symbols.AddSymbol(res)
 			}
 
-			pp.registerIdent(res,t.Sel)
+			pp.registerIdent(res, t.Sel)
 
 			result = res.(st.ITypeSymbol)
 		} else {
@@ -422,13 +416,13 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 
 	} else {
 		pref := pp.parseTypeSymbol(t.X)
-		
+
 		switch p := pref.(type) {
 		case *st.PackageSymbol:
 			if sym, found := p.Package.Symbols.LookUp(t.Sel.Name, ""); found {
-				
+
 				result = sym.(st.ITypeSymbol)
-				pp.registerIdent(sym,t.Sel)
+				pp.registerIdent(sym, t.Sel)
 			} else {
 				panic("Can't find symbol " + t.Sel.Name + " in package " + pp.Package.QualifiedPath + " " + pp.CurrentFileName + "\n")
 			}
@@ -441,6 +435,6 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 // for function types
 func (pp *packageParser) tParseEllipsis(t *ast.Ellipsis) (result *st.ArrayTypeSymbol) {
 	elt := pp.parseTypeSymbol(t.Elt)
-	result = st.MakeArrayType(st.NO_NAME,pp.Package, elt, st.SLICE)
+	result = st.MakeArrayType(st.NO_NAME, pp.CurrentSymbolTable, elt, st.SLICE)
 	return
 }

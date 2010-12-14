@@ -220,11 +220,18 @@ func main() {
 	fmt.Println(*vect);
 	*/
 	
-	for	 _,pack := range p.Packages{
-		fmt.Printf("%s :\n",pack.QualifiedPath);
-		visited = make(map[string]bool);
-		curPack = pack
-		checkTypesInSymbolTable(pack.Symbols);
+// 	for	 _,pack := range p.Packages{
+// 		fmt.Printf("%s :\n",pack.QualifiedPath);
+// 		visited = make(map[string]bool);
+// 		curPack = pack
+// 		checkTypesInSymbolTable(pack.Symbols);
+// 	}
+
+	for _,sym := range p.IdentMap {
+		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
+			fmt.Printf("unresolved %v from %v\n", uts.Name(),uts.PackageFrom().AstPackage.Name);
+			countUnres++;
+		}
 	}
 	
 	fmt.Printf("%d symbols unresolved\n",countUnres);

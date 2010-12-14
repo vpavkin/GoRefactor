@@ -89,12 +89,12 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
 		}
 
-		if _, ok := containsIn.LookUp(newName, filename); ok {
+		if _, ok := sym.Scope().LookUp(newName, filename); ok {
 			return false, errors.IdentifierAlreadyExistsError(newName)
 		}
 
 		if meth, ok := sym.(*st.FunctionSymbol); ok {
-			if meth.IsInterfaceMethod{
+			if meth.IsInterfaceMethod {
 				return false, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
 			}
 		}
@@ -107,8 +107,8 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 }
 
 func renameSymbol(sym st.Symbol, newName string) int {
-	for ident,_ := range sym.Identifiers(){
-		ident.Name = newName;
+	for ident, _ := range sym.Identifiers() {
+		ident.Name = newName
 	}
 	return len(sym.Positions())
 }

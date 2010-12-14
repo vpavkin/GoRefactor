@@ -209,7 +209,7 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 				}
 				return nil
 			}(t))
-		pp.registerIdent(t,e)
+		pp.registerIdent(t, e)
 
 		switch v := t.(type) {
 		case *st.VariableSymbol:
@@ -228,9 +228,9 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 		}
 	} else {
 		//sould be resolved later
-		
+
 		fmt.Printf("%s:	WARNING! Ident %v wasn't found\n", pp.Package.AstPackage.Name, e.Name)
-		res.Push(st.MakeUnresolvedType(e.Name,pp.Package, e))
+		res.Push(st.MakeUnresolvedType(e.Name, pp.CurrentSymbolTable, e))
 	}
 
 	return
@@ -278,7 +278,7 @@ func (pp *packageParser) eParseKeyValueExpr(e *ast.KeyValueExpr) (res *vector.Ve
 func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Vector) {
 
 	//todo:like selector in parseType
-	
+
 	pp.ExprParser.IsTypeNameUsed = false
 
 	t := pp.parseExpr(e.X).At(0).(st.ITypeSymbol)
@@ -300,7 +300,7 @@ func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Ve
 
 	res = new(vector.Vector)
 	//Sould be resolved
-	res.Push(st.MakeUnresolvedType(e.Sel.Name,pp.Package, e))
+	res.Push(st.MakeUnresolvedType(e.Sel.Name, pp.CurrentSymbolTable, e))
 	return
 }
 func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) {
@@ -313,7 +313,7 @@ func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) 
 	// slicing an array results a slice
 	if arr, ok := x.(*st.ArrayTypeSymbol); ok {
 		if arr.Len != st.SLICE {
-			sl := st.MakeArrayType(arr.Name(),arr.PackageFrom(),arr.ElemType,st.SLICE)
+			sl := st.MakeArrayType(arr.Name(), arr.Scope(), arr.ElemType, st.SLICE)
 			r = sl
 		}
 	}
@@ -455,14 +455,14 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 	if lookupST != nil {
 		if ff, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 			if f, ok := ff.(*st.FunctionSymbol); ok {
-				
-				pp.registerIdent(f,e.Sel)
+
+				pp.registerIdent(f, e.Sel)
 
 				if pp.ExprParser.IsTypeNameUsed {
 					pp.ExprParser.IsTypeNameUsed = false
 					f = pp.makeMethodExpression(f)
 				}
-				
+
 				res = new(vector.Vector)
 				res.Push(f.FunctionType)
 				return res, true
@@ -491,8 +491,8 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 	}
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
-			
-			pp.registerIdent(va,e.Sel)
+
+			pp.registerIdent(va, e.Sel)
 
 			res = new(vector.Vector)
 			res.Push(va.VariableType)
@@ -504,8 +504,8 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 func (pp *packageParser) eParsePackageEntitySelector(t st.ITypeSymbol, e *ast.SelectorExpr) (res *vector.Vector, success bool) {
 	if s, ok := t.(*st.PackageSymbol); ok {
 		if tt, ok := s.Package.Symbols.LookUp(e.Sel.Name, ""); ok {
-			
-			pp.registerIdent(tt,e.Sel)
+
+			pp.registerIdent(tt, e.Sel)
 
 			res = new(vector.Vector)
 			res.Push(tt)
@@ -572,11 +572,11 @@ func (pp *packageParser) detectWhereToLookUpFieldSelector(source st.ITypeSymbol)
 
 
 func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.FunctionSymbol) {
-	res = st.MakeFunction(fs.Name(),fs.PackageFrom(),fs.FunctionType);
-	res.Idents = fs.Idents;
-	res.Posits = fs.Posits;
-	res.Locals = fs.Locals;
-	
+	res = st.MakeFunction(fs.Name(), fs.Scope(), fs.FunctionType)
+	res.Idents = fs.Idents
+	res.Posits = fs.Posits
+	res.Locals = fs.Locals
+
 	fft, cyc := st.GetBaseType(fs.FunctionType)
 	if cyc {
 		fmt.Println("ERROR: cycle wasn't expected. eParseUnaryExpr, parseExpr.go")

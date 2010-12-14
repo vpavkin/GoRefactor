@@ -420,6 +420,7 @@ func (table *SymbolTable) FindSymbolByPosition(filename string, line int, column
 	})
 	return
 }
+
 /*
 func (table *SymbolTable) FindSymbolByIdent(ident *ast.Ident) (sym Symbol, found bool) {
 	sym, found = table.forEachStoppableReverse(func(eachSym Symbol) bool {

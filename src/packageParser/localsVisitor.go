@@ -121,8 +121,8 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 			if ts == nil {
 				curTs = valuesTypes.At(i).(st.ITypeSymbol)
 			}
-			toAdd := st.MakeVariable(n.Name,lv.Parser.Package,curTs)
-			lv.Parser.registerIdent(toAdd,n)
+			toAdd := st.MakeVariable(n.Name, lv.Current, curTs)
+			lv.Parser.registerIdent(toAdd, n)
 			lv.Parser.CurrentSymbolTable.AddSymbol(toAdd)
 		}
 
@@ -134,9 +134,9 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 			for i, nn := range s.Lhs {
 				n := nn.(*ast.Ident)
 				if n.Name != "_" {
-					
-					toAdd := st.MakeVariable(n.Name,lv.Parser.Package,valuesTypes.At(i).(st.ITypeSymbol))
-					lv.Parser.registerIdent(toAdd,n)
+
+					toAdd := st.MakeVariable(n.Name, lv.Current, valuesTypes.At(i).(st.ITypeSymbol))
+					lv.Parser.registerIdent(toAdd, n)
 					lv.Current.AddSymbol(toAdd)
 					fmt.Printf("DEFINED %s\n", toAdd.Name())
 				}
@@ -159,9 +159,9 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 				ts.SetName(s.Name.Name)
 			} else {
 				//There is an equal type symbol with different name => create alias
-				ts = st.MakeAliasType(s.Name.Name,lv.Parser.Package, ts)
+				ts = st.MakeAliasType(s.Name.Name, lv.Current, ts)
 			}
-			lv.Parser.registerIdent(ts,s.Name);
+			lv.Parser.registerIdent(ts, s.Name)
 			lv.Current.AddSymbol(ts)
 		default:
 			panic("shit, no type symbol returned")
@@ -244,18 +244,18 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 			}
 			iK := inNode.Key.(*ast.Ident)
 			if iK.Name != "_" {
-				
-				toAdd := st.MakeVariable(iK.Name,ww.Parser.Package, kT)
-				ww.Parser.registerIdent(toAdd,iK)
+
+				toAdd := st.MakeVariable(iK.Name, ww.Current, kT)
+				ww.Parser.registerIdent(toAdd, iK)
 				ww.Current.AddSymbol(toAdd)
-				
+
 				fmt.Printf("range key added %s %T\n", toAdd.Name(), toAdd)
 			}
 			if inNode.Value != nil { // not channel, two range vars
 				iV := inNode.Value.(*ast.Ident)
 				if iV.Name != "_" {
-					toAdd := st.MakeVariable(iV.Name,ww.Parser.Package, vT)
-					ww.Parser.registerIdent(toAdd,iV)
+					toAdd := st.MakeVariable(iV.Name, ww.Current, vT)
+					ww.Parser.registerIdent(toAdd, iV)
 					ww.Current.AddSymbol(toAdd)
 					fmt.Printf("range value added %s %T\n", toAdd.Name(), toAdd)
 				}
@@ -284,9 +284,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 			tsTypeAss := tsT.Rhs[0].(*ast.TypeAssertExpr)
 			tsType := ww.Parser.parseExpr(tsTypeAss.X).At(0).(st.ITypeSymbol)
 
-			toAdd := st.MakeVariable(tsVar.Name, ww.Parser.Package,tsType);
+			toAdd := st.MakeVariable(tsVar.Name, ww.Current, tsType)
 			toAdd.IsTypeSwitchVar = true
-			ww.Parser.registerIdent(toAdd,tsVar)
+			ww.Parser.registerIdent(toAdd, tsVar)
 			ww.Current.AddSymbol(toAdd)
 		case *ast.ExprStmt:
 			tsTypeAss := tsT.X.(*ast.TypeAssertExpr)
@@ -310,8 +310,8 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				ccVar := inNode.Lhs.(*ast.Ident)
 				ccType := ww.Parser.parseExpr(inNode.Rhs).At(0).(st.ITypeSymbol)
 
-				toAdd := st.MakeVariable(ccVar.Name, ww.Parser.Package,ccType)
-				ww.Parser.registerIdent(toAdd,ccVar)
+				toAdd := st.MakeVariable(ccVar.Name, ww.Current, ccType)
+				ww.Parser.registerIdent(toAdd, ccVar)
 				ww.Current.AddSymbol(toAdd)
 			case token.ASSIGN:
 				ww.Parser.parseExpr(inNode.Lhs)
@@ -329,8 +329,8 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		case len(inNode.Types) == 1:
 			tsType := ww.Parser.parseExpr(inNode.Types[0]).At(0).(st.ITypeSymbol)
 			if tsVar, ok := lv.Current.FindTypeSwitchVar(); ok {
-				
-				toAdd := st.MakeVariable(tsVar.Name(),ww.Parser.Package,tsType)
+
+				toAdd := st.MakeVariable(tsVar.Name(), ww.Current, tsType)
 				toAdd.Idents = tsVar.Idents
 				toAdd.Posits = tsVar.Posits
 				//No position, just register symbol
@@ -344,8 +344,8 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		ast.Walk(ww, inNode.Body)
 		w = nil
 	case *ast.FuncLit:
-		meth := st.MakeFunction("#",ww.Parser.Package,lv.Parser.parseTypeSymbol(inNode.Type))
-		meth.Locals = st.NewSymbolTable(ww.Parser.Package) 
+		meth := st.MakeFunction("#", ww.Current, lv.Parser.parseTypeSymbol(inNode.Type))
+		meth.Locals = st.NewSymbolTable(ww.Parser.Package)
 		meth.Locals.AddOpenedScope(lv.Current)
 		if meth.FunctionType.(*st.FunctionTypeSymbol).Parameters != nil {
 			meth.Locals.AddOpenedScope(meth.FunctionType.(*st.FunctionTypeSymbol).Parameters)

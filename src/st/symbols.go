@@ -13,7 +13,7 @@ func init() {
 
 	PredeclaredTypes = make(map[string]*BasicTypeSymbol)
 	for _, s := range ast.BasicTypes {
-		PredeclaredTypes[s] = MakeBasicType(s)
+		PredeclaredTypes[s] = MakeBasicType(s, nil)
 	}
 
 	PredeclaredConsts = make(map[string]*VariableSymbol)
@@ -23,8 +23,8 @@ func init() {
 
 	PredeclaredConsts["true"] = MakeVariable("true", nil, b)
 	PredeclaredConsts["false"] = MakeVariable("false", nil, b)
-	PredeclaredConsts["nil"] = MakeVariable("true", nil, n)
-	PredeclaredConsts["iota"] = MakeVariable("true", nil, PredeclaredTypes["int"])
+	PredeclaredConsts["nil"] = MakeVariable("nil", nil, n)
+	PredeclaredConsts["iota"] = MakeVariable("iota", nil, PredeclaredTypes["int"])
 
 	//make,new,cmplx,imag,real,append - in concrete occasion
 	//print, println - nothing interesting
@@ -102,14 +102,15 @@ type Symbol interface {
 	AddPosition(token.Position)
 	HasPosition(token.Position) bool
 	PackageFrom() *Package
+	Scope() *SymbolTable
 
 	String() string
 }
 
-type IdentifierMap map[*ast.Ident] Symbol
+type IdentifierMap map[*ast.Ident]Symbol
 
-func (im IdentifierMap) AddIdent(ident *ast.Ident, sym Symbol){
-	im[ident] = sym;
+func (im IdentifierMap) AddIdent(ident *ast.Ident, sym Symbol) {
+	im[ident] = sym
 }
 
 type IdentSet map[*ast.Ident]bool
@@ -117,13 +118,14 @@ type IdentSet map[*ast.Ident]bool
 func NewIdentSet() IdentSet {
 	return make(map[*ast.Ident]bool)
 }
-func(set IdentSet) AddIdent(ident *ast.Ident){
-	set[ident] = true;
+func (set IdentSet) AddIdent(ident *ast.Ident) {
+	set[ident] = true
 }
+
 type PositionSet map[string]token.Position
 
-func(set PositionSet) AddPosition(p token.Position){
-	set[makePositionKey(p)] = p;
+func (set PositionSet) AddPosition(p token.Position) {
+	set[makePositionKey(p)] = p
 }
 func NewPositionSet() PositionSet {
 	return make(map[string]token.Position)
@@ -144,9 +146,9 @@ type TypeSymbol struct {
 	name   string
 	Idents IdentSet //Corresponding program entity such as a package, constant, type, variable, or function/method
 	//List of type's methods
-	Meths    *SymbolTable
-	Posits   PositionSet
-	PackFrom *Package
+	Meths  *SymbolTable
+	Posits PositionSet
+	Scope_ *SymbolTable
 }
 //Dummy type symbol, used in forward declarations during first pass
 type UnresolvedTypeSymbol struct {
@@ -215,11 +217,11 @@ type StructTypeSymbol struct {
 
 type PackageSymbol struct {
 	name      string
-	Idents    IdentSet    //local name of package (for unnamed - real name)
-	ShortPath string      // "go/ast", "fmt" etc.
-	Posits    PositionSet //local file name occurances
-	Package   *Package    //package entitie that's described by symbol
-	PackFrom  *Package    //package where symbol is declared
+	Idents    IdentSet     //local name of package (for unnamed - real name)
+	ShortPath string       // "go/ast", "fmt" etc.
+	Posits    PositionSet  //local file name occurances
+	Package   *Package     //package entitie that's described by symbol
+	Scope_    *SymbolTable //scope where symbol is declared
 }
 
 type Package struct { //NOT A SYMBOL
@@ -254,7 +256,7 @@ type FunctionSymbol struct {
 	FunctionType      ITypeSymbol  //FunctionTypeSymbol or Alias
 	Locals            *SymbolTable //Local variables
 	Posits            PositionSet
-	PackFrom          *Package
+	Scope_            *SymbolTable
 	IsInterfaceMethod bool
 }
 
@@ -265,7 +267,7 @@ type VariableSymbol struct {
 	VariableType    ITypeSymbol
 	IsTypeSwitchVar bool
 	Posits          PositionSet
-	PackFrom        *Package
+	Scope_          *SymbolTable
 }
 
 
@@ -333,10 +335,35 @@ func (ts *VariableSymbol) HasPosition(pos token.Position) bool {
 	return hasPosition(ts, pos)
 }
 
-func (ts *TypeSymbol) PackageFrom() *Package     { return ts.PackFrom }
-func (ps *PackageSymbol) PackageFrom() *Package  { return ps.PackFrom }
-func (fs *FunctionSymbol) PackageFrom() *Package { return fs.PackFrom }
-func (vs *VariableSymbol) PackageFrom() *Package { return vs.PackFrom }
+func (ts *TypeSymbol) PackageFrom() *Package {
+	if ts.Scope_ != nil {
+		return ts.Scope_.Package
+	}
+	return nil
+}
+func (ps *PackageSymbol) PackageFrom() *Package {
+	if ps.Scope_ != nil {
+		return ps.Scope_.Package
+	}
+	return nil
+}
+func (fs *FunctionSymbol) PackageFrom() *Package {
+	if fs.Scope_ != nil {
+		return fs.Scope_.Package
+	}
+	return nil
+}
+func (vs *VariableSymbol) PackageFrom() *Package {
+	if vs.Scope_ != nil {
+		return vs.Scope_.Package
+	}
+	return nil
+}
+
+func (ts *TypeSymbol) Scope() *SymbolTable     { return ts.Scope_ }
+func (ps *PackageSymbol) Scope() *SymbolTable  { return ps.Scope_ }
+func (fs *FunctionSymbol) Scope() *SymbolTable { return fs.Scope_ }
+func (vs *VariableSymbol) Scope() *SymbolTable { return vs.Scope_ }
 
 func (ts *TypeSymbol) Positions() PositionSet        { return ts.Posits }
 func (ps *PackageSymbol) Positions() PositionSet     { return ps.Posits }
@@ -377,7 +404,7 @@ func (ts *FunctionSymbol) AddPosition(p token.Position) {
 
 
 func addIdent(sym Symbol, ident *ast.Ident) {
-	sym.Identifiers().AddIdent(ident);
+	sym.Identifiers().AddIdent(ident)
 }
 
 func (s *TypeSymbol) AddIdent(ident *ast.Ident) {

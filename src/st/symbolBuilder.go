@@ -1,7 +1,7 @@
 package st
 
 import (
-"go/ast"
+	"go/ast"
 )
 
 type SymbolType int
@@ -22,58 +22,64 @@ const (
 	FUNCTION
 )
 
-func makeTypeSymbol(name string, packFrom *Package) *TypeSymbol {
-	return &TypeSymbol{name, NewIdentSet(), NewSymbolTable(packFrom), NewPositionSet(), packFrom}
+func getPackage(scope *SymbolTable) *Package {
+	if scope != nil {
+		return scope.Package
+	}
+	return nil
+}
+func makeTypeSymbol(name string, scope *SymbolTable) *TypeSymbol {
+	return &TypeSymbol{name, NewIdentSet(), NewSymbolTable(getPackage(scope)), NewPositionSet(), scope}
 }
 
-func MakeArrayType(name string, packFrom *Package, elemType ITypeSymbol, Len int) *ArrayTypeSymbol {
-	return &ArrayTypeSymbol{makeTypeSymbol(name, packFrom), elemType, Len}
+func MakeArrayType(name string, scope *SymbolTable, elemType ITypeSymbol, Len int) *ArrayTypeSymbol {
+	return &ArrayTypeSymbol{makeTypeSymbol(name, scope), elemType, Len}
 }
 
-func MakeMapType(name string, packFrom *Package, keyType ITypeSymbol, elemType ITypeSymbol) *MapTypeSymbol {
-	return &MapTypeSymbol{makeTypeSymbol(name, packFrom), keyType, elemType}
+func MakeMapType(name string, scope *SymbolTable, keyType ITypeSymbol, elemType ITypeSymbol) *MapTypeSymbol {
+	return &MapTypeSymbol{makeTypeSymbol(name, scope), keyType, elemType}
 }
 
-func MakeChannelType(name string, packFrom *Package, valueType ITypeSymbol) *ChanTypeSymbol {
-	return &ChanTypeSymbol{makeTypeSymbol(name, packFrom), valueType}
+func MakeChannelType(name string, scope *SymbolTable, valueType ITypeSymbol) *ChanTypeSymbol {
+	return &ChanTypeSymbol{makeTypeSymbol(name, scope), valueType}
 }
 
-func MakeBasicType(name string) *BasicTypeSymbol {
-	return &BasicTypeSymbol{makeTypeSymbol(name, nil)}
+func MakeBasicType(name string, scope *SymbolTable) *BasicTypeSymbol {
+	return &BasicTypeSymbol{makeTypeSymbol(name, scope)}
 }
 
-func MakeFunctionType(name string, packFrom *Package) *FunctionTypeSymbol {
-	return &FunctionTypeSymbol{makeTypeSymbol(name, packFrom), NewSymbolTable(packFrom), NewSymbolTable(packFrom), NewSymbolTable(packFrom)}
+func MakeFunctionType(name string, scope *SymbolTable) *FunctionTypeSymbol {
+	return &FunctionTypeSymbol{makeTypeSymbol(name, scope), NewSymbolTable(getPackage(scope)), NewSymbolTable(getPackage(scope)), NewSymbolTable(getPackage(scope))}
 }
 
-func MakePointerType(packFrom *Package, baseType ITypeSymbol) *PointerTypeSymbol {
-	return &PointerTypeSymbol{makeTypeSymbol(NO_NAME, packFrom), baseType, nil}
+func MakePointerType(scope *SymbolTable, baseType ITypeSymbol) *PointerTypeSymbol {
+	return &PointerTypeSymbol{makeTypeSymbol(NO_NAME, scope), baseType, nil}
 }
 
-func MakeAliasType(name string, packFrom *Package, baseType ITypeSymbol) *AliasTypeSymbol {
-	return &AliasTypeSymbol{makeTypeSymbol(name, packFrom), baseType}
+func MakeAliasType(name string, scope *SymbolTable, baseType ITypeSymbol) *AliasTypeSymbol {
+	return &AliasTypeSymbol{makeTypeSymbol(name, scope), baseType}
 }
 
-func MakeInterfaceType(name string, packFrom *Package) *InterfaceTypeSymbol {
-	return &InterfaceTypeSymbol{makeTypeSymbol(name, packFrom)}
+func MakeInterfaceType(name string, scope *SymbolTable) *InterfaceTypeSymbol {
+	return &InterfaceTypeSymbol{makeTypeSymbol(name, scope)}
 }
 
-func MakeStructType(name string, packFrom *Package) *StructTypeSymbol {
-	return &StructTypeSymbol{makeTypeSymbol(name, packFrom), NewSymbolTable(packFrom)}
+func MakeStructType(name string, scope *SymbolTable) *StructTypeSymbol {
+	return &StructTypeSymbol{makeTypeSymbol(name, scope), NewSymbolTable(getPackage(scope))}
 }
 
-func MakeUnresolvedType(name string, packFrom *Package, decl ast.Expr) *UnresolvedTypeSymbol {
-	return &UnresolvedTypeSymbol{makeTypeSymbol(name, packFrom), decl}
+func MakeUnresolvedType(name string, scope *SymbolTable, decl ast.Expr) *UnresolvedTypeSymbol {
+	return &UnresolvedTypeSymbol{makeTypeSymbol(name, scope), decl}
 }
 
-func MakePackage(name string, packFrom *Package, shortPath string, pack *Package) *PackageSymbol {
-	return &PackageSymbol{name, NewIdentSet(), shortPath, NewPositionSet(), pack, packFrom}
+func MakePackage(name string, scope *SymbolTable, shortPath string, pack *Package) *PackageSymbol {
+	return &PackageSymbol{name, NewIdentSet(), shortPath, NewPositionSet(), pack, scope}
 }
 
-func MakeFunction(name string, packFrom *Package, fType ITypeSymbol) *FunctionSymbol {
-	return &FunctionSymbol{name, NewIdentSet(), fType, nil, NewPositionSet(), packFrom,false}
+func MakeFunction(name string, scope *SymbolTable, fType ITypeSymbol) *FunctionSymbol {
+	return &FunctionSymbol{name, NewIdentSet(), fType, nil, NewPositionSet(), scope, false}
 }
 
-func MakeVariable(name string, packFrom *Package, vType ITypeSymbol) *VariableSymbol {
-	return &VariableSymbol{name, NewIdentSet(), vType,false, NewPositionSet(), packFrom}
+func MakeVariable(name string, scope *SymbolTable, vType ITypeSymbol) *VariableSymbol {
+	return &VariableSymbol{name, NewIdentSet(), vType, false, NewPositionSet(), scope}
 }

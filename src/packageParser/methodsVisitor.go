@@ -23,14 +23,14 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		}
 		ft := fft.(*st.FunctionTypeSymbol)
 		locals := st.NewSymbolTable(mv.Parser.Package)
-		
+
 		locals.AddOpenedScope(ft.Parameters)
 		locals.AddOpenedScope(ft.Results)
 		locals.AddOpenedScope(ft.Reciever)
-		
+
 		var basertype, rtype st.ITypeSymbol
 		if f.Recv != nil {
-			
+
 			e_count := 0
 			for _, field := range f.Recv.List {
 				basertype = mv.Parser.parseTypeSymbol(field.Type)
@@ -49,29 +49,31 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				}
 
 				if len(field.Names) == 0 {
-					toAdd := st.MakeVariable("$unnamed receiver" + strconv.Itoa(e_count),mv.Parser.Package,basertype)
+					toAdd := st.MakeVariable("$unnamed receiver"+strconv.Itoa(e_count), ft.Reciever, basertype)
 					ft.Reciever.AddSymbol(toAdd)
 					e_count += 1
 				}
 
 				for _, name := range field.Names {
-					
-					toAdd := st.MakeVariable(name.Name,mv.Parser.Package,basertype)
-					mv.Parser.registerIdent(toAdd,name);
+
+					toAdd := st.MakeVariable(name.Name, ft.Reciever, basertype)
+					mv.Parser.registerIdent(toAdd, name)
 					ft.Reciever.AddSymbol(toAdd)
 				}
 			}
 		}
-		
-		toAdd := st.MakeFunction(f.Name.Name, mv.Parser.Package,ft)
-		toAdd.Locals = locals;
-		
-		mv.Parser.registerIdent(toAdd,f.Name)
+
+		toAdd := st.MakeFunction(f.Name.Name, nil, ft) // Scope is set 5 lines down
+		toAdd.Locals = locals
+
+		mv.Parser.registerIdent(toAdd, f.Name)
 
 		if f.Recv != nil {
 			rtype.AddMethod(toAdd)
+			toAdd.Scope_ = rtype.Methods()
 		} else {
 			mv.Parser.RootSymbolTable.AddSymbol(toAdd)
+			toAdd.Scope_ = mv.Parser.RootSymbolTable
 		}
 	}
 	return
@@ -161,9 +163,9 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 
 				}
 				//No longer need in type thumb, replace with var
-				typeVar := st.MakeVariable(ts.Name(),pp.Package, ts)
-				typeVar.Idents = ts.Identifiers();
-				typeVar.Posits = ts.Positions();
+				typeVar := st.MakeVariable(ts.Name(), t.Fields, ts)
+				typeVar.Idents = ts.Identifiers()
+				typeVar.Posits = ts.Positions()
 				t.Fields.ReplaceSymbol(ts.Name(), typeVar) //replaces old one
 			}
 
@@ -185,7 +187,7 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 
 		if t.BaseType.Methods() != nil {
 			if t.Methods() == nil {
-				panic("ok it's test panic");
+				panic("ok it's test panic")
 				t.SetMethods(st.NewSymbolTable(pp.Package))
 			}
 			t.Methods().AddOpenedScope(t.BaseType.Methods())

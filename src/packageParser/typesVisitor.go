@@ -26,13 +26,13 @@ func (tv *typesVisitor) Visit(node interface{}) (w ast.Visitor) {
 			ts.SetName(tsp.Name.Name)
 		} else {
 			//There is an equal type symbol with different name => create alias
-			ts = st.MakeAliasType(tsp.Name.Name,tv.Parser.Package, ts)
+			ts = st.MakeAliasType(tsp.Name.Name, tv.Parser.CurrentSymbolTable, ts)
 		}
-		
-		tv.Parser.registerIdent(ts,tsp.Name);
-				
+
+		tv.Parser.registerIdent(ts, tsp.Name)
+
 		tv.Parser.RootSymbolTable.AddSymbol(ts)
-	
+
 	}
 	return tv
 }
@@ -54,9 +54,9 @@ func (pp *packageParser) resolveType(uts *st.UnresolvedTypeSymbol) (result st.IT
 	return res.(st.ITypeSymbol)
 }
 func (pp *packageParser) moveData(resolvedType st.ITypeSymbol, unresType st.ITypeSymbol) {
-	for ident,_ := range unresType.Identifiers() {
+	for ident, _ := range unresType.Identifiers() {
 		resolvedType.AddIdent(ident)
-		pp.IdentMap.AddIdent(ident,resolvedType)
+		pp.IdentMap.AddIdent(ident, resolvedType)
 	}
 	for _, pos := range unresType.Positions() {
 		resolvedType.AddPosition(pos)

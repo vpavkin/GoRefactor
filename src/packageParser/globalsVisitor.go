@@ -48,8 +48,8 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 				ts = exprT
 			}
 
-			toAdd := st.MakeVariable(n.Name, gv.Parser.Package, ts)
-			gv.Parser.registerIdent(toAdd,n)
+			toAdd := st.MakeVariable(n.Name, gv.Parser.RootSymbolTable, ts)
+			gv.Parser.registerIdent(toAdd, n)
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}
 

@@ -27,12 +27,15 @@ func initialize() {
 
 	for _, s := range st.PredeclaredTypes {
 		program.BaseSymbolTable.AddSymbol(s)
+		s.Scope_ = program.BaseSymbolTable
 	}
 	for _, s := range st.PredeclaredFunctions {
 		program.BaseSymbolTable.AddSymbol(s)
+		s.Scope_ = program.BaseSymbolTable
 	}
 	for _, s := range st.PredeclaredConsts {
 		program.BaseSymbolTable.AddSymbol(s)
+		s.Scope_ = program.BaseSymbolTable
 	}
 
 	goRoot := os.Getenv("GOROOT")
@@ -46,11 +49,10 @@ func initialize() {
 }
 
 
-
 type Program struct {
 	BaseSymbolTable *st.SymbolTable        //Base sT for parsing any package. Contains basic language symbols
 	Packages        map[string]*st.Package //map[qualifiedPath] package
-	IdentMap		st.IdentifierMap
+	IdentMap        st.IdentifierMap
 }
 
 func loadConfig(packageName string) *vector.StringVector {
@@ -168,7 +170,7 @@ func locatePackages(srcDir string) {
 
 func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Program {
 
-	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package),make(map[*ast.Ident]st.Symbol)}
+	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package), make(map[*ast.Ident]st.Symbol)}
 
 	initialize()
 	externPackageTrees.Push(srcDir)
@@ -202,7 +204,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	for _, pack := range program.Packages {
 
 		pack.Symbols.AddOpenedScope(program.BaseSymbolTable)
-		go packageParser.ParsePackage(pack,program.IdentMap)
+		go packageParser.ParsePackage(pack, program.IdentMap)
 	}
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -281,30 +283,30 @@ func (p *Program) findPackageAndFileByFilename(filename string) (*st.Package, *a
 func (p *Program) FindSymbolByPosition(filename string, line int, column int) (symbol st.Symbol, error *errors.GoRefactorError) {
 	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
 	if packageIn == nil {
-		return nil,  errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
+		return nil, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
 
 	ident, found := findIdentByPos(packageIn, fileIn, token.Position{Filename: filename, Line: line, Column: column})
 	if !found {
-		return nil,errors.IdentifierNotFoundError(filename, line, column)
+		return nil, errors.IdentifierNotFoundError(filename, line, column)
 	}
-	
-	if sym,ok := p.IdentMap[ident];ok{
-		return sym , nil;
-	}else{
-		panic("untracked ident " + ident.Name);
+
+	if sym, ok := p.IdentMap[ident]; ok {
+		return sym, nil
+	} else {
+		panic("untracked ident " + ident.Name)
 	}
-// 	for _, el := range *packageIn.SymbolTablePool {
-// 		sT := el.(*st.SymbolTable)
-// 		if sym, found := sT.FindSymbolByObject(obj); found {
-// 			return sym, sT, nil
-// 		}
-// 	}
-// 	for _, el := range *(packageIn.Imports[filename]) {
-// 		pSym := el.(*st.PackageSymbol)
-// 		if sym, found := pSym.Package.Symbols.FindSymbolByObject(obj); found {
-// 			return sym, pSym.Package.Symbols, nil
-// 		}
-// 	}
+	// 	for _, el := range *packageIn.SymbolTablePool {
+	// 		sT := el.(*st.SymbolTable)
+	// 		if sym, found := sT.FindSymbolByObject(obj); found {
+	// 			return sym, sT, nil
+	// 		}
+	// 	}
+	// 	for _, el := range *(packageIn.Imports[filename]) {
+	// 		pSym := el.(*st.PackageSymbol)
+	// 		if sym, found := pSym.Package.Symbols.FindSymbolByObject(obj); found {
+	// 			return sym, pSym.Package.Symbols, nil
+	// 		}
+	// 	}
 	return nil, errors.IdentifierNotFoundError(filename, line, column)
 }
