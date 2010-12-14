@@ -63,42 +63,52 @@ func isGoIdent(name string) bool {
 // }
 
 func Rename(programTree *program.Program, filename string, line int, column int, newName string) (bool, *errors.GoRefactorError) {
-	
-	if filename == "" || !utils.IsGoFile(filename) { return false,errors.ArgumentError("filename","It's not a valid go file name")}
-	if line < 1 { return false,errors.ArgumentError("line","Must be > 1" )}
-	if column < 1{ return false,errors.ArgumentError("column","Must be > 1")}
-	if !isGoIdent(newName){ return false,errors.ArgumentError("newName","It's not a valid go identifier")}
-	
-	if sym, containsIn, err := programTree.FindSymbolByPosition(filename, line, column); err==nil{
-	
-		if _,ok := sym.(*st.PointerTypeSymbol);ok{
+
+	if filename == "" || !utils.IsGoFile(filename) {
+		return false, errors.ArgumentError("filename", "It's not a valid go file name")
+	}
+	if line < 1 {
+		return false, errors.ArgumentError("line", "Must be > 1")
+	}
+	if column < 1 {
+		return false, errors.ArgumentError("column", "Must be > 1")
+	}
+	if !isGoIdent(newName) {
+		return false, errors.ArgumentError("newName", "It's not a valid go identifier")
+	}
+
+	if sym, err := programTree.FindSymbolByPosition(filename, line, column); err == nil {
+
+		if _, ok := sym.(*st.PointerTypeSymbol); ok {
 			panic("find by position returned pointer type!!!")
 		}
-		if st.IsPredeclaredIdentifier(sym.Name()){
-			return false,errors.UnrenamableIdentifierError(sym.Name(), " It's a basic language symbol");
+		if st.IsPredeclaredIdentifier(sym.Name()) {
+			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a basic language symbol")
 		}
 		if sym.PackageFrom().IsGoPackage {
-			return false,errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library");
+			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
 		}
-		
-		if _, ok := containsIn.LookUp(newName,filename); ok {
-			return false,errors.IdentifierAlreadyExistsError(newName);
+
+		if _, ok := containsIn.LookUp(newName, filename); ok {
+			return false, errors.IdentifierAlreadyExistsError(newName)
 		}
-		
+
 		if meth, ok := sym.(*st.FunctionSymbol); ok {
-			if meth.IsInterfaceMethod() {
-				return false,errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method");
+			if meth.IsInterfaceMethod{
+				return false, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
 			}
 		}
-		count := renameSymbol(sym,newName);
-		fmt.Printf("renamed %d occurences\n",count);
+		count := renameSymbol(sym, newName)
+		fmt.Printf("renamed %d occurences\n", count)
 	} else {
-		return false,err
+		return false, err
 	}
-	return true, nil;
+	return true, nil
 }
 
-func renameSymbol(sym st.Symbol,newName string) int{
-	sym.Object().Name = newName;
-	return len(sym.Positions());
+func renameSymbol(sym st.Symbol, newName string) int {
+	for ident,_ := range sym.Identifiers(){
+		ident.Name = newName;
+	}
+	return len(sym.Positions())
 }

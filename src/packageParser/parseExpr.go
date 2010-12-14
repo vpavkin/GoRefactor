@@ -209,9 +209,7 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 				}
 				return nil
 			}(t))
-		e.Obj = t.Object()
-
-		t.AddPosition(pp.Package.FileSet.Position(e.Pos()))
+		pp.registerIdent(t,e)
 
 		switch v := t.(type) {
 		case *st.VariableSymbol:
@@ -230,8 +228,9 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 		}
 	} else {
 		//sould be resolved later
+		
 		fmt.Printf("%s:	WARNING! Ident %v wasn't found\n", pp.Package.AstPackage.Name, e.Name)
-		res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Obj, Posits: make(map[string]token.Position), PackFrom: nil}, e})
+		res.Push(st.MakeUnresolvedType(e.Name,pp.Package, e))
 	}
 
 	return
@@ -278,6 +277,8 @@ func (pp *packageParser) eParseKeyValueExpr(e *ast.KeyValueExpr) (res *vector.Ve
 }
 func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Vector) {
 
+	//todo:like selector in parseType
+	
 	pp.ExprParser.IsTypeNameUsed = false
 
 	t := pp.parseExpr(e.X).At(0).(st.ITypeSymbol)
@@ -299,7 +300,7 @@ func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Ve
 
 	res = new(vector.Vector)
 	//Sould be resolved
-	res.Push(&st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: e.Sel.Obj, Posits: make(map[string]token.Position), PackFrom: nil}, e})
+	res.Push(st.MakeUnresolvedType(e.Sel.Name,pp.Package, e))
 	return
 }
 func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) {
@@ -312,8 +313,7 @@ func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) 
 	// slicing an array results a slice
 	if arr, ok := x.(*st.ArrayTypeSymbol); ok {
 		if arr.Len != st.SLICE {
-			sl := arr.Copy().(*st.ArrayTypeSymbol)
-			sl.Len = st.SLICE
+			sl := st.MakeArrayType(arr.Name(),arr.PackageFrom(),arr.ElemType,st.SLICE)
 			r = sl
 		}
 	}
@@ -412,12 +412,7 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 		res.Push(tt)
 
 		return
-		// 	default:
-		// 		if sym,ok:=pp.RootSymbolTable.LookUp(name,"");ok{
-		// 			return pp.eParseRegularFunctionCall(sym.(st.ITypeSymbol));
-		// 		}else{
-		// 			panic("didn't find built In function")
-		// 		}
+
 	}
 
 	return nil, false
@@ -460,21 +455,16 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 	if lookupST != nil {
 		if ff, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 			if f, ok := ff.(*st.FunctionSymbol); ok {
-
-				res = new(vector.Vector)
-
-				e.Sel.Obj = f.Object()
-
-				f.AddPosition(pp.Package.FileSet.Position(e.Sel.Pos()))
+				
+				pp.registerIdent(f,e.Sel)
 
 				if pp.ExprParser.IsTypeNameUsed {
 					pp.ExprParser.IsTypeNameUsed = false
 					f = pp.makeMethodExpression(f)
 				}
+				
+				res = new(vector.Vector)
 				res.Push(f.FunctionType)
-				if t.Name() == "Error" {
-					fmt.Printf("asd %s\n", res.At(0).(st.ITypeSymbol).Name())
-				}
 				return res, true
 			}
 		} else {
@@ -501,9 +491,8 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 	}
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
-			e.Sel.Obj = va.Obj
-
-			va.AddPosition(pp.Package.FileSet.Position(e.Sel.Pos()))
+			
+			pp.registerIdent(va,e.Sel)
 
 			res = new(vector.Vector)
 			res.Push(va.VariableType)
@@ -515,14 +504,11 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 func (pp *packageParser) eParsePackageEntitySelector(t st.ITypeSymbol, e *ast.SelectorExpr) (res *vector.Vector, success bool) {
 	if s, ok := t.(*st.PackageSymbol); ok {
 		if tt, ok := s.Package.Symbols.LookUp(e.Sel.Name, ""); ok {
-			e.Sel.Obj = tt.Object()
-
-			tt.AddPosition(pp.Package.FileSet.Position(e.Sel.Pos()))
+			
+			pp.registerIdent(tt,e.Sel)
 
 			res = new(vector.Vector)
 			res.Push(tt)
-			//pp.ExprParser.IsTypeNameUsed = true
-			//fmt.Printf("ISTY !!!\n");
 			return res, true
 		}
 	}
@@ -586,7 +572,11 @@ func (pp *packageParser) detectWhereToLookUpFieldSelector(source st.ITypeSymbol)
 
 
 func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.FunctionSymbol) {
-	res = fs.Copy()
+	res = st.MakeFunction(fs.Name(),fs.PackageFrom(),fs.FunctionType);
+	res.Idents = fs.Idents;
+	res.Posits = fs.Posits;
+	res.Locals = fs.Locals;
+	
 	fft, cyc := st.GetBaseType(fs.FunctionType)
 	if cyc {
 		fmt.Println("ERROR: cycle wasn't expected. eParseUnaryExpr, parseExpr.go")
@@ -598,7 +588,7 @@ func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.Fu
 	if ft.Reciever == nil {
 		fmt.Println("ERROR : f.Reciever == nil. makeMethodExpression,parseExpr.go")
 	}
-	ft.Reciever.ForEachNoLock(func(sym st.Symbol){
+	ft.Reciever.ForEachNoLock(func(sym st.Symbol) {
 		newFt.Parameters.AddSymbol(sym)
 	})
 	if ft.Parameters != nil {
@@ -608,7 +598,7 @@ func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.Fu
 	}
 	if ft.Results != nil {
 		newFt.Results = st.NewSymbolTable(pp.Package)
-		ft.Results.ForEachNoLock(func(sym st.Symbol){
+		ft.Results.ForEachNoLock(func(sym st.Symbol) {
 			newFt.Results.AddSymbol(sym)
 		})
 	}

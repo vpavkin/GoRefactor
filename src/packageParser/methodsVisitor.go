@@ -3,7 +3,7 @@ package packageParser
 import (
 	"go/ast"
 	"strconv"
-	"go/token"
+	//"go/token"
 	"st"
 )
 import "fmt"
@@ -17,64 +17,56 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 	switch f := node.(type) {
 	case *ast.FuncDecl:
 
-		
 		fft, cyc := st.GetBaseType(mv.Parser.parseTypeSymbol(f.Type))
 		if cyc {
 			fmt.Printf("ERROR: cycle wasn't expected. Visit, methodsVisitor.go")
 		}
 		ft := fft.(*st.FunctionTypeSymbol)
-		locals := mv.Parser.registerNewSymbolTable()
-		//Parameters and Results maybe nil, Reciever 100% is
-		if ft.Parameters != nil {
-			locals.AddOpenedScope(ft.Parameters)
-		}
-		if ft.Results != nil {
-			locals.AddOpenedScope(ft.Results)
-		}
+		locals := st.NewSymbolTable(mv.Parser.Package)
 		
-		var basertype,rtype st.ITypeSymbol
+		locals.AddOpenedScope(ft.Parameters)
+		locals.AddOpenedScope(ft.Results)
+		locals.AddOpenedScope(ft.Reciever)
+		
+		var basertype, rtype st.ITypeSymbol
 		if f.Recv != nil {
-			ft.Reciever = mv.Parser.registerNewSymbolTable()
-			locals.AddOpenedScope(ft.Reciever)
+			
 			e_count := 0
 			for _, field := range f.Recv.List {
 				basertype = mv.Parser.parseTypeSymbol(field.Type)
-				if prtype,ok := basertype.(*st.PointerTypeSymbol);ok{
-					rtype = prtype.BaseType;
-				}else{
+				if prtype, ok := basertype.(*st.PointerTypeSymbol); ok {
+					rtype = prtype.BaseType
+				} else {
 					rtype = basertype
 				}
-				
+
 				if mv.Parser.Package.AstPackage.Name == "os" {
 					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
 				}
 				if rtype.Methods() == nil {
-					rtype.SetMethods(mv.Parser.registerNewSymbolTable())
+					panic("ok, this is a test panic")
+					rtype.SetMethods(st.NewSymbolTable(mv.Parser.Package))
 				}
 
 				if len(field.Names) == 0 {
-					toAdd := &st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed receiver" + strconv.Itoa(e_count)}, VariableType: basertype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
+					toAdd := st.MakeVariable("$unnamed receiver" + strconv.Itoa(e_count),mv.Parser.Package,basertype)
 					ft.Reciever.AddSymbol(toAdd)
-
 					e_count += 1
 				}
 
 				for _, name := range field.Names {
-					name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
-
-					toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: basertype, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
-
-					toAdd.AddPosition(mv.Parser.Package.FileSet.Position(name.Pos()))
-
+					
+					toAdd := st.MakeVariable(name.Name,mv.Parser.Package,basertype)
+					mv.Parser.registerIdent(toAdd,name);
 					ft.Reciever.AddSymbol(toAdd)
 				}
 			}
 		}
-		f.Name.Obj = &ast.Object{Kind: ast.Var, Name: f.Name.Name}
-
-		toAdd := &st.FunctionSymbol{Obj: f.Name.Obj, FunctionType: ft, Locals: locals, Posits: make(map[string]token.Position), PackFrom: mv.Parser.Package}
-
-toAdd.AddPosition(mv.Parser.Package.FileSet.Position(f.Name.Pos()))
+		
+		toAdd := st.MakeFunction(f.Name.Name, mv.Parser.Package,ft)
+		toAdd.Locals = locals;
+		
+		mv.Parser.registerIdent(toAdd,f.Name)
 
 		if f.Recv != nil {
 			rtype.AddMethod(toAdd)
@@ -88,7 +80,7 @@ func (pp *packageParser) fixMethodsAndFields() {
 
 	pp.visited = make(map[string]bool)
 
-	pp.RootSymbolTable.ForEachNoLock( func(sym st.Symbol){
+	pp.RootSymbolTable.ForEachNoLock(func(sym st.Symbol) {
 		pp.openMethodsAndFields(sym)
 	})
 }
@@ -103,7 +95,7 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		}
 		return p.AstPackage.Name
 	}(sym.PackageFrom()))
-	
+
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
 	}
@@ -115,24 +107,24 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		pp.openMethodsAndFields(t.ValueType)
 	case *st.FunctionTypeSymbol:
 		if t.Parameters != nil {
-			t.Parameters.ForEachNoLock(func (sym st.Symbol){
+			t.Parameters.ForEachNoLock(func(sym st.Symbol) {
 				v := sym.(*st.VariableSymbol)
 				pp.openMethodsAndFields(v.VariableType)
 			})
 		}
 		if t.Results != nil {
-			t.Results.ForEachNoLock(func (sym st.Symbol){
+			t.Results.ForEachNoLock(func(sym st.Symbol) {
 				v := sym.(*st.VariableSymbol)
 				pp.openMethodsAndFields(v.VariableType)
 			})
 		}
 	case *st.InterfaceTypeSymbol:
 		if t.Meths != nil {
-			t.Meths.ForEachNoLock(func (sym st.Symbol){
+			t.Meths.ForEachNoLock(func(sym st.Symbol) {
 				if _, ok := sym.(*st.FunctionSymbol); !ok {
 					//EmbeddedInterface
 					pp.openMethodsAndFields(sym)
-					
+
 					ts := sym.(*st.InterfaceTypeSymbol)
 					t.Meths.AddOpenedScope(ts.Meths)
 					//Delete functionSymbol which is now useles from interface
@@ -155,7 +147,8 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 				//Methods
 				if ts.Methods() != nil {
 					if t.Methods() == nil {
-						t.SetMethods(pp.registerNewSymbolTable())
+						panic("ok, it's test panic")
+						t.SetMethods(st.NewSymbolTable(pp.Package))
 					}
 					t.Methods().AddOpenedScope(ts.Methods())
 				}
@@ -165,10 +158,12 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 					t.Fields.AddOpenedScope(ttt.Fields)
 				case *st.PointerTypeSymbol:
 					t.Fields.AddOpenedScope(ttt.Fields)
-					
+
 				}
 				//No longer need in type thumb, replace with var
-				typeVar := &st.VariableSymbol{ts.Object(), ts, ts.Positions(), pp.Package, ts.IsReadOnly()}
+				typeVar := st.MakeVariable(ts.Name(),pp.Package, ts)
+				typeVar.Idents = ts.Identifiers();
+				typeVar.Posits = ts.Positions();
 				t.Fields.ReplaceSymbol(ts.Name(), typeVar) //replaces old one
 			}
 
@@ -176,13 +171,13 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 	case *st.PointerTypeSymbol:
 		//fmt.Printf("%v %T \n", t.BaseType.Name(), t.BaseType)
 		pp.openMethodsAndFields(t.BaseType)
-		switch str := t.BaseType.(type){
-			case *st.StructTypeSymbol:
-				t.Fields = str.Fields
-			case *st.PointerTypeSymbol:
-				t.Fields = str.Fields
+		switch str := t.BaseType.(type) {
+		case *st.StructTypeSymbol:
+			t.Fields = str.Fields
+		case *st.PointerTypeSymbol:
+			t.Fields = str.Fields
 		}
-		
+
 		if _, cyc := st.GetBaseType(t); cyc {
 			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
 			panic("cycle, don't work with that")
@@ -190,7 +185,8 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 
 		if t.BaseType.Methods() != nil {
 			if t.Methods() == nil {
-				t.SetMethods(pp.registerNewSymbolTable())
+				panic("ok it's test panic");
+				t.SetMethods(st.NewSymbolTable(pp.Package))
 			}
 			t.Methods().AddOpenedScope(t.BaseType.Methods())
 		}

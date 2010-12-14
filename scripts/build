@@ -1,5 +1,5 @@
 #!/bin/bash
-8g -o ../bin/st.8 ../src/st/symbolTable.go ../src/st/symbols.go
+8g -o ../bin/st.8 ../src/st/symbolTable.go ../src/st/symbols.go ../src/st/symbolBuilder.go
 8g -o ../bin/utils.8 ../src/utils/utils.go
 
 8g -I ../bin -o ../bin/errors.8 ../src/errors/errors.go

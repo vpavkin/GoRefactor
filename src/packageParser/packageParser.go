@@ -7,7 +7,7 @@ import (
 	"container/vector"
 	//"path"
 	"st"
-	"go/token"
+	//"go/token"
 	//"os"
 	//"utils"
 )
@@ -30,6 +30,7 @@ const (
 type packageParser struct {
 	Package *st.Package
 
+	IdentMap st.IdentifierMap
 	RootSymbolTable    *st.SymbolTable // fast link to Package.Symbols	
 	CurrentSymbolTable *st.SymbolTable // A symbol table which is currently being filled
 
@@ -49,9 +50,9 @@ type packageParser struct {
 	visited map[string]bool
 }
 
-func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
+func ParsePackage(rootPack *st.Package,identMap st.IdentifierMap) (*st.SymbolTable, *vector.Vector) {
 
-	pp := newPackageParser(rootPack)
+	pp := newPackageParser(rootPack,identMap)
 
 	<-pp.Package.Communication
 	pp.Mode = TYPES_MODE
@@ -107,7 +108,6 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 		pp.CurrentFileName = fName
 		ast.Walk(pp.GlobalsFixer, atree.Decls)
 	}
-	
 
 	if pp.Package.AstPackage.Name == "st" {
 		fmt.Printf("$$$$$$$$$ Symbols of st:\n")
@@ -159,17 +159,17 @@ func ParsePackage(rootPack *st.Package) (*st.SymbolTable, *vector.Vector) {
 }
 
 
-func (pp *packageParser) registerNewSymbolTable() (table *st.SymbolTable) {
-	table = st.NewSymbolTable(pp.Package)
-	pp.Package.SymbolTablePool.Push(table)
-	return
-}
+// func (pp *packageParser) registerNewSymbolTable() (table *st.SymbolTable) {
+// 	table = st.NewSymbolTable(pp.Package)
+// 	pp.Package.SymbolTablePool.Push(table)
+// 	return
+// }
 
 
 /*^^SymbolTableBuilder Methods^^*/
-func newPackageParser(p *st.Package) *packageParser {
+func newPackageParser(p *st.Package,identMap st.IdentifierMap) *packageParser {
 
-	pp := &packageParser{p, p.Symbols, p.Symbols, nil, nil, nil, nil, nil, new(exprParser), INITIAL_STATE, "", nil}
+	pp := &packageParser{p, identMap,p.Symbols, p.Symbols, nil, nil, nil, nil, nil, new(exprParser), INITIAL_STATE, "", nil}
 
 	pp.TypesParser = &typesVisitor{pp}
 	pp.MethodsParser = &methodsVisitor{pp}
@@ -183,6 +183,12 @@ func newPackageParser(p *st.Package) *packageParser {
 func getIntValue(t *ast.BasicLit) int {
 	l, _ := strconv.Atoi(string(t.Value))
 	return l
+}
+
+func(pp *packageParser) registerIdent(sym st.Symbol,ident *ast.Ident){
+	sym.AddIdent(ident)
+	pp.IdentMap.AddIdent(ident,sym);
+	sym.AddPosition(pp.Package.FileSet.Position(ident.Pos()))
 }
 //Builds a type symbol according to given ast.Expression
 func (pp *packageParser) parseTypeSymbol(typ ast.Expr) (result st.ITypeSymbol) {
@@ -222,8 +228,8 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 	nameToFind := base.Name()
 
 	//anonymous type
-	if base.Name() == "" {
-		result = &st.PointerTypeSymbol{TypeSymbol: &st.TypeSymbol{}, BaseType: base}
+	if base.Name() == st.NO_NAME {
+		result = st.MakePointerType(base.PackageFrom(), base)
 		return
 	}
 
@@ -253,7 +259,7 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 		return
 	}
 
-	result = &st.PointerTypeSymbol{&st.TypeSymbol{Obj: base.Object(), Meths: nil, Posits: make(map[string]token.Position), PackFrom: toLookUp.Package}, base, nil}
+	result = st.MakePointerType(toLookUp.Package, base)
 	fmt.Printf("Adding Pointer Type %s to %s at file of %s\n", result.Name(), func(p *st.Package) string {
 		if p == nil {
 			return "nil"
@@ -280,7 +286,7 @@ func (pp *packageParser) tParseStarExpr(t *ast.StarExpr) (result *st.PointerType
 }
 
 func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayTypeSymbol) {
-	result = &st.ArrayTypeSymbol{TypeSymbol: &st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, ElemType: pp.parseTypeSymbol(t.Elt)}
+	result = st.MakeArrayType(st.NO_NAME, pp.Package, pp.parseTypeSymbol(t.Elt),0)
 	if t.Len == nil {
 		result.Len = st.SLICE
 	} else {
@@ -294,13 +300,12 @@ func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayType
 	return
 }
 func (pp *packageParser) tParseChanType(t *ast.ChanType) (result *st.ChanTypeSymbol) {
-	result = &st.ChanTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, pp.parseTypeSymbol(t.Value)}
+	result = st.MakeChannelType(st.NO_NAME, pp.Package, pp.parseTypeSymbol(t.Value))
 	return
 }
 func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.InterfaceTypeSymbol) {
-	result = &st.InterfaceTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}}
+	result = st.MakeInterfaceType(st.NO_NAME, pp.Package)
 	if len(t.Methods.List) > 0 {
-		result.Meths = pp.registerNewSymbolTable()
 		for _, method := range t.Methods.List {
 			if len(method.Names) == 0 { //Embeded interface
 				ft := pp.parseTypeSymbol(method.Type)
@@ -309,12 +314,11 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 			for _, name := range method.Names {
 				ft := pp.parseTypeSymbol(method.Type).(*st.FunctionTypeSymbol)
 
-				name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
-
-				toAdd := &st.FunctionSymbol{Obj: name.Obj, FunctionType: ft, Locals: nil, Posits: make(map[string]token.Position), PackFrom: pp.Package}
-
-				toAdd.AddPosition(pp.Package.FileSet.Position(method.Pos()))
-
+				toAdd := st.MakeFunction(name.Name, pp.Package,ft)
+				toAdd.IsInterfaceMethod = true;
+				
+				pp.registerIdent(toAdd,name)
+				
 				result.AddMethod(toAdd)
 			}
 		}
@@ -322,67 +326,53 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 	return
 }
 func (pp *packageParser) tParseMapType(t *ast.MapType) (result *st.MapTypeSymbol) {
-	result = &st.MapTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, pp.parseTypeSymbol(t.Key), pp.parseTypeSymbol(t.Value)}
+	result = st.MakeMapType(st.NO_NAME, pp.Package, pp.parseTypeSymbol(t.Key), pp.parseTypeSymbol(t.Value))
 	return
 }
 func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
 
 	if sym, found := pp.CurrentSymbolTable.LookUp(t.Name, pp.CurrentFileName); found {
 		result = sym.(st.ITypeSymbol)
-		t.Obj = sym.Object()
-
 	} else {
-
-		t.Obj = &ast.Object{Kind: ast.Var, Name: t.Name}
-		result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: t.Obj, Posits: make(map[string]token.Position), PackFrom: pp.Package}, t}
+		result = st.MakeUnresolvedType(t.Name,pp.Package, t)
 
 		if pp.Mode != TYPES_MODE {
 			fmt.Printf("**************** %s\n", t.Name)
 		}
 	}
-
-	//fmt.Printf("AOAOAOAO %s %v\n", t.Name, t.Pos())
-	result.AddPosition(pp.Package.FileSet.Position(t.Pos()))
-
+	pp.registerIdent(result,t);
 	return
 }
 func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTypeSymbol) {
-	res := &st.FunctionTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, nil, nil, nil}
+	res := st.MakeFunctionType(st.NO_NAME,pp.Package)
 	if t.Params != nil {
-		res.Parameters = pp.registerNewSymbolTable()
 		e_count := 0
 		for _, field := range t.Params.List {
 			ftype := pp.parseTypeSymbol(field.Type)
 			if len(field.Names) == 0 { // unnamed parameter. separate names are given to distinct parameters in symbolTable
-				res.Parameters.AddSymbol(&st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed" + strconv.Itoa(e_count)}, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package})
+				res.Parameters.AddSymbol(st.MakeVariable("$unnamed" + strconv.Itoa(e_count),pp.Package, ftype))
 				e_count += 1
 			}
 			for _, name := range field.Names {
-				name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
-
-				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
-
-				toAdd.AddPosition(pp.Package.FileSet.Position(name.Pos()))
+				
+				toAdd := st.MakeVariable(name.Name,pp.Package,ftype)
+				pp.registerIdent(toAdd,name)
 				res.Parameters.AddSymbol(toAdd)
 			}
 		}
 	}
 	if t.Results != nil {
-		res.Results = pp.registerNewSymbolTable()
 		e_count := 0
 		for _, field := range t.Results.List {
 			ftype := pp.parseTypeSymbol(field.Type)
 			if len(field.Names) == 0 { //unnamed result
-				res.Results.AddSymbol(&st.VariableSymbol{Obj: &ast.Object{Kind: ast.Var, Name: "$unnamed" + strconv.Itoa(e_count)}, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package})
+				res.Results.AddSymbol(st.MakeVariable("$unnamed" + strconv.Itoa(e_count), pp.Package,ftype))
 				e_count += 1
 			}
 			for _, name := range field.Names {
-				name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
-
-				toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
-
-				toAdd.AddPosition(pp.Package.FileSet.Position(name.Pos()))
-
+				
+				toAdd := st.MakeVariable(name.Name,pp.Package, ftype)
+				pp.registerIdent(toAdd,name)
 				res.Results.AddSymbol(toAdd)
 			}
 		}
@@ -392,23 +382,17 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 }
 func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructTypeSymbol) {
 
-	res := &st.StructTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position), PackFrom: pp.Package}, pp.registerNewSymbolTable()}
+	res := st.MakeStructType(st.NO_NAME, pp.Package);
 	for _, field := range t.Fields.List {
 		ftype := pp.parseTypeSymbol(field.Type)
 		if len(field.Names) == 0 { //Embedded field
 			res.Fields.AddSymbol(ftype)
 		}
 		for _, name := range field.Names {
-			name.Obj = &ast.Object{Kind: ast.Var, Name: name.Name}
 
-			toAdd := &st.VariableSymbol{Obj: name.Obj, VariableType: ftype, Posits: make(map[string]token.Position), PackFrom: pp.Package}
-
-			toAdd.AddPosition(pp.Package.FileSet.Position(name.Pos()))
-
+			toAdd := st.MakeVariable(name.Name,pp.Package, ftype)
+			pp.registerIdent(toAdd,name)
 			res.Fields.AddSymbol(toAdd)
-			if name.Name == "Rparen" {
-				fmt.Printf(">>>>>>>>>>>>>>>Rparen %s\n", ftype.Name())
-			}
 
 		}
 	}
@@ -420,15 +404,16 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 	if pp.Mode == TYPES_MODE {
 		if sym, found := pp.CurrentSymbolTable.LookUp(t.X.(*ast.Ident).Name, pp.CurrentFileName); found {
 			pack := sym.(*st.PackageSymbol)
-			pack.AddPosition(pp.Package.FileSet.Position(t.X.Pos()))
+			pp.registerIdent(pack,t.X.(*ast.Ident));
+
 			name := t.Sel.Name
 			var res st.Symbol
 			if res, found = pack.Package.Symbols.LookUp(name, ""); !found {
-				res = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: t.Sel.Name}, Posits: make(map[string]token.Position), PackFrom: pack.Package}, t}
+				res = st.MakeUnresolvedType(name,pack.Package, t);
 				pack.Package.Symbols.AddSymbol(res)
 			}
 
-			res.AddPosition(pp.Package.FileSet.Position(t.Sel.Pos()))
+			pp.registerIdent(res,t.Sel)
 
 			result = res.(st.ITypeSymbol)
 		} else {
@@ -437,22 +422,14 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 
 	} else {
 		pref := pp.parseTypeSymbol(t.X)
-		if pref.Name() == "vector" {
-			fmt.Printf("GGG vector package at %v\n", t.X.Pos())
-		}
+		
 		switch p := pref.(type) {
 		case *st.PackageSymbol:
 			if sym, found := p.Package.Symbols.LookUp(t.Sel.Name, ""); found {
+				
 				result = sym.(st.ITypeSymbol)
-				if sym.Name() == "Vector" {
-					fmt.Printf("GGG Vector symbol at %v\n", t.Sel.Pos())
-				}
-				t.Sel.Obj = sym.Object()
-
-				sym.AddPosition(pp.Package.FileSet.Position(t.X.Pos()))
-
+				pp.registerIdent(sym,t.Sel)
 			} else {
-				//result = &st.UnresolvedTypeSymbol{&st.TypeSymbol{Obj: &ast.Object{Name: pref.Name() + "." + t.Sel.Name}, Posits: make(map[string]token.Position)}, t}
 				panic("Can't find symbol " + t.Sel.Name + " in package " + pp.Package.QualifiedPath + " " + pp.CurrentFileName + "\n")
 			}
 		case *st.UnresolvedTypeSymbol:
@@ -464,6 +441,6 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 // for function types
 func (pp *packageParser) tParseEllipsis(t *ast.Ellipsis) (result *st.ArrayTypeSymbol) {
 	elt := pp.parseTypeSymbol(t.Elt)
-	result = &st.ArrayTypeSymbol{&st.TypeSymbol{Posits: make(map[string]token.Position)}, elt, st.SLICE}
+	result = st.MakeArrayType(st.NO_NAME,pp.Package, elt, st.SLICE)
 	return
 }

@@ -2,26 +2,26 @@ package st
 
 import (
 	"testing"
-	"go/ast"
+
 )
 
 func TestLookUp(t *testing.T) {
 
 	s := NewSymbolTable(nil)
-	vsym := &VariableSymbol{Obj: &ast.Object{Name: "vs"}}
+	vsym := MakeVariable("vs",nil,nil,false)
 	s.Table.Push(vsym)
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
 		t.Fatalf("LookUp failed1")
 	}
-	s.Table.Push(&VariableSymbol{Obj: &ast.Object{Name: "aaa"}})
-	s.Table.Insert(0, &VariableSymbol{Obj: &ast.Object{Name: "vs"}})
+	s.Table.Push(MakeVariable("aaa",nil,nil,false))
+	s.Table.Insert(0, MakeVariable("vs",nil,nil,false))
 
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
 		t.Fatalf("LookUp failed2")
 	}
 
 	ss := NewSymbolTable(nil)
-	vvsym := &VariableSymbol{Obj: &ast.Object{Name: "vvs"}}
+	vvsym := MakeVariable("vvs",nil,nil,false)
 	ss.Table.Push(vvsym)
 	s.AddOpenedScope(ss)
 
@@ -30,7 +30,7 @@ func TestLookUp(t *testing.T) {
 	}
 
 	sss := NewSymbolTable(nil)
-	vvvsym := &VariableSymbol{Obj: &ast.Object{Name: "vvvs"}}
+	vvvsym := MakeVariable("vvvs",nil,nil,false)
 	sss.Table.Push(vvvsym)
 	ss.AddOpenedScope(sss)
 	if r, ok := s.LookUp("vvvs", ""); !ok || r != vvvsym {
@@ -40,7 +40,7 @@ func TestLookUp(t *testing.T) {
 
 func TestAddSymbol(t *testing.T) {
 	s := NewSymbolTable(nil)
-	vsym := &VariableSymbol{Obj: &ast.Object{Name: "vs"}}
+	vsym := MakeVariable("vs",nil,nil,false)
 
 	s.AddSymbol(vsym)
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
@@ -50,11 +50,11 @@ func TestAddSymbol(t *testing.T) {
 }
 func TestReplaceSymbol(t *testing.T) {
 	s := NewSymbolTable(nil)
-	vsym := &VariableSymbol{Obj: &ast.Object{Name: "vs"}}
+	vsym := MakeVariable("vs",nil,nil,false)
 	s.AddSymbol(vsym)
-	vvsym := &VariableSymbol{Obj: &ast.Object{Name: "vvs"}}
+	vvsym := MakeVariable("vvs",nil,nil,false)
 	s.AddSymbol(vvsym)
-	aaa := &VariableSymbol{Obj: &ast.Object{Name: "aaa"}}
+	aaa := MakeVariable("aaa",nil,nil,false)
 	s.ReplaceSymbol("vvs", aaa)
 
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
@@ -71,11 +71,11 @@ func TestReplaceSymbol(t *testing.T) {
 func TestRemoveSymbol(t *testing.T) {
 
 	s := NewSymbolTable(nil)
-	vsym := &VariableSymbol{Obj: &ast.Object{Name: "vs"}}
+	vsym := MakeVariable("vs",nil,nil,false)
 	s.AddSymbol(vsym)
-	vvsym := &VariableSymbol{Obj: &ast.Object{Name: "vvs"}}
+	vvsym :=MakeVariable("vvs",nil,nil,false)
 	s.AddSymbol(vvsym)
-	aaa := &VariableSymbol{Obj: &ast.Object{Name: "aaa"}}
+	aaa :=MakeVariable("aaa",nil,nil,false)
 	s.AddSymbol(aaa)
 	s.RemoveSymbol("aaa")
 
@@ -86,11 +86,11 @@ func TestRemoveSymbol(t *testing.T) {
 
 func TestLookUpPointerType(t *testing.T) {
 	s := NewSymbolTable(nil)
-	tsym := &ArrayTypeSymbol{TypeSymbol: &TypeSymbol{Obj: &ast.Object{Name: "ts"}}}
+	tsym := MakeArrayType("ts",nil,nil,0)
 	s.AddSymbol(tsym)
-	ptsym := &PointerTypeSymbol{BaseType: tsym}
+	ptsym := MakePointerType(nil, tsym)
 	s.AddSymbol(ptsym)
-	pptsym := &PointerTypeSymbol{BaseType: ptsym}
+	pptsym := MakePointerType(nil, ptsym)
 	s.AddSymbol(pptsym)
 	if r, ok := s.LookUpPointerType("ts", 1); !ok || r != ptsym {
 		t.Fatalf("LookUpPT failed1")
@@ -100,7 +100,7 @@ func TestLookUpPointerType(t *testing.T) {
 	}
 
 	ss := NewSymbolTable(nil)
-	pppsym := &PointerTypeSymbol{BaseType: pptsym}
+	pppsym := MakePointerType(nil, pptsym)
 	ss.Table.Push(pppsym)
 	s.AddOpenedScope(ss)
 
@@ -111,9 +111,9 @@ func TestLookUpPointerType(t *testing.T) {
 
 func TestGetBaseType(t *testing.T) {
 
-	tsym := &ArrayTypeSymbol{TypeSymbol: &TypeSymbol{Obj: &ast.Object{Name: "ts"}}}
-	ptsym := &PointerTypeSymbol{BaseType: tsym}
-	pptsym := &PointerTypeSymbol{BaseType: ptsym}
+	tsym := MakeArrayType("ts",nil,nil,0)
+	ptsym := MakePointerType(nil, tsym)
+	pptsym := MakePointerType(nil, ptsym)
 
 	if r, cyc := GetBaseType(tsym); cyc || r != tsym {
 		t.Fatalf("GetBaseType failed1")
@@ -124,8 +124,8 @@ func TestGetBaseType(t *testing.T) {
 	if r, cyc := GetBaseType(pptsym); cyc || r != tsym {
 		t.Fatalf("GetBaseType failed3")
 	}
-	p := &PointerTypeSymbol{}
-	asym := &AliasTypeSymbol{&TypeSymbol{Obj: &ast.Object{Name: "all"}}, p}
+	p := MakePointerType(nil, nil)
+	asym := MakeAliasType("all",nil, p)
 	p.BaseType = asym
 
 	if _, cyc := GetBaseType(p); !cyc {

@@ -2,7 +2,7 @@ package packageParser
 
 import (
 	"go/ast"
-	"go/token"
+	//"go/token"
 	"st"
 )
 import "fmt"
@@ -48,12 +48,8 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 				ts = exprT
 			}
 
-			n.Obj = &ast.Object{Kind: ast.Var, Name: n.Name}
-
-			toAdd := &st.VariableSymbol{Obj: n.Obj, VariableType: ts, Posits: make(map[string]token.Position), PackFrom: gv.Parser.Package}
-
-			toAdd.AddPosition(gv.Parser.Package.FileSet.Position(n.Pos()))
-
+			toAdd := st.MakeVariable(n.Name, gv.Parser.Package, ts)
+			gv.Parser.registerIdent(toAdd,n)
 			gv.Parser.RootSymbolTable.AddSymbol(toAdd)
 		}
 

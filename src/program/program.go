@@ -21,7 +21,7 @@ var program *Program
 var externPackageTrees *vector.StringVector // [dir][packagename]package
 var goSrcDir string
 var specificFiles map[string]*vector.StringVector
-var specificFilesPackages []string = []string{"syscall", "os","runtime"}
+var specificFilesPackages []string = []string{"syscall", "os", "runtime"}
 
 func initialize() {
 
@@ -40,15 +40,17 @@ func initialize() {
 
 	externPackageTrees = new(vector.StringVector)
 	externPackageTrees.Push(goSrcDir)
-	//externPackageTrees.Push("/home/rulerr/GoRefactor/src") // for tests on self
 
 	specificFiles = make(map[string]*vector.StringVector)
 
 }
 
+
+
 type Program struct {
 	BaseSymbolTable *st.SymbolTable        //Base sT for parsing any package. Contains basic language symbols
 	Packages        map[string]*st.Package //map[qualifiedPath] package
+	IdentMap		st.IdentifierMap
 }
 
 func loadConfig(packageName string) *vector.StringVector {
@@ -99,37 +101,37 @@ func makeFilter(srcDir string) func(f *os.FileInfo) bool {
 	return utils.GoFilter
 
 }
-func getFullNameFiles(files *vector.StringVector,srcDir string) ([]string){
-	var res vector.StringVector;
-	for _,fName := range *files{
-		res.Push(path.Join(srcDir, fName));
+func getFullNameFiles(files *vector.StringVector, srcDir string) []string {
+	var res vector.StringVector
+	for _, fName := range *files {
+		res.Push(path.Join(srcDir, fName))
 	}
-	return res;
+	return res
 }
-func getAstTree(srcDir string) (*token.FileSet, map[string]*ast.Package,os.Error){
-	_, d := path.Split(srcDir);
-	fileSet := token.NewFileSet();
+func getAstTree(srcDir string) (*token.FileSet, map[string]*ast.Package, os.Error) {
+	_, d := path.Split(srcDir)
+	fileSet := token.NewFileSet()
 	if files, ok := specificFiles[d]; ok {
-		pckgs,err := parser.ParseFiles(fileSet,getFullNameFiles(files,srcDir),parser.ParseComments)
-		return fileSet,pckgs,err
+		pckgs, err := parser.ParseFiles(fileSet, getFullNameFiles(files, srcDir), parser.ParseComments)
+		return fileSet, pckgs, err
 	}
-	pckgs,err := parser.ParseDir(fileSet,srcDir, utils.GoFilter, parser.ParseComments)
-	return fileSet,pckgs,err
-	
+	pckgs, err := parser.ParseDir(fileSet, srcDir, utils.GoFilter, parser.ParseComments)
+	return fileSet, pckgs, err
+
 }
 func parsePack(srcDir string) {
-	
-	fileSet,packs,err := getAstTree(srcDir)
-	if err!=nil{
-		fmt.Printf("SOME ERRORS while parsing pack "+ srcDir);
+
+	fileSet, packs, err := getAstTree(srcDir)
+	if err != nil {
+		fmt.Printf("SOME ERRORS while parsing pack " + srcDir)
 	}
 
 	_, d := path.Split(srcDir)
 	if packTree, ok := packs[d]; !ok {
 		panic("Couldn't find a package " + d + " in " + d + " directory")
 	} else {
-		pack := st.NewPackage( srcDir,fileSet, packTree)
-		program.Packages[srcDir] = pack;
+		pack := st.NewPackage(srcDir, fileSet, packTree)
+		program.Packages[srcDir] = pack
 	}
 }
 
@@ -164,14 +166,14 @@ func locatePackages(srcDir string) {
 
 }
 
-func ParseProgram(srcDir string,externSourceFolders *vector.StringVector) *Program {
+func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Program {
 
-	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package)}
+	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package),make(map[*ast.Ident]st.Symbol)}
 
 	initialize()
-	externPackageTrees.Push(srcDir);
-	if externSourceFolders != nil{
-		externPackageTrees.AppendVector(externSourceFolders);
+	externPackageTrees.Push(srcDir)
+	if externSourceFolders != nil {
+		externPackageTrees.AppendVector(externSourceFolders)
 	}
 
 	for _, pName := range specificFilesPackages {
@@ -194,14 +196,13 @@ func ParseProgram(srcDir string,externSourceFolders *vector.StringVector) *Progr
 	for _, pack := range program.Packages {
 		if IsGoSrcPackage(pack) {
 			pack.IsGoPackage = true
-			//ast.PackageExports(pack.AstPackage)
 		}
 	}
 
 	for _, pack := range program.Packages {
 
 		pack.Symbols.AddOpenedScope(program.BaseSymbolTable)
-		go packageParser.ParsePackage(pack)
+		go packageParser.ParsePackage(pack,program.IdentMap)
 	}
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -244,9 +245,9 @@ func ParseProgram(srcDir string,externSourceFolders *vector.StringVector) *Progr
 		<-pack.Communication
 	}
 
-// 	for _, pack := range program.Packages {
-// 		
-// 	}
+	// 	for _, pack := range program.Packages {
+	// 		
+	// 	}
 	fmt.Printf("===================All packages stopped fixing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -257,7 +258,7 @@ func ParseProgram(srcDir string,externSourceFolders *vector.StringVector) *Progr
 	// 		
 	// 	}
 	fmt.Printf("===================All packages stopped parsing locals \n")
-	
+
 	return program
 }
 
@@ -266,38 +267,44 @@ func IsGoSrcPackage(p *st.Package) bool {
 	return strings.HasPrefix(p.QualifiedPath, goSrcDir)
 }
 
-func(p *Program)findPackageAndFileByFilename(filename string) (*st.Package,*ast.File){
-	for _,pack:= range p.Packages{
-		for fName, file := range pack.AstPackage.Files{
-			if filename == fName{
+func (p *Program) findPackageAndFileByFilename(filename string) (*st.Package, *ast.File) {
+	for _, pack := range p.Packages {
+		for fName, file := range pack.AstPackage.Files {
+			if filename == fName {
 				return pack, file
 			}
 		}
 	}
-	return nil,nil;
+	return nil, nil
 }
 
-func (p *Program) FindSymbolByPosition(filename string, line int, column int) (symbol st.Symbol,containsIn *st.SymbolTable,error *errors.GoRefactorError) {
-	packageIn,fileIn := p.findPackageAndFileByFilename(filename)
-	if packageIn == nil{
-		return nil,nil,errors.ArgumentError("filename","Program packages don't contain file '" + filename + "'");
+func (p *Program) FindSymbolByPosition(filename string, line int, column int) (symbol st.Symbol, error *errors.GoRefactorError) {
+	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
+	if packageIn == nil {
+		return nil,  errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
+	}
+
+	ident, found := findIdentByPos(packageIn, fileIn, token.Position{Filename: filename, Line: line, Column: column})
+	if !found {
+		return nil,errors.IdentifierNotFoundError(filename, line, column)
 	}
 	
-	obj,found := findObjectByPos(packageIn,fileIn,token.Position{Filename:filename,Line:line,Column:column})
-	if !found{
-		return nil,nil,errors.IdentifierNotFoundError(filename, line, column);
+	if sym,ok := p.IdentMap[ident];ok{
+		return sym , nil;
+	}else{
+		panic("untracked ident " + ident.Name);
 	}
-	for _,el:= range *packageIn.SymbolTablePool{
-		sT:= el.(*st.SymbolTable);
-		if sym,found := sT.FindSymbolByObject(obj); found{
-			return sym,sT,nil
-		}
-	}
-	for _,el:= range *(packageIn.Imports[filename]){
-		pSym := el.(*st.PackageSymbol)
-		if sym,found := pSym.Package.Symbols.FindSymbolByObject(obj); found{
-			return sym,pSym.Package.Symbols,nil
-		}
-	}
-	return nil,nil,errors.IdentifierNotFoundError(filename, line, column);
+// 	for _, el := range *packageIn.SymbolTablePool {
+// 		sT := el.(*st.SymbolTable)
+// 		if sym, found := sT.FindSymbolByObject(obj); found {
+// 			return sym, sT, nil
+// 		}
+// 	}
+// 	for _, el := range *(packageIn.Imports[filename]) {
+// 		pSym := el.(*st.PackageSymbol)
+// 		if sym, found := pSym.Package.Symbols.FindSymbolByObject(obj); found {
+// 			return sym, pSym.Package.Symbols, nil
+// 		}
+// 	}
+	return nil, errors.IdentifierNotFoundError(filename, line, column)
 }

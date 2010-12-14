@@ -5,7 +5,7 @@ import (
 	//"go/parser"
 	"st"
 	"container/vector"
-	"go/token"
+	//"go/token"
 	"path"
 )
 //import "fmt"
@@ -26,7 +26,7 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 
 		var (
 			name         string
-			hasLocalName bool
+// 			hasLocalName bool
 			found        bool
 			pack         *st.Package
 			packTree     *ast.Package
@@ -37,13 +37,13 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 			case "_":
 				return // package imported only for side-effects
 			case ".":
-				name, hasLocalName = ".", false
+				name = "."//, hasLocalName = ".", false
 			default:
-				name, hasLocalName = is.Name.Name, true
+				name =  is.Name.Name//, hasLocalName =, true
 			}
 		} else {
 			_, name = path.Split(Path)
-			hasLocalName = false
+			//hasLocalName = false
 		}
 
 		for _, dir := range *externPackageTrees {
@@ -54,10 +54,10 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if !found {
 			_, f := path.Split(Path)
 			for _, dir := range *externPackageTrees {
-				fileSet,dirTree, _ := getAstTree(path.Join(dir, Path))
+				fileSet, dirTree, _ := getAstTree(path.Join(dir, Path))
 				if dirTree != nil {
 					if packTree, found = dirTree[f]; found {
-						pack = st.NewPackage(path.Join(dir, Path),fileSet, packTree)
+						pack = st.NewPackage(path.Join(dir, Path), fileSet, packTree)
 						program.Packages[pack.QualifiedPath] = pack
 
 						parseImports(pack)
@@ -73,13 +73,14 @@ func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		if _, isIn := iv.Package.Imports[iv.FileName]; !isIn {
 			iv.Package.Imports[iv.FileName] = new(vector.Vector)
 		}
-		
-		ob := &ast.Object{Kind: ast.Pkg, Name: name}
-		sym := &st.PackageSymbol{Obj: ob, Path: Path, Posits: make(map[string]token.Position), Package: pack, PackFrom: iv.Package, HasLocalName: hasLocalName}
 
+		sym := st.MakePackage(name,iv.Package, Path, pack)
+		
 		if is.Name != nil {
-			is.Name.Obj = ob
-			//Positions surely register
+			
+			sym.AddIdent(is.Name)
+			program.IdentMap.AddIdent(is.Name,sym)
+			
 			sym.AddPosition(iv.Package.FileSet.Position(is.Name.Pos()))
 
 			if is.Name.Name == "." {
