@@ -47,7 +47,7 @@ type packageParser struct {
 
 	CurrentFileName string //Used for resolving packages local names
 
-	visited map[string]bool
+	visited map[st.Symbol]bool
 }
 
 func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTable, *vector.Vector) {

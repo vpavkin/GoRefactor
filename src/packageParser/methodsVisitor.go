@@ -80,7 +80,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 }
 func (pp *packageParser) fixMethodsAndFields() {
 
-	pp.visited = make(map[string]bool)
+	pp.visited = make(map[st.Symbol]bool)
 
 	pp.RootSymbolTable.ForEachNoLock(func(sym st.Symbol) {
 		pp.openMethodsAndFields(sym)

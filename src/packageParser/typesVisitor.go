@@ -51,7 +51,7 @@ func (pp *packageParser) resolveType(uts *st.UnresolvedTypeSymbol) (result st.IT
 			panic("symbol" + uts.Name() + "at " + pos.String() + " unresolved")
 		}
 	}
-	return res.(st.ITypeSymbol)
+	teturn res.(st.ITypeSymbol)
 }
 func (pp *packageParser) moveData(resolvedType st.ITypeSymbol, unresType st.ITypeSymbol) {
 	for ident, _ := range unresType.Identifiers() {
@@ -64,7 +64,7 @@ func (pp *packageParser) moveData(resolvedType st.ITypeSymbol, unresType st.ITyp
 }
 func (pp *packageParser) fixRootTypes() {
 
-	pp.visited = make(map[string]bool)
+	pp.visited = make(map[st.Symbol]bool)
 	pp.fixTypesInSymbolTable(pp.RootSymbolTable)
 }
 
