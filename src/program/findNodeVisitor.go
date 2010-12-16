@@ -4,22 +4,25 @@ import "go/ast"
 import "go/token"
 import "utils"
 import "st"
+//import "fmt"
 
 
-type findNodeVisitor struct {
+type findIdentVisitor struct {
 	Package *st.Package
-	Node    interface{}
+	Ident    *ast.Ident
 	Pos     token.Position
 }
-
-func (fv *findNodeVisitor) Visit(node interface{}) ast.Visitor {
-	if astNode, ok := node.(ast.Node); ok {
-		//this code is to avoid issue 1326
-		if _, ok := astNode.(*ast.BasicLit); ok {
-			return fv
-		}
-		if utils.ComparePosWithinFile(fv.Package.FileSet.Position(astNode.Pos()), fv.Pos) == 0 {
-			fv.Node = astNode
+	
+func (fv *findIdentVisitor) Visit(node interface{}) ast.Visitor {
+	//this code is to avoid issue 1326
+// 	if _, ok := node.(*ast.BasicLit); ok {
+// 		return fv
+// 	}
+	
+	if id, ok := node.(*ast.Ident); ok {
+		
+		if utils.ComparePosWithinFile(fv.Package.FileSet.Position(id.Pos()), fv.Pos) == 0 {
+			fv.Ident = id
 			return nil
 		}
 	}
@@ -33,24 +36,24 @@ func getTopLevelDecl(Package *st.Package, file *ast.File, pos token.Position) as
 		}
 	}
 	return file.Decls[len(file.Decls)-1]
-
-}
-
-func findNodeByPos(Package *st.Package, file *ast.File, pos token.Position) (node interface{}, found bool) {
-	visitor := &findNodeVisitor{Package, nil, pos}
-	declToSearch := getTopLevelDecl(Package, file, pos)
-	ast.Walk(visitor, declToSearch)
-	if visitor.Node == nil {
-		return nil, false
-	}
-	return visitor.Node, true
 }
 
 func findIdentByPos(Package *st.Package, file *ast.File, pos token.Position) (obj *ast.Ident, found bool) {
-	if node, ok := findNodeByPos(Package, file, pos); ok {
-		if id, ok := node.(*ast.Ident); ok {
-			return id, true
-		}
+	visitor := &findIdentVisitor{Package, nil, pos}
+	declToSearch := getTopLevelDecl(Package, file, pos)
+	ast.Walk(visitor, declToSearch)
+	if visitor.Ident == nil {
+		return nil, false
 	}
-	return nil, false
+	return visitor.Ident, true
 }
+
+// func findIdentByPos(Package *st.Package, file *ast.File, pos token.Position) (obj *ast.Ident, found bool) {
+// 	if node, ok := findNodeByPos(Package, file, pos); ok {
+// 		fmt.Printf("%v %T\n",node,node);
+// 		if id, ok := node.(*ast.Ident); ok {
+// 			return id, true
+// 		}
+// 	}
+// 	return nil, false
+// }
