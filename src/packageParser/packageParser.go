@@ -47,7 +47,7 @@ type packageParser struct {
 
 	CurrentFileName string //Used for resolving packages local names
 
-	visited map[string]bool
+	visited map[st.Symbol]bool
 }
 
 func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTable, *vector.Vector) {
@@ -109,38 +109,38 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 		ast.Walk(pp.GlobalsFixer, atree.Decls)
 	}
 
-	if pp.Package.AstPackage.Name == "st" {
-		fmt.Printf("$$$$$$$$$ Symbols of st:\n")
-		pp.Package.Symbols.ForEach(func(sym st.Symbol) {
-			fmt.Printf("%s", sym.Name())
-			switch symt := sym.(type) {
-			case *st.PointerTypeSymbol:
-				if symt.Fields != nil {
-					fmt.Printf(":\nfields:\n %s\n", *symt.Fields.String())
-				}
-				if symt.Methods() != nil {
-					fmt.Printf("methods:\n %s\n", *symt.Methods().String())
-				}
-			case *st.StructTypeSymbol:
-				if symt.Fields != nil {
-					fmt.Printf(":\nfields:\n %s\n", *symt.Fields.String())
-				}
-				if symt.Methods() != nil {
-					fmt.Printf("methods:\n %s\n", *symt.Methods().String())
-				}
-			default:
-				if tt, ok := sym.(st.ITypeSymbol); ok {
-					if tt.Methods() != nil {
-						fmt.Printf(":\nmethods:\n %s\n", *tt.Methods().String())
-					}
-				} else if vt, ok := sym.(*st.VariableSymbol); ok {
-					fmt.Printf(" %s", vt.VariableType.Name())
-				} else if vt, ok := sym.(*st.FunctionSymbol); ok {
-					fmt.Printf(" %s", vt.FunctionType.Name())
-				}
-			}
-		})
-	}
+// 	if pp.Package.AstPackage.Name == "st" {
+// 		fmt.Printf("$$$$$$$$$ Symbols of st:\n")
+// 		pp.Package.Symbols.ForEach(func(sym st.Symbol) {
+// 			fmt.Printf("%s", sym.Name())
+// 			switch symt := sym.(type) {
+// 			case *st.PointerTypeSymbol:
+// 				if symt.Fields != nil {
+// 					fmt.Printf(":\nfields:\n %s\n", *symt.Fields.String())
+// 				}
+// 				if symt.Methods() != nil {
+// 					fmt.Printf("methods:\n %s\n", *symt.Methods().String())
+// 				}
+// 			case *st.StructTypeSymbol:
+// 				if symt.Fields != nil {
+// 					fmt.Printf(":\nfields:\n %s\n", *symt.Fields.String())
+// 				}
+// 				if symt.Methods() != nil {
+// 					fmt.Printf("methods:\n %s\n", *symt.Methods().String())
+// 				}
+// 			default:
+// 				if tt, ok := sym.(st.ITypeSymbol); ok {
+// 					if tt.Methods() != nil {
+// 						fmt.Printf(":\nmethods:\n %s\n", *tt.Methods().String())
+// 					}
+// 				} else if vt, ok := sym.(*st.VariableSymbol); ok {
+// 					fmt.Printf(" %s", vt.VariableType.Name())
+// 				} else if vt, ok := sym.(*st.FunctionSymbol); ok {
+// 					fmt.Printf(" %s", vt.FunctionType.Name())
+// 				}
+// 			}
+// 		})
+// 	}
 	pp.Package.Communication <- 0
 	//Locals
 	<-pp.Package.Communication
@@ -187,6 +187,7 @@ func getIntValue(t *ast.BasicLit) int {
 
 func (pp *packageParser) registerIdent(sym st.Symbol, ident *ast.Ident) {
 	sym.AddIdent(ident)
+	fmt.Printf("%p goes to map as %s %T %p %s\n",ident,sym.Name(),sym,sym,pp.CurrentFileName);
 	pp.IdentMap.AddIdent(ident, sym)
 	sym.AddPosition(pp.Package.FileSet.Position(ident.Pos()))
 }
@@ -219,7 +220,11 @@ func (pp *packageParser) parseTypeSymbol(typ ast.Expr) (result st.ITypeSymbol) {
 	case *ast.Ellipsis: //parameters
 		result = pp.tParseEllipsis(t)
 	}
-
+	if pp.Mode == TYPES_MODE{
+		if(result.Name()!=st.NO_NAME && result.PackageFrom()==pp.Package){
+			pp.CurrentSymbolTable.AddSymbol(result);
+		}
+	}
 	return
 }
 
@@ -329,7 +334,7 @@ func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
 		result = sym.(st.ITypeSymbol)
 	} else {
 		result = st.MakeUnresolvedType(t.Name, pp.CurrentSymbolTable, t)
-
+		fmt.Printf("%p it's Uunres Ident %s %p %s\n",t,result.Name(),result,pp.CurrentFileName )
 		if pp.Mode != TYPES_MODE {
 			fmt.Printf("**************** %s\n", t.Name)
 		}
@@ -404,6 +409,7 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 			var res st.Symbol
 			if res, found = pack.Package.Symbols.LookUp(name, ""); !found {
 				res = st.MakeUnresolvedType(name, pack.Package.Symbols, t)
+				fmt.Printf("%p it's Uunres %s %p %s\n",t.Sel,res.Name(),res,pp.CurrentFileName)
 				pack.Package.Symbols.AddSymbol(res)
 			}
 
