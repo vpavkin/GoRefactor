@@ -51,7 +51,7 @@ func (pp *packageParser) resolveType(uts *st.UnresolvedTypeSymbol) (result st.IT
 			panic("symbol" + uts.Name() + "at " + pos.String() + " unresolved")
 		}
 	}
-	return res.(st.ITypeSymbol)
+	teturn res.(st.ITypeSymbol)
 }
 func (pp *packageParser) moveData(resolvedType st.ITypeSymbol, unresType st.ITypeSymbol) {
 	for ident, _ := range unresType.Identifiers() {
@@ -64,7 +64,7 @@ func (pp *packageParser) moveData(resolvedType st.ITypeSymbol, unresType st.ITyp
 }
 func (pp *packageParser) fixRootTypes() {
 
-	pp.visited = make(map[string]bool)
+	pp.visited = make(map[st.Symbol]bool)
 	pp.fixTypesInSymbolTable(pp.RootSymbolTable)
 }
 
@@ -73,6 +73,11 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 		return
 	}
 	table.ForEachNoLock(func(sym st.Symbol) {
+
+
+		if sym.Name() == "Parser" {
+			fmt.Printf("horay %T\n", sym)
+		}
 
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
 
@@ -90,32 +95,35 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 
 func (pp *packageParser) fixAliasTypeSymbol(t *st.AliasTypeSymbol) {
 	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.BaseType = pp.resolveType(uts)
 		pp.moveData(t.BaseType, uts)
-	} else {
-		pp.fixType(t.BaseType)
 	}
+	pp.fixType(t.BaseType)
+
 }
 
 func (pp *packageParser) fixPointerTypeSymbol(t *st.PointerTypeSymbol) {
+
 	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		fmt.Printf("wassup %T\n", t.BaseType)
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+
 		t.BaseType = pp.resolveType(uts)
 		pp.moveData(t.BaseType, uts)
-	} else {
-		pp.fixType(t.BaseType)
 	}
+	pp.fixType(t.BaseType)
+
 }
 
 func (pp *packageParser) fixArrayTypeSymbol(t *st.ArrayTypeSymbol) {
 	if uts, ok := t.ElemType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.ElemType = pp.resolveType(uts)
 		pp.moveData(t.ElemType, uts)
-	} else {
-		pp.fixType(t.ElemType)
 	}
+	pp.fixType(t.ElemType)
+
 }
 
 func (pp *packageParser) fixStructTypeSymbol(t *st.StructTypeSymbol) {
@@ -131,30 +139,29 @@ func (pp *packageParser) fixInterfaceTypeSymbol(t *st.InterfaceTypeSymbol) {
 
 func (pp *packageParser) fixMapTypeSymbol(t *st.MapTypeSymbol) {
 	if uts, ok := t.KeyType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.KeyType = pp.resolveType(uts)
 		pp.moveData(t.KeyType, uts)
-	} else {
-		pp.fixType(t.KeyType)
 	}
+	pp.fixType(t.KeyType)
 
 	if uts, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.ValueType = pp.resolveType(uts)
 		pp.moveData(t.ValueType, uts)
-	} else {
-		pp.fixType(t.ValueType)
 	}
+	pp.fixType(t.ValueType)
+
 }
 
 func (pp *packageParser) fixChanTypeSymbol(t *st.ChanTypeSymbol) {
 	if uts, ok := t.ValueType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.ValueType = pp.resolveType(uts)
 		pp.moveData(t.ValueType, uts)
-	} else {
-		pp.fixType(t.ValueType)
 	}
+	pp.fixType(t.ValueType)
+
 }
 
 func (pp *packageParser) fixFunctionTypeSymbol(t *st.FunctionTypeSymbol) {
@@ -163,25 +170,27 @@ func (pp *packageParser) fixFunctionTypeSymbol(t *st.FunctionTypeSymbol) {
 	pp.fixTypesInSymbolTable(t.Reciever)
 }
 func (pp *packageParser) fixVariableSymbol(t *st.VariableSymbol) {
-	//fmt.Printf("%s %s has type %T\n",pp.Package.AstPackage.Name,t.VariableType.Name(),t.VariableType);
+
+	fmt.Printf("%s %s has type %T\n", pp.Package.AstPackage.Name, t.VariableType.Name(), t.VariableType)
+
 
 	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.VariableType = pp.resolveType(uts)
 		pp.moveData(t.VariableType, uts)
 
-	} else {
-		pp.fixType(t.VariableType)
 	}
+	pp.fixType(t.VariableType)
+
 }
 func (pp *packageParser) fixFunctionSymbol(t *st.FunctionSymbol) {
 	if uts, ok := t.FunctionType.(*st.UnresolvedTypeSymbol); ok {
-		pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
+		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 		t.FunctionType = pp.resolveType(uts)
 		pp.moveData(t.FunctionType, uts)
-	} else {
-		pp.fixType(t.FunctionType)
 	}
+	pp.fixType(t.FunctionType)
+
 }
 
 //Fixes Type and its' subtypes recursively
@@ -197,11 +206,12 @@ func (pp *packageParser) fixType(sym st.Symbol) {
 	if sym.PackageFrom() != pp.Package {
 		return
 	}
+	fmt.Printf("%s fixing %v %T %p\n", pp.Package.AstPackage.Name, sym.Name(), sym, sym)
 	if pp.checkIsVisited(sym) {
 		return
 	}
 
-	fmt.Printf("%s fixing %v %T\n", pp.Package.AstPackage.Name, sym.Name(), sym)
+	//fmt.Printf("%s fixing %v %T %p\n", pp.Package.AstPackage.Name, sym.Name(), sym,sym)
 
 	switch t := sym.(type) {
 	case *st.AliasTypeSymbol:
@@ -229,14 +239,11 @@ func (pp *packageParser) fixType(sym st.Symbol) {
 
 
 func (pp *packageParser) checkIsVisited(sym st.Symbol) bool {
-	if _, ok := sym.(st.ITypeSymbol); !ok {
-		return false
-	}
-	symName := sym.Name()
-	if v, ok := pp.visited[symName]; ok && v { //Symbol already checked
+
+	if v, ok := pp.visited[sym]; ok && v { //Symbol already checked
 		return true
-	} else if _, ok := sym.(st.ITypeSymbol); symName != "" && ok { //Mark as checked
-		pp.visited[symName] = true
+	} else { //Mark as checked
+		pp.visited[sym] = true
 	}
 	return false
 }

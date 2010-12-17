@@ -296,17 +296,13 @@ func (p *Program) FindSymbolByPosition(filename string, line int, column int) (s
 	} else {
 		panic("untracked ident " + ident.Name)
 	}
-	// 	for _, el := range *packageIn.SymbolTablePool {
-	// 		sT := el.(*st.SymbolTable)
-	// 		if sym, found := sT.FindSymbolByObject(obj); found {
-	// 			return sym, sT, nil
-	// 		}
-	// 	}
-	// 	for _, el := range *(packageIn.Imports[filename]) {
-	// 		pSym := el.(*st.PackageSymbol)
-	// 		if sym, found := pSym.Package.Symbols.FindSymbolByObject(obj); found {
-	// 			return sym, pSym.Package.Symbols, nil
-	// 		}
-	// 	}
+
 	return nil, errors.IdentifierNotFoundError(filename, line, column)
 }
+
+// func (p *Program) GetCodeBlock(filename string, lineStart int, lineEnd int,colStart int,colEnd int) (ast.Node,*errors.GoRefactorError) {
+// 	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
+// 	if packageIn == nil {
+// 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
+// 	}
+// }

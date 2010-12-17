@@ -8,7 +8,7 @@ import (
 	//"packageParser"
 	"st"
 	//"container/vector"
-	"path"
+	//"path"
 	
 	"refactoring"
 )
@@ -236,27 +236,36 @@ func main() {
 	
 	fmt.Printf("%d symbols unresolved\n",countUnres);
 	
-	sst := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols
-	sst.ForEach(func (sym st.Symbol){
-		fmt.Printf("%s(from %s):\n",sym.Name(),sym.PackageFrom().AstPackage.Name);
-		for _,pos := range sym.Positions(){
-			_,f:=path.Split(pos.Filename)
-			fmt.Printf("\t[%s,%d,%d]\n",f,pos.Line,pos.Column)
-		}
-		
-	})
+// 	sst := p.Packages["/home/rulerr/GoRefactor/src/st"].Symbols
+// 	sst.ForEach(func (sym st.Symbol){
+// 		fmt.Printf("%s(from %s):\n",sym.Name(),sym.PackageFrom().AstPackage.Name);
+// 		for _,pos := range sym.Positions(){
+// 			_,f:=path.Split(pos.Filename)
+// 			fmt.Printf("\t[%s,%d,%d]\n",f,pos.Line,pos.Column)
+// 		}
+// 		
+// 	})
+// 	
+// 	ssst := p.Packages["/home/rulerr/GoRefactor/src/program"].Symbols;
+// 	vect := ssst.String();
+// 	fmt.Println(*vect);
 	
-	ssst := p.Packages["/home/rulerr/GoRefactor/src/program"].Symbols;
-	vect := ssst.String();
-	fmt.Println(*vect);
-	
-	if ok,err := refactoring.Rename(p,"/home/rulerr/GoRefactor/src/utils/utils.go",14,6,"IssssGoFIle");!ok{
-		fmt.Println(err.Message);
-	}else{
-		cfg:=&printer.Config{printer.TabIndent,8,nil}
-		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/utils"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/utils"].AstPackage.Files["/home/rulerr/GoRefactor/src/utils/utils.go"])
-		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].AstPackage.Files["/home/rulerr/GoRefactor/src/refactoring/rename.go"])
-	}
+// 	if ok,err := refactoring.Rename(p,"/home/rulerr/GoRefactor/src/utils/utils.go",14,6,"IssssGoFIle");!ok{
+// 		fmt.Println(err.Message);
+// 	}else{
+// 		cfg:=&printer.Config{printer.TabIndent,8,nil}
+// 		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/utils"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/utils"].AstPackage.Files["/home/rulerr/GoRefactor/src/utils/utils.go"])
+// 		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].AstPackage.Files["/home/rulerr/GoRefactor/src/refactoring/rename.go"])
+// 	}
+
+if ok,err := refactoring.Rename(p,"/home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go",10,10,"pppppppppackageParser");!ok{
+	fmt.Println(err.Message);
+}else{
+	cfg:=&printer.Config{printer.TabIndent,8,nil}
+	cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].AstPackage.Files["/home/rulerr/GoRefactor/src/packageParser/packageParser.go"])
+	cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].AstPackage.Files["/home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go"])
+}
+
 	
 	/*fmt.Printf("Methods:\n")
 	
