@@ -74,7 +74,6 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 	}
 	table.ForEachNoLock(func(sym st.Symbol) {
 
-
 		if sym.Name() == "Parser" {
 			fmt.Printf("horay %T\n", sym)
 		}
@@ -172,7 +171,6 @@ func (pp *packageParser) fixFunctionTypeSymbol(t *st.FunctionTypeSymbol) {
 func (pp *packageParser) fixVariableSymbol(t *st.VariableSymbol) {
 
 	fmt.Printf("%s %s has type %T\n", pp.Package.AstPackage.Name, t.VariableType.Name(), t.VariableType)
-
 
 	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
 		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename

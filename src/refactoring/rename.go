@@ -6,9 +6,6 @@ import (
 	"utils"
 	"errors"
 	"program"
-	"fmt"
-	//"bufio"
-	//"os"
 )
 
 func IsGoIdent(name string) bool {
@@ -31,79 +28,48 @@ func IsGoIdent(name string) bool {
 	return true
 }
 
-// func Compile(directory string, pack *ast.Package) (bool, os.Error) {
-// 
-// 	goComp, err := exec.LookPath("8g")
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	v := make([]string, len(pack.Files)+1)
-// 	v[0] = "-I."
-// 	i := 1
-// 	for n, _ := range pack.Files {
-// 		if IsGoFile(n) {
-// 			v[i] = n
-// 			i++
-// 		}
-// 	}
-// 
-// 	cmd, err := exec.Run(goComp, v[0:i], nil, directory,
-// 		exec.DevNull, exec.Pipe, exec.DevNull)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	buf, err := ioutil.ReadAll(cmd.Stdout)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	if string(buf) != "" {
-// 		return false, nil
-// 	}
-// 	return true, nil
-// }
-
-func Rename(programTree *program.Program, filename string, line int, column int, newName string) (bool, *errors.GoRefactorError) {
+func Rename(programTree *program.Program, filename string, line int, column int, newName string) (bool, int, *errors.GoRefactorError) {
 
 	if filename == "" || !utils.IsGoFile(filename) {
-		return false, errors.ArgumentError("filename", "It's not a valid go file name")
+		return false, 0, errors.ArgumentError("filename", "It's not a valid go file name")
 	}
 	if line < 1 {
-		return false, errors.ArgumentError("line", "Must be > 1")
+		return false, 0, errors.ArgumentError("line", "Must be > 1")
 	}
 	if column < 1 {
-		return false, errors.ArgumentError("column", "Must be > 1")
+		return false, 0, errors.ArgumentError("column", "Must be > 1")
 	}
 	if !IsGoIdent(newName) {
-		return false, errors.ArgumentError("newName", "It's not a valid go identifier")
+		return false, 0, errors.ArgumentError("newName", "It's not a valid go identifier")
 	}
 
+	var count int
 	if sym, err := programTree.FindSymbolByPosition(filename, line, column); err == nil {
 
 		if _, ok := sym.(*st.PointerTypeSymbol); ok {
 			panic("find by position returned pointer type!!!")
 		}
 		if st.IsPredeclaredIdentifier(sym.Name()) {
-			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a basic language symbol")
+			return false, 0, errors.UnrenamableIdentifierError(sym.Name(), " It's a basic language symbol")
 		}
 		if sym.PackageFrom().IsGoPackage {
-			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
+			return false, 0, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
 		}
 
 		if _, ok := sym.Scope().LookUp(newName, filename); ok {
-			return false, errors.IdentifierAlreadyExistsError(newName)
+			return false, 0, errors.IdentifierAlreadyExistsError(newName)
 		}
 
 		if meth, ok := sym.(*st.FunctionSymbol); ok {
 			if meth.IsInterfaceMethod {
-				return false, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
+				return false, 0, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
 			}
 		}
-		count := renameSymbol(sym, newName)
-		fmt.Printf("renamed %d occurences\n", count)
+		count = renameSymbol(sym, newName)
 	} else {
-		return false, err
+		return false, 0, err
 	}
-	return true, nil
+	return true, count, nil
 }
 
 func renameSymbol(sym st.Symbol, newName string) int {

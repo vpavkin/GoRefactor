@@ -258,9 +258,10 @@ func main() {
 // 		cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/refactoring"].AstPackage.Files["/home/rulerr/GoRefactor/src/refactoring/rename.go"])
 // 	}
 
-if ok,err := refactoring.Rename(p,"/home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go",10,10,"pppppppppackageParser");!ok{
+if ok,count,err := refactoring.Rename(p,"/home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go",10,10,"pppppppppackageParser");!ok{
 	fmt.Println(err.Message);
 }else{
+	fmt.Println("%d occurences renamed",count)
 	cfg:=&printer.Config{printer.TabIndent,8,nil}
 	cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].AstPackage.Files["/home/rulerr/GoRefactor/src/packageParser/packageParser.go"])
 	cfg.Fprint(os.Stdout,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].FileSet,p.Packages["/home/rulerr/GoRefactor/src/packageParser"].AstPackage.Files["/home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go"])
