@@ -11,7 +11,7 @@ import (
 	//"os"
 )
 
-func isGoIdent(name string) bool {
+func IsGoIdent(name string) bool {
 
 	if name == "_" || name == "nil" || name == "true" || name == "false" {
 		return false
@@ -73,7 +73,7 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 	if column < 1 {
 		return false, errors.ArgumentError("column", "Must be > 1")
 	}
-	if !isGoIdent(newName) {
+	if !IsGoIdent(newName) {
 		return false, errors.ArgumentError("newName", "It's not a valid go identifier")
 	}
 
