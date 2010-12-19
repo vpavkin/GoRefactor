@@ -1,0 +1,2 @@
+#!/bin/bash
+../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 10 -c 10 -e pppppackageParser

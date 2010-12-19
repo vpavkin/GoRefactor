@@ -4,3 +4,4 @@ gofmt -w ../src/packageParser/*.go
 gofmt -w ../src/program/*.go
 gofmt -w ../src/utils/*.go
 gofmt -w ../src/refactoring/*.go
+gofmt -w ../src/main/*.go
