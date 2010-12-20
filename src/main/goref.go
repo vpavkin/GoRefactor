@@ -101,6 +101,7 @@ func main() {
 			fmt.Println("error:", err.Message)
 		} else {
 			fmt.Println(count, "occurences renamed")
+			p.Save()
 		}
 	case EXTRACT_METHOD:
 		fmt.Println("this feature is not implemented yet")

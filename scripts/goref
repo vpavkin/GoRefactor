@@ -1,2 +1,3 @@
 #!/bin/bash
-../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 10 -c 10 -e pppppackageParser
+../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 51 -c 12 -e FForStmt &> output
+./build

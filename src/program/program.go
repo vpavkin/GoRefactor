@@ -9,6 +9,7 @@ import (
 	"packageParser"
 	"go/parser"
 	"go/token"
+	"go/printer"
 	"bufio"
 	"go/ast"
 	"strings"
@@ -125,7 +126,7 @@ func parsePack(srcDir string) {
 
 	fileSet, packs, err := getAstTree(srcDir)
 	if err != nil {
-		fmt.Printf("SOME ERRORS while parsing pack " + srcDir)
+		fmt.Printf("SOME ERRORS while parsing pack %s: %v\n", srcDir, err)
 	}
 
 	_, d := path.Split(srcDir)
@@ -300,6 +301,25 @@ func (p *Program) FindSymbolByPosition(filename string, line int, column int) (s
 	return nil, errors.IdentifierNotFoundError(filename, line, column)
 }
 
+func (p *Program) Save() {
+	for _, pack := range p.Packages {
+		if pack.IsGoPackage {
+			continue
+		}
+		fmt.Printf("saving package: %s\n", pack.AstPackage.Name)
+		for fName, file := range pack.AstPackage.Files {
+			fd, err := os.Open(fName, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+			if err != nil {
+				panic("couldn't open file " + fName + "for writing")
+			}
+			err = printer.Fprint(fd, pack.FileSet, file)
+			if err != nil {
+				panic("couldn't write to file " + fName)
+			}
+			fd.Close()
+		}
+	}
+}
 // func (p *Program) GetCodeBlock(filename string, lineStart int, lineEnd int,colStart int,colEnd int) (ast.Node,*errors.GoRefactorError) {
 // 	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
 // 	if packageIn == nil {

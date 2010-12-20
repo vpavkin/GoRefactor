@@ -1,7 +1,7 @@
 #!/bin/bash
-gofmt -w ../src/st/*.go
-gofmt -w ../src/packageParser/*.go
-gofmt -w ../src/program/*.go
-gofmt -w ../src/utils/*.go
-gofmt -w ../src/refactoring/*.go
-gofmt -w ../src/main/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/st/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/packageParser/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/program/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/utils/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/refactoring/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/main/*.go
