@@ -49,7 +49,7 @@ func getInitedDir(filename string) (string, bool) {
 		if srcDir == "" {
 			return "", false
 		}
-		fmt.Println(srcDir)
+		//fmt.Println(srcDir)
 		fd, _ := os.Open(srcDir, os.O_RDONLY, 0)
 
 		list, _ := fd.Readdir(-1)
@@ -72,11 +72,11 @@ func main() {
 	case INIT:
 		fd, err := os.Open("goref.cfg", os.O_CREATE, 0666)
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			fmt.Printf("error: %v\n", err)
+		}else{
+			defer fd.Close()
+			fmt.Printf("inited\n", action)
 		}
-		defer fd.Close()
-
-		fmt.Printf("inited\n", action)
 	case RENAME:
 		var err *errors.GoRefactorError
 		switch {
@@ -91,11 +91,11 @@ func main() {
 			err = errors.ArgumentError("newName", "It's not a valid go identifier")
 		}
 		if err != nil {
-			fmt.Println(err.Message)
+			fmt.Println("error:", err.Message)
 			return
 		}
+		fmt.Println("renaming symbol to ",entityName + "...")
 		srcDir, _ := getInitedDir(filename)
-		fmt.Printf("dir %s\n", srcDir)
 		p := program.ParseProgram(srcDir, nil)
 		if ok, count, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
@@ -114,5 +114,5 @@ func main() {
 	case SORT:
 		fmt.Println("this feature is not implemented yet")
 	}
-	fmt.Printf("%s %s %d %d %s\n", action, filename, line, column, entityName)
+	//fmt.Printf("%s %s %d %d %s\n", action, filename, line, column, entityName)
 }

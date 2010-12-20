@@ -7,7 +7,7 @@ import (
 	"container/vector"
 )
 import "strconv"
-import "fmt"
+//import "fmt"
 
 func init() {
 
@@ -525,9 +525,9 @@ func getBaseType(sym ITypeSymbol, visited map[string]ITypeSymbol) (ITypeSymbol, 
 
 func (pt *PointerTypeSymbol) GetBaseStruct() (*StructTypeSymbol, bool) {
 	t, _ := GetBaseType(pt)
-	if pt.Name() == "*Package" {
-		fmt.Printf("____%s__%s__\n", t.Name(), t.PackageFrom().AstPackage.Name)
-	}
+// 	if pt.Name() == "*Package" {
+// 		fmt.Printf("____%s__%s__\n", t.Name(), t.PackageFrom().AstPackage.Name)
+// 	}
 	s, ok := t.(*StructTypeSymbol)
 	return s, ok
 }
