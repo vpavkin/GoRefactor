@@ -1,6 +1,4 @@
 #!/bin/bash
-../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 51 -c 12 -e FForStmt
-./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 10 -c 10 -e ppppppackageParser
 ./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 13 -c 6 -e SSSSymbolTable
@@ -11,13 +9,15 @@
 ./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/parseExpr.go -l 39 -c 15 -e pppparseExpr 
 ./build
-../bin/goref -a ren -f /home/rulerr/GoRefactor/src/refactoring/rename.go -l 75 -c 26 -e SSSSymbol
+../bin/goref -a ren -f /home/rulerr/GoRefactor/src/refactoring/rename.go -l 78 -c 26 -e SSSSymbol
 ./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/program/program.go -l 21 -c 5 -e ppppprogram
 ./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/program/program.go -l 55 -c 15 -e sssstring
 ./build
 #bad input
+../bin/goref -a ren -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 51 -c 12 -e FForStmt
+./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/program/program.go -l 21 -c 5 -e 13sa
 ./build
 ../bin/goref -a ren -f /home/rulerr/GoRefactor/src/program/program.go -l 21 -c 0 -e ppppprogram

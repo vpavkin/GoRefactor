@@ -1,0 +1,18 @@
+#!/bin/bash
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 164 -c 4 -el 165 -ec 4 -e SomeMeth -vl 164 -vc 4
+./build
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 289 -c 5 -el 289 -ec 5 -e SomeMeth
+./build
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 61 -c 4 -el 62 -ec 4 -e SomeMeth
+./build
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbols.go -l 14 -c 2 -el 76 -ec 2 -e SomeMeth
+./build
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 37 -c 6 -el 37 -ec 6 -e SomeMeth
+./build
+
+#invalid
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/typesVisitor.go -l 24 -c 3 -el 27 -ec 5 -e SomeMeth
+./build
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 29 -c 4 -el 37 -ec 6 -e SomeMeth
+./build
+

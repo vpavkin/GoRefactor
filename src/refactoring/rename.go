@@ -27,20 +27,23 @@ func IsGoIdent(name string) bool {
 	}
 	return true
 }
-
+func CheckRenameParameters(filename string, line int, column int, newName string) (bool, *errors.GoRefactorError) {
+	switch {
+		case filename == "" || !utils.IsGoFile(filename):
+			return false,errors.ArgumentError("filename", "It's not a valid go file name")
+		case line < 1:
+			return false,errors.ArgumentError("line", "Must be > 1")
+		case column < 1:
+			return false,errors.ArgumentError("column", "Must be > 1")
+		case !IsGoIdent(newName):
+			return false,errors.ArgumentError("newName", "It's not a valid go identifier")
+	}
+	return true,nil
+}
 func Rename(programTree *program.Program, filename string, line int, column int, newName string) (bool, int, *errors.GoRefactorError) {
 
-	if filename == "" || !utils.IsGoFile(filename) {
-		return false, 0, errors.ArgumentError("filename", "It's not a valid go file name")
-	}
-	if line < 1 {
-		return false, 0, errors.ArgumentError("line", "Must be > 1")
-	}
-	if column < 1 {
-		return false, 0, errors.ArgumentError("column", "Must be > 1")
-	}
-	if !IsGoIdent(newName) {
-		return false, 0, errors.ArgumentError("newName", "It's not a valid go identifier")
+	if ok,err:=CheckRenameParameters(filename,line,column,newName);!ok{
+		return false,0,err;
 	}
 
 	var count int
