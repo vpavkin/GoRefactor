@@ -146,7 +146,7 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 	<-pp.Package.Communication
 
 	if !pp.Package.IsGoPackage {
-// 		fmt.Printf("@@@@@@@@ parsing locals at pack %s\n", rootPack.AstPackage.Name)
+		// 		fmt.Printf("@@@@@@@@ parsing locals at pack %s\n", rootPack.AstPackage.Name)
 		for fName, atree := range rootPack.AstPackage.Files {
 			pp.CurrentFileName = fName
 			ast.Walk(pp.LocalsParser, atree.Decls)
@@ -187,7 +187,7 @@ func getIntValue(t *ast.BasicLit) int {
 
 func (pp *packageParser) registerIdent(sym st.Symbol, ident *ast.Ident) {
 	sym.AddIdent(ident)
-// 	fmt.Printf("%p goes to map as %s %T %p %s\n", ident, sym.Name(), sym, sym, pp.CurrentFileName)
+	// 	fmt.Printf("%p goes to map as %s %T %p %s\n", ident, sym.Name(), sym, sym, pp.CurrentFileName)
 	pp.IdentMap.AddIdent(ident, sym)
 	sym.AddPosition(pp.Package.FileSet.Position(ident.Pos()))
 }
@@ -250,28 +250,28 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 	} else {
 		toLookUp = base.PackageFrom().Symbols
 	}
-// 	if base.Name() == "typesVisitor" {
-// 		fmt.Printf("goap %v and pp is in %v.  toLookUp is from %s\n", base.PackageFrom().AstPackage.Name, pp.Package.AstPackage.Name, toLookUp.Package.AstPackage.Name)
-// 	}
+	// 	if base.Name() == "typesVisitor" {
+	// 		fmt.Printf("goap %v and pp is in %v.  toLookUp is from %s\n", base.PackageFrom().AstPackage.Name, pp.Package.AstPackage.Name, toLookUp.Package.AstPackage.Name)
+	// 	}
 
 	if result, found = toLookUp.LookUpPointerType(nameToFind, pd+1); found {
-// 		fmt.Printf("Searched Pointer Type %s (%p) ,%d, from package %s\n", nameToFind, result, pd+1, func(p *st.Package) string {
-// 			if p == nil {
-// 				return "nil"
-// 			}
-// 			return p.AstPackage.Name
-// 		}(result.PackageFrom()))
+		// 		fmt.Printf("Searched Pointer Type %s (%p) ,%d, from package %s\n", nameToFind, result, pd+1, func(p *st.Package) string {
+		// 			if p == nil {
+		// 				return "nil"
+		// 			}
+		// 			return p.AstPackage.Name
+		// 		}(result.PackageFrom()))
 		return
 	}
 
 	result = st.MakePointerType(toLookUp, base)
-// 	fmt.Printf("Adding Pointer Type %s to %s at file of %s\n", result.Name(), func(p *st.Package) string {
-// 		if p == nil {
-// 			return "nil"
-// 		}
-// 		return p.AstPackage.Name
-// 	}(base.PackageFrom()),
-// 		pp.Package.AstPackage.Name)
+	// 	fmt.Printf("Adding Pointer Type %s to %s at file of %s\n", result.Name(), func(p *st.Package) string {
+	// 		if p == nil {
+	// 			return "nil"
+	// 		}
+	// 		return p.AstPackage.Name
+	// 	}(base.PackageFrom()),
+	// 		pp.Package.AstPackage.Name)
 
 	toLookUp.AddSymbol(result)
 	return
@@ -334,7 +334,7 @@ func (pp *packageParser) tParseIdent(t *ast.Ident) (result st.ITypeSymbol) {
 		result = sym.(st.ITypeSymbol)
 	} else {
 		result = st.MakeUnresolvedType(t.Name, pp.CurrentSymbolTable, t)
-// 		fmt.Printf("%p it's Uunres Ident %s %p %s\n", t, result.Name(), result, pp.CurrentFileName)
+		// 		fmt.Printf("%p it's Uunres Ident %s %p %s\n", t, result.Name(), result, pp.CurrentFileName)
 		if pp.Mode != TYPES_MODE {
 			fmt.Printf("**************** %s\n", t.Name)
 		}
@@ -409,7 +409,7 @@ func (pp *packageParser) tParseSelector(t *ast.SelectorExpr) (result st.ITypeSym
 			var res st.Symbol
 			if res, found = pack.Package.Symbols.LookUp(name, ""); !found {
 				res = st.MakeUnresolvedType(name, pack.Package.Symbols, t)
-// 				fmt.Printf("%p it's Uunres %s %p %s\n", t.Sel, res.Name(), res, pp.CurrentFileName)
+				// 				fmt.Printf("%p it's Uunres %s %p %s\n", t.Sel, res.Name(), res, pp.CurrentFileName)
 				pack.Package.Symbols.AddSymbol(res)
 			}
 

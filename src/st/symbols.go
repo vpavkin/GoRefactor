@@ -71,6 +71,7 @@ func init() {
 	predeclaredFunctionTypes["make"] = noResultsFts
 	predeclaredFunctionTypes["new"] = noResultsFts
 	predeclaredFunctionTypes["real"] = noResultsFts
+	predeclaredFunctionTypes["append"] = noResultsFts
 
 	PredeclaredFunctions = make(map[string]*FunctionSymbol)
 	for _, s := range builtIn {
@@ -80,7 +81,7 @@ func init() {
 }
 
 var builtIn []string = []string{"cap", "close", "closed", "cmplx", "copy", "imag", "len", "make", "new", "panic",
-	"print", "println", "real", "recover"}
+	"print", "println", "real", "recover","append"}
 var integerTypes map[string]bool = map[string]bool{"uintptr": true, "byte": true, "int8": true, "int16": true, "int32": true, "int64": true, "uint8": true, "uint16": true, "uint32": true, "uint64": true, "int": true, "uint": true}
 var floatTypes map[string]bool = map[string]bool{"float32": true, "float64": true, "float": true}
 var complexTypes map[string]bool = map[string]bool{"complex64": true, "complex128": true, "complex": true}
@@ -111,6 +112,13 @@ type IdentifierMap map[*ast.Ident]Symbol
 
 func (im IdentifierMap) AddIdent(ident *ast.Ident, sym Symbol) {
 	im[ident] = sym
+}
+func (im IdentifierMap) GetSymbol(ident *ast.Ident) Symbol {
+	s, ok := im[ident]
+	if !ok {
+		panic("untracked ident "+ident.Name)
+	}
+	return s;
 }
 
 type IdentSet map[*ast.Ident]bool
@@ -525,9 +533,9 @@ func getBaseType(sym ITypeSymbol, visited map[string]ITypeSymbol) (ITypeSymbol, 
 
 func (pt *PointerTypeSymbol) GetBaseStruct() (*StructTypeSymbol, bool) {
 	t, _ := GetBaseType(pt)
-// 	if pt.Name() == "*Package" {
-// 		fmt.Printf("____%s__%s__\n", t.Name(), t.PackageFrom().AstPackage.Name)
-// 	}
+	// 	if pt.Name() == "*Package" {
+	// 		fmt.Printf("____%s__%s__\n", t.Name(), t.PackageFrom().AstPackage.Name)
+	// 	}
 	s, ok := t.(*StructTypeSymbol)
 	return s, ok
 }

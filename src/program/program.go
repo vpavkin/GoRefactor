@@ -76,7 +76,7 @@ func loadConfig(packageName string) *vector.StringVector {
 		res.Push(str[:len(str)-1])
 
 	}
-// 	fmt.Printf("%s:\n%v\n", packageName, res)
+	// 	fmt.Printf("%s:\n%v\n", packageName, res)
 
 	return res
 }
@@ -87,13 +87,13 @@ func isPackageDir(fileInIt *os.FileInfo) bool {
 
 func makeFilter(srcDir string) func(f *os.FileInfo) bool {
 	_, d := path.Split(srcDir)
-// 	println("^&*^&* Specific files for " + d)
+	// 	println("^&*^&* Specific files for " + d)
 	if files, ok := specificFiles[d]; ok {
-// 		println("^&*^&* found " + d)
+		// 		println("^&*^&* found " + d)
 		return func(f *os.FileInfo) bool {
-// 			print("\n" + f.Name)
+			// 			print("\n" + f.Name)
 			for _, fName := range *files {
-// 				print(" " + fName)
+				// 				print(" " + fName)
 				if fName == f.Name {
 					return true
 				}
@@ -222,7 +222,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped fixing \n")
+	// 	fmt.Printf("===================All packages stopped fixing \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -232,7 +232,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped opening \n")
+	// 	fmt.Printf("===================All packages stopped opening \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -242,7 +242,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped parsing globals \n")
+	// 	fmt.Printf("===================All packages stopped parsing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
 		<-pack.Communication
@@ -251,7 +251,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped fixing globals \n")
+	// 	fmt.Printf("===================All packages stopped fixing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
 		<-pack.Communication
@@ -260,7 +260,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped parsing locals \n")
+	// 	fmt.Printf("===================All packages stopped parsing locals \n")
 
 	return program
 }

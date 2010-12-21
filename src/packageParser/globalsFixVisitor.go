@@ -31,9 +31,9 @@ func (gv globalsFixVisitor) Visit(node interface{}) ast.Visitor {
 			if t.Values != nil {
 				exprT = gv.Parser.parseExpr(t.Values[i]).At(0).(st.ITypeSymbol)
 				if _, ok := v.VariableType.(*st.UnresolvedTypeSymbol); ok {
-// 					if _, ok := exprT.(*st.UnresolvedTypeSymbol); !ok {
-// 						fmt.Printf("%s: =)))) var %s found its type type\n", gv.Parser.Package.AstPackage.Name, v.Name())
-// 					}
+					// 					if _, ok := exprT.(*st.UnresolvedTypeSymbol); !ok {
+					// 						fmt.Printf("%s: =)))) var %s found its type type\n", gv.Parser.Package.AstPackage.Name, v.Name())
+					// 					}
 					v.VariableType = exprT
 				}
 			}

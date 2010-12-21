@@ -201,9 +201,9 @@ func (table *SymbolTable) AddSymbol(sym Symbol) bool {
 }
 
 func (table *SymbolTable) addSymbol(sym Symbol) {
-// 	if _, ok := sym.(ITypeSymbol); ok && (sym.Name() == "*Package" || sym.Name() == "Package" || sym.Name() == "st.Package" || sym.Name() == "ast.Package" || sym.Name() == "*st.Package" || sym.Name() == "*ast.Package") {
-// 		fmt.Printf("ADDING %s %p from %s to symbols of %s\n", sym.Name(), sym, sym.PackageFrom().AstPackage.Name, table.Package.AstPackage.Name)
-// 	}
+	// 	if _, ok := sym.(ITypeSymbol); ok && (sym.Name() == "*Package" || sym.Name() == "Package" || sym.Name() == "st.Package" || sym.Name() == "ast.Package" || sym.Name() == "*st.Package" || sym.Name() == "*ast.Package") {
+	// 		fmt.Printf("ADDING %s %p from %s to symbols of %s\n", sym.Name(), sym, sym.PackageFrom().AstPackage.Name, table.Package.AstPackage.Name)
+	// 	}
 	table.Table.Push(sym) //since LookUp goes in reverse order, the latest symbol will be find earlier if there's two identicaly named symbols
 }
 func (table *SymbolTable) ReplaceSymbol(replace string, with Symbol) {
@@ -241,7 +241,7 @@ func (table *SymbolTable) removeSymbol(name string) {
 
 		sym := table.Table.At(i).(Symbol)
 		if sym.Name() == name {
-// 			fmt.Printf("removed %s\n", table.Table.At(i).(Symbol).Name())
+			// 			fmt.Printf("removed %s\n", table.Table.At(i).(Symbol).Name())
 			table.Table.Delete(i)
 			i--
 			j++

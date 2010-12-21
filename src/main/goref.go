@@ -76,16 +76,16 @@ func main() {
 		fd, err := os.Open("goref.cfg", os.O_CREATE, 0666)
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
-		}else{
+		} else {
 			defer fd.Close()
 			fmt.Printf("inited\n", action)
 		}
 	case RENAME:
-		if ok,err:=refactoring.CheckRenameParameters(filename,line,column,entityName);!ok{
+		if ok, err := refactoring.CheckRenameParameters(filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		fmt.Println("renaming symbol to ",entityName + "...")
+		fmt.Println("renaming symbol to ", entityName+"...")
 		srcDir, _ := getInitedDir(filename)
 		p := program.ParseProgram(srcDir, nil)
 		if ok, count, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
@@ -95,14 +95,14 @@ func main() {
 			p.Save()
 		}
 	case EXTRACT_METHOD:
-		if ok,err := refactoring.CheckExtractMethodParameters(filename,line,column,endLine,endColumn,entityName,varLine,varColumn);!ok{
+		if ok, err := refactoring.CheckExtractMethodParameters(filename, line, column, endLine, endColumn, entityName, varLine, varColumn); !ok {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		fmt.Println("extracting code to method ",entityName + "...")
+		fmt.Println("extracting code to method ", entityName+"...")
 		srcDir, _ := getInitedDir(filename)
 		p := program.ParseProgram(srcDir, nil)
-		if ok, err := refactoring.ExtractMethod(p, filename, line, column,endLine,endColumn, entityName, varLine, varColumn); !ok {
+		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, varLine, varColumn); !ok {
 			fmt.Println("error:", err.Message)
 		}
 	case INLINE_METHOD:
