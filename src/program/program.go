@@ -270,7 +270,7 @@ func IsGoSrcPackage(p *st.Package) bool {
 	return strings.HasPrefix(p.QualifiedPath, goSrcDir)
 }
 
-func (p *Program) findPackageAndFileByFilename(filename string) (*st.Package, *ast.File) {
+func (p *Program) FindPackageAndFileByFilename(filename string) (*st.Package, *ast.File) {
 	for _, pack := range p.Packages {
 		for fName, file := range pack.AstPackage.Files {
 			if filename == fName {
@@ -282,7 +282,7 @@ func (p *Program) findPackageAndFileByFilename(filename string) (*st.Package, *a
 }
 
 func (p *Program) FindSymbolByPosition(filename string, line int, column int) (symbol st.Symbol, error *errors.GoRefactorError) {
-	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
+	packageIn, fileIn := p.FindPackageAndFileByFilename(filename)
 	if packageIn == nil {
 		return nil, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
@@ -320,9 +320,3 @@ func (p *Program) Save() {
 		}
 	}
 }
-// func (p *Program) GetCodeBlock(filename string, lineStart int, lineEnd int,colStart int,colEnd int) (ast.Node,*errors.GoRefactorError) {
-// 	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
-// 	if packageIn == nil {
-// 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
-// 	}
-// }
