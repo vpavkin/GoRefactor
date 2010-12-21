@@ -10,7 +10,11 @@
 
 8g -I ../bin -o ../bin/refactoring.8 ../src/refactoring/rename.go
 
-8g -I ../bin -o ../bin/test.8 ../src/tests/testRun.go
+#8g -I ../bin -o ../bin/test.8 ../src/tests/testRun.go
 8g -I ../bin -o ../bin/print.8 ../src/tests/printTree.go
-8l -L ../bin -o ../bin/test ../bin/test.8
+8g -I ../bin -o ../bin/goref.8 ../src/main/goref.go
+#8l -L ../bin -o ../bin/test ../bin/test.8
 8l -L ../bin -o ../bin/print ../bin/print.8
+8l -L ../bin -o ../bin/goref ../bin/goref.8
+
+sudo cp ../bin/goref /usr/bin

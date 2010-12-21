@@ -4,7 +4,7 @@ import (
 	"go/token"
 	"go/ast"
 	"container/vector"
-	"fmt"
+	//"fmt"
 	"st"
 )
 
@@ -19,7 +19,7 @@ type exprParser struct {
 func (pp *packageParser) parseExpr(exp ast.Expr) (res *vector.Vector) {
 
 	if exp == nil {
-		fmt.Printf("((nil expr\n")
+// 		fmt.Printf("((nil expr\n")
 		return nil
 	}
 	//fmt.Printf("%T\n",exp);
@@ -88,16 +88,16 @@ func (pp *packageParser) eParseBinaryExpr(e *ast.BinaryExpr) (res *vector.Vector
 
 	xType, cyc := st.GetBaseType(xxType)
 	if cyc {
-		panic("aaaa")
+		panic("error: cycle wasn't expected")
 	}
 	yType, cyc := st.GetBaseType(yyType)
 	if cyc {
-		panic("aaaa")
+		panic("error: cycle wasn't expected")
 	}
 
-	if e.Op == token.ADD {
-		fmt.Printf("%T,%T,%v,%v\n", xType, yType, xType.Name(), yType.Name())
-	}
+// 	if e.Op == token.ADD {
+// 		fmt.Printf("%T,%T,%v,%v\n", xType, yType, xType.Name(), yType.Name())
+// 	}
 	switch e.Op {
 	case token.ADD, token.SUB, token.MUL, token.QUO, token.REM, token.AND, token.OR, token.XOR, token.SHL, token.SHR, token.AND_NOT, token.LAND, token.LOR:
 
@@ -139,9 +139,9 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 	}
 
 	tt := pp.parseExpr(e.Fun).At(0).(st.ITypeSymbol)
-	if tt == nil {
-		fmt.Printf("HOLY CRAP!\n")
-	}
+// 	if tt == nil {
+// 		fmt.Printf("HOLY CRAP!\n")
+// 	}
 	//fmt.Printf("HOLY CRAP! %s-\n",tt.Name())
 
 	if vect, ok := pp.eParseRegularFunctionCall(tt); ok {
@@ -150,7 +150,7 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 
 	x, cyc := st.GetBaseType(tt)
 	if cyc {
-		panic("ERROR: cycle wasn't expected. eParseCallExpr, parseExpr.go")
+		panic("error: cycle wasn't expected")
 	}
 	switch x.(type) {
 	case *st.UnresolvedTypeSymbol: // sould be resolved later
@@ -168,7 +168,7 @@ func (pp *packageParser) eParseCompositeLit(e *ast.CompositeLit) (res *vector.Ve
 
 	realClType, cyc := st.GetBaseType(clType)
 	if cyc {
-		panic("ERROR: cycle wasn't expected. eParseCompositeLit, parseExpr.go")
+		panic("error: cycle wasn't expected")
 	}
 
 	tempB := pp.ExprParser.SearchInFields
@@ -196,40 +196,40 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 	lookupST := pp.detectWhereToLookUpIdent()
 
 	if t, found := lookupST.LookUp(e.Name, pp.CurrentFileName); found {
-		fmt.Printf("found sym %s %s %p\n", t.Name(),
-			func(v st.Symbol) string {
-				if vv, ok := t.(*st.VariableSymbol); ok {
-					return vv.VariableType.Name()
-				}
-				return ""
-			}(t),
-			func(v st.Symbol) st.ITypeSymbol {
-				if vv, ok := t.(*st.VariableSymbol); ok {
-					return vv.VariableType
-				}
-				return nil
-			}(t))
+// 		fmt.Printf("found sym %s %s %p\n", t.Name(),
+// 			func(v st.Symbol) string {
+// 				if vv, ok := t.(*st.VariableSymbol); ok {
+// 					return vv.VariableType.Name()
+// 				}
+// 				return ""
+// 			}(t),
+// 			func(v st.Symbol) st.ITypeSymbol {
+// 				if vv, ok := t.(*st.VariableSymbol); ok {
+// 					return vv.VariableType
+// 				}
+// 				return nil
+// 			}(t))
 		pp.registerIdent(t, e)
 
 		switch v := t.(type) {
 		case *st.VariableSymbol:
 			res.Push(v.VariableType)
 		case *st.FunctionSymbol:
-			if v.FunctionType.(*st.FunctionTypeSymbol).TypeSymbol == nil {
-				fmt.Printf("HHOOLLYY\n")
-			}
+// 			if v.FunctionType.(*st.FunctionTypeSymbol).TypeSymbol == nil {
+// 				fmt.Printf("HHOOLLYY\n")
+// 			}
 			res.Push(v.FunctionType)
 		default: //PackageSymbol or type
-			if _, ok := t.(*st.PackageSymbol); !ok {
-				fmt.Printf("%s:	<><><><>  %v - %T \n", pp.Package.AstPackage.Name, t.Name(), t)
-				//pp.ExprParser.IsTypeNameUsed = true
-			}
+// 			if _, ok := t.(*st.PackageSymbol); !ok {
+// 				fmt.Printf("%s:	<><><><>  %v - %T \n", pp.Package.AstPackage.Name, t.Name(), t)
+// 				//pp.ExprParser.IsTypeNameUsed = true
+// 			}
 			res.Push(v)
 		}
 	} else {
 		//sould be resolved later
 
-		fmt.Printf("%s:	WARNING! Ident %v wasn't found\n", pp.Package.AstPackage.Name, e.Name)
+// 		fmt.Printf("%s:	WARNING! Ident %v wasn't found\n", pp.Package.AstPackage.Name, e.Name)
 		res.Push(st.MakeUnresolvedType(e.Name, pp.CurrentSymbolTable, e))
 	}
 
@@ -240,7 +240,7 @@ func (pp *packageParser) eParseIndexExpr(e *ast.IndexExpr) (res *vector.Vector) 
 	res = new(vector.Vector)
 	x, cyc := st.GetBaseType(pp.parseExpr(e.X).At(0).(st.ITypeSymbol))
 	if cyc {
-		fmt.Println("ERROR: cycle wasn't expected. eParseIndexExpr, parseExpr.go")
+		panic("error: cycle wasn't expected")
 	}
 
 	switch s := x.(type) {
@@ -344,7 +344,7 @@ func (pp *packageParser) eParseUnaryExpr(e *ast.UnaryExpr) (res *vector.Vector) 
 	case token.ARROW:
 		chh, cyc := st.GetBaseType(t)
 		if cyc {
-			fmt.Println("ERROR: cycle wasn't expected. eParseUnaryExpr, parseExpr.go")
+			panic("error: cycle wasn't expected.")
 		}
 		ch := chh.(*st.ChanTypeSymbol)
 		res.Push(ch.ValueType)
@@ -423,7 +423,7 @@ func (pp *packageParser) eParseRegularFunctionCall(fType st.ITypeSymbol) (res *v
 
 	x, cyc := st.GetBaseType(fType)
 	if cyc {
-		panic("ERROR: cycle wasn't expected. eParseCallExpr, parseExpr.go")
+		panic("error: cycle wasn't expected")
 	}
 
 	if ft, ok := x.(*st.FunctionTypeSymbol); ok { //regular case - function
@@ -468,27 +468,27 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 				return res, true
 			}
 		} else {
-			fmt.Println("WHat the fuck????")
+// 			fmt.Println("WHat the fuck????")
 		}
 	}
 	return nil, false
 }
 
 func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorExpr) (res *vector.Vector, success bool) {
-	x, cyc := st.GetBaseType(t)
+	_, cyc := st.GetBaseType(t)
 	if cyc {
-		panic("ERROR: cycle wasn't expected. eParseSelectorExpr, parseExpr.go")
+		panic("error: cycle wasn't expected.")
 	}
-	fmt.Printf("%s %T %T\n", t.Name(), x, t)
-	if t.Name() == "*Package" {
-		//fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()));
-		fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()))
-	}
+// 	fmt.Printf("%s %T %T\n", t.Name(), x, t)
+// 	if t.Name() == "*Package" {
+// 		//fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()));
+// 		fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()))
+// 	}
 	var lookupST = pp.detectWhereToLookUpFieldSelector(t)
 
-	if lookupST == nil {
-		fmt.Printf("FUCK FUCK FUCK!!! with %s\n", e.Sel.Name)
-	}
+// 	if lookupST == nil {
+// 		fmt.Printf("FUCK FUCK FUCK!!! with %s\n", e.Sel.Name)
+// 	}
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
 
@@ -524,7 +524,7 @@ func (pp *packageParser) processCLType(e *ast.CompositeLit) (clType st.ITypeSymb
 	} else {
 		clType = pp.ExprParser.CompositeLiteralElementType
 	}
-	fmt.Printf("CLTYPE = %s\n", clType.Name())
+// 	fmt.Printf("CLTYPE = %s\n", clType.Name())
 	return
 }
 
@@ -550,9 +550,9 @@ func (pp *packageParser) detectWhereToLookUpMethodSelector(source st.ITypeSymbol
 	if s, ok := source.(*st.PackageSymbol); ok {
 		lookupST = s.Package.Symbols
 	} else if source.Methods() != nil {
-		if source.Name() == "FunctionSymbol" {
-			fmt.Printf("YEAHHNNN FunctionSymbol:\n %s", *source.Methods().String())
-		}
+// 		if source.Name() == "FunctionSymbol" {
+// 			fmt.Printf("YEAHHNNN FunctionSymbol:\n %s", *source.Methods().String())
+// 		}
 		lookupST = source.Methods()
 	}
 	return
@@ -579,14 +579,14 @@ func (pp *packageParser) makeMethodExpression(fs *st.FunctionSymbol) (res *st.Fu
 
 	fft, cyc := st.GetBaseType(fs.FunctionType)
 	if cyc {
-		fmt.Println("ERROR: cycle wasn't expected. eParseUnaryExpr, parseExpr.go")
+		panic("error: cycle wasn't expected.")
 	}
 	ft := fft.(*st.FunctionTypeSymbol)
 
 	newFt := &st.FunctionTypeSymbol{Parameters: st.NewSymbolTable(pp.Package)}
 
 	if ft.Reciever == nil {
-		fmt.Println("ERROR : f.Reciever == nil. makeMethodExpression,parseExpr.go")
+		panic("error: cycle wasn't expected.")
 	}
 	ft.Reciever.ForEachNoLock(func(sym st.Symbol) {
 		newFt.Parameters.AddSymbol(sym)

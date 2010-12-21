@@ -42,4 +42,3 @@ func findIdentByPos(Package *st.Package, file *ast.File, pos token.Position) (ob
 	}
 	return visitor.Ident, true
 }
-

@@ -6,7 +6,7 @@ import (
 	//"go/token"
 	"st"
 )
-import "fmt"
+//import "fmt"
 //Represents an ast.Visitor, walking along ast.tree and registering all methods and functions met
 type methodsVisitor struct {
 	Parser *packageParser
@@ -19,7 +19,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 
 		fft, cyc := st.GetBaseType(mv.Parser.parseTypeSymbol(f.Type))
 		if cyc {
-			fmt.Printf("ERROR: cycle wasn't expected. Visit, methodsVisitor.go")
+			panic("unexpected cycle")
 		}
 		ft := fft.(*st.FunctionTypeSymbol)
 		locals := st.NewSymbolTable(mv.Parser.Package)
@@ -41,7 +41,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				}
 
 				if mv.Parser.Package.AstPackage.Name == "os" {
-					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
+// 					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
 				}
 				if rtype.Methods() == nil {
 					panic("ok, this is a test panic")
@@ -91,12 +91,12 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 	if pp.checkIsVisited(sym) {
 		return
 	}
-	fmt.Printf("opening %s %T from %s\n", sym.Name(), sym, func(p *st.Package) string {
-		if p == nil {
-			return "nil"
-		}
-		return p.AstPackage.Name
-	}(sym.PackageFrom()))
+// 	fmt.Printf("opening %s %T from %s\n", sym.Name(), sym, func(p *st.Package) string {
+// 		if p == nil {
+// 			return "nil"
+// 		}
+// 		return p.AstPackage.Name
+// 	}(sym.PackageFrom()))
 
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
@@ -138,9 +138,9 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		pp.openMethodsAndFields(t.KeyType)
 		pp.openMethodsAndFields(t.ValueType)
 	case *st.StructTypeSymbol:
-		if t.Name() == "Package" {
-			fmt.Printf("YEAHHH YEAHHH %p\n", t)
-		}
+// 		if t.Name() == "Package" {
+// 			fmt.Printf("YEAHHH YEAHHH %p\n", t)
+// 		}
 		t.Fields.ForEachNoLock(func(variable st.Symbol) {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 
@@ -148,10 +148,6 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 				pp.openMethodsAndFields(ts)
 				//Methods
 				if ts.Methods() != nil {
-					if t.Methods() == nil {
-						panic("ok, it's test panic")
-						t.SetMethods(st.NewSymbolTable(pp.Package))
-					}
 					t.Methods().AddOpenedScope(ts.Methods())
 				}
 				//Fields
@@ -181,21 +177,17 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		}
 
 		if _, cyc := st.GetBaseType(t); cyc {
-			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
+// 			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
 			panic("cycle, don't work with that")
 		}
 
 		if t.BaseType.Methods() != nil {
-			if t.Methods() == nil {
-				panic("ok it's test panic")
-				t.SetMethods(st.NewSymbolTable(pp.Package))
-			}
 			t.Methods().AddOpenedScope(t.BaseType.Methods())
 		}
-		if t.BaseType.Name() == "Package" {
-			fmt.Printf("YEAHHH YEAHHH %p %p\n", t, t.BaseType)
-			//fmt.Println(*t.Methods().String());
-		}
+// 		if t.BaseType.Name() == "Package" {
+// 			fmt.Printf("YEAHHH YEAHHH %p %p\n", t, t.BaseType)
+// 			fmt.Println(*t.Methods().String());
+// 		}
 		pp.openMethodsAndFields(t.BaseType)
 	}
 }

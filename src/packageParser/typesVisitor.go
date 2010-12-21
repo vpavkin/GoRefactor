@@ -7,7 +7,7 @@ import (
 	//"strings"
 )
 
-import "fmt"
+//import "fmt"
 
 
 //Represents an ast.Visitor, walking along ast.tree and registering all the types met
@@ -74,16 +74,16 @@ func (pp *packageParser) fixTypesInSymbolTable(table *st.SymbolTable) {
 	}
 	table.ForEachNoLock(func(sym st.Symbol) {
 
-		if sym.Name() == "Parser" {
-			fmt.Printf("horay %T\n", sym)
-		}
+// 		if sym.Name() == "Parser" {
+// 			fmt.Printf("horay %T\n", sym)
+// 		}
 
 		if uts, ok := sym.(*st.UnresolvedTypeSymbol); ok {
 
 			res := pp.resolveType(uts)
 			table.ReplaceSymbol(uts.Name(), res)
 			pp.moveData(res, uts)
-			fmt.Printf("rewrited %s with %s from %s \n", sym.Name(), res.Name(), res.PackageFrom().AstPackage.Name)
+// 			fmt.Printf("rewrited %s with %s from %s \n", sym.Name(), res.Name(), res.PackageFrom().AstPackage.Name)
 			pp.fixType(res)
 		} else {
 			//Start recursive walk
@@ -105,7 +105,7 @@ func (pp *packageParser) fixAliasTypeSymbol(t *st.AliasTypeSymbol) {
 func (pp *packageParser) fixPointerTypeSymbol(t *st.PointerTypeSymbol) {
 
 	if uts, ok := t.BaseType.(*st.UnresolvedTypeSymbol); ok {
-		fmt.Printf("wassup %T\n", t.BaseType)
+// 		fmt.Printf("wassup %T\n", t.BaseType)
 		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
 
 		t.BaseType = pp.resolveType(uts)
@@ -130,9 +130,9 @@ func (pp *packageParser) fixStructTypeSymbol(t *st.StructTypeSymbol) {
 }
 
 func (pp *packageParser) fixInterfaceTypeSymbol(t *st.InterfaceTypeSymbol) {
-	if t.Name() == "Error" {
-		fmt.Printf("YEAHH os.Error:\n %s", *t.Methods().String())
-	}
+// 	if t.Name() == "Error" {
+// 		fmt.Printf("YEAHH os.Error:\n %s", *t.Methods().String())
+// 	}
 	pp.fixTypesInSymbolTable(t.Methods())
 }
 
@@ -170,7 +170,7 @@ func (pp *packageParser) fixFunctionTypeSymbol(t *st.FunctionTypeSymbol) {
 }
 func (pp *packageParser) fixVariableSymbol(t *st.VariableSymbol) {
 
-	fmt.Printf("%s %s has type %T\n", pp.Package.AstPackage.Name, t.VariableType.Name(), t.VariableType)
+// 	fmt.Printf("%s %s has type %T\n", pp.Package.AstPackage.Name, t.VariableType.Name(), t.VariableType)
 
 	if uts, ok := t.VariableType.(*st.UnresolvedTypeSymbol); ok {
 		//pp.CurrentFileName = pp.Package.FileSet.Position(uts.Declaration.Pos()).Filename
@@ -195,7 +195,7 @@ func (pp *packageParser) fixFunctionSymbol(t *st.FunctionSymbol) {
 func (pp *packageParser) fixType(sym st.Symbol) {
 
 	if sym == nil {
-		fmt.Printf("ERROR: sym == nil. func fixType, typesVisitor.go")
+		panic("error: fixing nil symbol")
 	}
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
@@ -204,7 +204,7 @@ func (pp *packageParser) fixType(sym st.Symbol) {
 	if sym.PackageFrom() != pp.Package {
 		return
 	}
-	fmt.Printf("%s fixing %v %T %p\n", pp.Package.AstPackage.Name, sym.Name(), sym, sym)
+// 	fmt.Printf("%s fixing %v %T %p\n", pp.Package.AstPackage.Name, sym.Name(), sym, sym)
 	if pp.checkIsVisited(sym) {
 		return
 	}

@@ -9,6 +9,7 @@ import (
 	"packageParser"
 	"go/parser"
 	"go/token"
+	"go/printer"
 	"bufio"
 	"go/ast"
 	"strings"
@@ -59,7 +60,7 @@ func loadConfig(packageName string) *vector.StringVector {
 	fd, err := os.Open(packageName+".cfg", os.O_RDONLY, 0)
 	if err != nil {
 		println(err.String())
-		panic("Couldn't open " + packageName + " config")
+		panic("Couldn't open " + packageName + " config: " + err.String())
 	}
 	defer fd.Close()
 
@@ -75,7 +76,7 @@ func loadConfig(packageName string) *vector.StringVector {
 		res.Push(str[:len(str)-1])
 
 	}
-	fmt.Printf("%s:\n%v\n", packageName, res)
+// 	fmt.Printf("%s:\n%v\n", packageName, res)
 
 	return res
 }
@@ -86,13 +87,13 @@ func isPackageDir(fileInIt *os.FileInfo) bool {
 
 func makeFilter(srcDir string) func(f *os.FileInfo) bool {
 	_, d := path.Split(srcDir)
-	println("^&*^&* Specific files for " + d)
+// 	println("^&*^&* Specific files for " + d)
 	if files, ok := specificFiles[d]; ok {
-		println("^&*^&* found " + d)
+// 		println("^&*^&* found " + d)
 		return func(f *os.FileInfo) bool {
-			print("\n" + f.Name)
+// 			print("\n" + f.Name)
 			for _, fName := range *files {
-				print(" " + fName)
+// 				print(" " + fName)
 				if fName == f.Name {
 					return true
 				}
@@ -125,7 +126,7 @@ func parsePack(srcDir string) {
 
 	fileSet, packs, err := getAstTree(srcDir)
 	if err != nil {
-		fmt.Printf("SOME ERRORS while parsing pack " + srcDir)
+		fmt.Printf("Warning: some errors occured during parsing package %s:\n %v\n", srcDir, err)
 	}
 
 	_, d := path.Split(srcDir)
@@ -221,7 +222,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-	fmt.Printf("===================All packages stopped fixing \n")
+// 	fmt.Printf("===================All packages stopped fixing \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -231,7 +232,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-	fmt.Printf("===================All packages stopped opening \n")
+// 	fmt.Printf("===================All packages stopped opening \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -241,7 +242,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-	fmt.Printf("===================All packages stopped parsing globals \n")
+// 	fmt.Printf("===================All packages stopped parsing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
 		<-pack.Communication
@@ -250,7 +251,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-	fmt.Printf("===================All packages stopped fixing globals \n")
+// 	fmt.Printf("===================All packages stopped fixing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
 		<-pack.Communication
@@ -259,7 +260,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-	fmt.Printf("===================All packages stopped parsing locals \n")
+// 	fmt.Printf("===================All packages stopped parsing locals \n")
 
 	return program
 }
@@ -300,6 +301,25 @@ func (p *Program) FindSymbolByPosition(filename string, line int, column int) (s
 	return nil, errors.IdentifierNotFoundError(filename, line, column)
 }
 
+func (p *Program) Save() {
+	for _, pack := range p.Packages {
+		if pack.IsGoPackage {
+			continue
+		}
+		fmt.Printf("saving package: %s\n", pack.AstPackage.Name)
+		for fName, file := range pack.AstPackage.Files {
+			fd, err := os.Open(fName, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+			if err != nil {
+				panic("couldn't open file " + fName + "for writing")
+			}
+			err = printer.Fprint(fd, pack.FileSet, file)
+			if err != nil {
+				panic("couldn't write to file " + fName)
+			}
+			fd.Close()
+		}
+	}
+}
 // func (p *Program) GetCodeBlock(filename string, lineStart int, lineEnd int,colStart int,colEnd int) (ast.Node,*errors.GoRefactorError) {
 // 	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
 // 	if packageIn == nil {
