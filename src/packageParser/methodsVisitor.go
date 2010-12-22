@@ -12,7 +12,7 @@ type methodsVisitor struct {
 	Parser *packageParser
 }
 
-func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (mv *methodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	w = mv
 	switch f := node.(type) {
 	case *ast.FuncDecl:

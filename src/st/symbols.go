@@ -81,7 +81,7 @@ func init() {
 }
 
 var builtIn []string = []string{"cap", "close", "closed", "cmplx", "copy", "imag", "len", "make", "new", "panic",
-	"print", "println", "real", "recover","append"}
+	"print", "println", "real", "recover", "append"}
 var integerTypes map[string]bool = map[string]bool{"uintptr": true, "byte": true, "int8": true, "int16": true, "int32": true, "int64": true, "uint8": true, "uint16": true, "uint32": true, "uint64": true, "int": true, "uint": true}
 var floatTypes map[string]bool = map[string]bool{"float32": true, "float64": true, "float": true}
 var complexTypes map[string]bool = map[string]bool{"complex64": true, "complex128": true, "complex": true}
@@ -116,9 +116,9 @@ func (im IdentifierMap) AddIdent(ident *ast.Ident, sym Symbol) {
 func (im IdentifierMap) GetSymbol(ident *ast.Ident) Symbol {
 	s, ok := im[ident]
 	if !ok {
-		panic("untracked ident "+ident.Name)
+		panic("untracked ident " + ident.Name)
 	}
-	return s;
+	return s
 }
 
 type IdentSet map[*ast.Ident]bool

@@ -1,7 +1,7 @@
 #!/bin/bash
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 164 -c 4 -el 165 -ec 4 -e SomeMeth -vl 164 -vc 4
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 289 -c 5 -el 289 -ec 5 -e SomeMeth
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 154 -c 2 -el 156 -ec 2 -e SomeMeth
 ./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 61 -c 4 -el 62 -ec 4 -e SomeMeth
 ./build

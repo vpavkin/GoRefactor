@@ -17,7 +17,7 @@ type importsVisitor struct {
 }
 
 //ast.Visitor.Visit(). Looks for ast.TypeSpec nodes of ast.Tree to register new types
-func (iv *importsVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (iv *importsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	w = iv
 	if is, ok := node.(*ast.ImportSpec); ok {
 
