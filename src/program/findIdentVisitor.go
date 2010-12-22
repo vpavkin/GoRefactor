@@ -12,7 +12,7 @@ type findIdentVisitor struct {
 	Pos     token.Position
 }
 
-func (fv *findIdentVisitor) Visit(node interface{}) ast.Visitor {
+func (fv *findIdentVisitor) Visit(node ast.Node) ast.Visitor {
 
 	if id, ok := node.(*ast.Ident); ok {
 

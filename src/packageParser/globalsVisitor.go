@@ -16,7 +16,7 @@ type globalsVisitor struct {
 /*^GlobalsVisitor Methods^^*/
 
 //ast.Visitor.Visit(). Looks for top-level ast.ValueSpec nodes of ast.Tree to register global vars
-func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
+func (gv globalsVisitor) Visit(node ast.Node) ast.Visitor {
 
 	switch t := node.(type) {
 	case *ast.ValueSpec:

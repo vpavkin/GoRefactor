@@ -14,7 +14,7 @@ import ("fmt"
 //ast.Visitor which prints ast.tree
 type PrintNodeVisitor int
 
-func (p PrintNodeVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (p PrintNodeVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	if node != nil {
 		for i := 0; i < int(p); i++ {
 			fmt.Print(" ")

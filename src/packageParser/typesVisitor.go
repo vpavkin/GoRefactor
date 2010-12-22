@@ -17,7 +17,7 @@ type typesVisitor struct {
 
 
 //ast.Visitor.Visit(). Looks for ast.TypeSpec nodes of ast.Tree to register new types
-func (tv *typesVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (tv *typesVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	if tsp, ok := node.(*ast.TypeSpec); ok {
 		ts := tv.Parser.parseTypeSymbol(tsp.Type)
 

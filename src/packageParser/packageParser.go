@@ -59,7 +59,9 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 	for fName, atree := range rootPack.AstPackage.Files {
 
 		pp.CurrentFileName = fName
-		ast.Walk(pp.TypesParser, atree.Decls)
+		for _, decl := range atree.Decls {
+			ast.Walk(pp.TypesParser, decl)
+		}
 	}
 
 	pp.Package.Communication <- 0
@@ -80,7 +82,9 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 	pp.Mode = METHODS_MODE
 	for fName, atree := range rootPack.AstPackage.Files {
 		pp.CurrentFileName = fName
-		ast.Walk(pp.MethodsParser, atree.Decls)
+		for _, decl := range atree.Decls {
+			ast.Walk(pp.MethodsParser, decl)
+		}
 	}
 
 	pp.fixMethodsAndFields()
@@ -94,7 +98,9 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 	//fmt.Printf("gggggggg parsing globals at pack %s\n", rootPack.AstPackage.Name)
 	for fName, atree := range rootPack.AstPackage.Files {
 		pp.CurrentFileName = fName
-		ast.Walk(pp.GlobalsParser, atree.Decls)
+		for _, decl := range atree.Decls {
+			ast.Walk(pp.GlobalsParser, decl)
+		}
 	}
 
 	pp.Package.Communication <- 0
@@ -106,7 +112,9 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 
 	for fName, atree := range rootPack.AstPackage.Files {
 		pp.CurrentFileName = fName
-		ast.Walk(pp.GlobalsFixer, atree.Decls)
+		for _, decl := range atree.Decls {
+			ast.Walk(pp.GlobalsFixer, decl)
+		}
 	}
 
 	// 	if pp.Package.AstPackage.Name == "st" {
@@ -149,7 +157,9 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 		// 		fmt.Printf("@@@@@@@@ parsing locals at pack %s\n", rootPack.AstPackage.Name)
 		for fName, atree := range rootPack.AstPackage.Files {
 			pp.CurrentFileName = fName
-			ast.Walk(pp.LocalsParser, atree.Decls)
+			for _, decl := range atree.Decls {
+				ast.Walk(pp.LocalsParser, decl)
+			}
 		}
 	}
 

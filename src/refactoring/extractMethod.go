@@ -55,7 +55,7 @@ func (vis *extractedSetVisitor) checkStmtList(list []ast.Stmt) {
 		}
 	}
 }
-func (vis *extractedSetVisitor) Visit(node interface{}) ast.Visitor {
+func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 
 	if vis.foundFirst() {
 		return nil
@@ -93,24 +93,24 @@ func (vis *extractedSetVisitor) Visit(node interface{}) ast.Visitor {
 }
 
 type getParametersVisitor struct {
-	Package  *st.Package
-	declared *st.SymbolTable
-	symbols  st.IdentifierMap
+	Package        *st.Package
+	declared       *st.SymbolTable
+	symbols        st.IdentifierMap
 	globalIdentMap st.IdentifierMap
 }
 
-func (vis *getParametersVisitor) declare(ident *ast.Ident){
+func (vis *getParametersVisitor) declare(ident *ast.Ident) {
 	if ident.Name != "_" {
-		s:= vis.globalIdentMap.GetSymbol(ident);
-		vis.declared.AddSymbol(s);
+		s := vis.globalIdentMap.GetSymbol(ident)
+		vis.declared.AddSymbol(s)
 	}
 }
-func (vis *getParametersVisitor) getInnerVisitor() *getParametersVisitor{
-	inVis:=&getParametersVisitor{vis.Package,st.NewSymbolTable(vis.Package), vis.symbols, vis.globalIdentMap}
+func (vis *getParametersVisitor) getInnerVisitor() *getParametersVisitor {
+	inVis := &getParametersVisitor{vis.Package, st.NewSymbolTable(vis.Package), vis.symbols, vis.globalIdentMap}
 	inVis.declared.AddOpenedScope(vis.declared)
-	return inVis;
+	return inVis
 }
-func (vis *getParametersVisitor) Visit(node interface{}) ast.Visitor {
+func (vis *getParametersVisitor) Visit(node ast.Node) ast.Visitor {
 	switch t := node.(type) {
 
 	case *ast.AssignStmt:
@@ -120,42 +120,46 @@ func (vis *getParametersVisitor) Visit(node interface{}) ast.Visitor {
 				vis.declare(n)
 			}
 		} else {
-			ast.Walk(vis, t.Lhs)
+			for _, exp := range t.Lhs {
+				ast.Walk(vis, exp)
+			}
 		}
-		ast.Walk(vis, t.Rhs)
+		for _, exp := range t.Rhs {
+			ast.Walk(vis, exp)
+		}
 		return nil
 	case *ast.SelectorExpr:
-		if id,ok:=t.X.(*ast.Ident);ok{
-			
-			s:= vis.globalIdentMap.GetSymbol(id);
-			
-			switch sym := s.(type){
-				case *st.PackageSymbol:
-				case st.ITypeSymbol:
-				case *st.VariableSymbol:
-					if sym.Scope() != vis.Package.Symbols{
-						ast.Walk(vis,id);
-					}
+		if id, ok := t.X.(*ast.Ident); ok {
+
+			s := vis.globalIdentMap.GetSymbol(id)
+
+			switch sym := s.(type) {
+			case *st.PackageSymbol:
+			case st.ITypeSymbol:
+			case *st.VariableSymbol:
+				if sym.Scope() != vis.Package.Symbols {
+					ast.Walk(vis, id)
+				}
 			}
-		}else{
-			ast.Walk(vis,t.X);
+		} else {
+			ast.Walk(vis, t.X)
 		}
 		return nil
 	case *ast.ValueSpec:
-		for _,n := range t.Names{
-			
+		for _, n := range t.Names {
+
 			vis.declare(n)
 		}
-		return nil;
+		return nil
 	//case *ast.TypeSpec:
 	case *ast.RangeStmt:
-		
-		inVis:=vis.getInnerVisitor()
-		
+
+		inVis := vis.getInnerVisitor()
+
 		if t.Tok == token.DEFINE {
 			key := t.Key.(*ast.Ident)
 			inVis.declare(key)
-			if t.Value != nil{
+			if t.Value != nil {
 				value := t.Value.(*ast.Ident)
 				inVis.declare(value)
 			}
@@ -167,63 +171,74 @@ func (vis *getParametersVisitor) Visit(node interface{}) ast.Visitor {
 		ast.Walk(inVis, t.Body)
 		return nil
 	case *ast.CommClause:
-		
-		inVis:=vis.getInnerVisitor()
-		
+
+		inVis := vis.getInnerVisitor()
+
 		if t.Tok == token.DEFINE {
 			n := t.Lhs.(*ast.Ident)
 			inVis.declare(n)
 		} else {
-			ast.Walk(inVis, t.Lhs)
+			if t.Lhs != nil {
+				ast.Walk(inVis, t.Lhs)
+			}
 		}
-		ast.Walk(inVis, t.Rhs)
-		ast.Walk(inVis, t.Body)
+		if t.Rhs != nil {
+			ast.Walk(inVis, t.Rhs)
+		}
+		for _, stmt := range t.Body {
+			ast.Walk(vis, stmt)
+		}
 		return nil
 	case *ast.IfStmt:
-		
-		inVis:=vis.getInnerVisitor()
-		
-		ast.Walk(inVis,t.Init)
-		ast.Walk(inVis,t.Cond)
-		ww1 := inVis.getInnerVisitor();
-		ww2 := inVis.getInnerVisitor();
+
+		inVis := vis.getInnerVisitor()
+		if t.Init != nil {
+			ast.Walk(inVis, t.Init)
+		}
+		if t.Cond != nil {
+			ast.Walk(inVis, t.Cond)
+		}
+		ww1 := inVis.getInnerVisitor()
+		ww2 := inVis.getInnerVisitor()
 		ast.Walk(ww1, t.Body)
-		ast.Walk(ww2, t.Else)
+		if t.Else != nil {
+			ast.Walk(ww2, t.Else)
+		}
 		return nil
-	case  *ast.FuncLit:
-		inVis:=vis.getInnerVisitor()
-		if t.Type.Params != nil{
-			for _,f := range t.Type.Params.List{
-				for _,n:=range f.Names{
-					inVis.declare(n);
+	case *ast.FuncLit:
+		inVis := vis.getInnerVisitor()
+		if t.Type.Params != nil {
+			for _, f := range t.Type.Params.List {
+				for _, n := range f.Names {
+					inVis.declare(n)
 				}
 			}
 		}
-		if t.Type.Results != nil{
-			for _,f := range t.Type.Results.List{
-				for _,n:=range f.Names{
-					inVis.declare(n);
+		if t.Type.Results != nil {
+			for _, f := range t.Type.Results.List {
+				for _, n := range f.Names {
+					inVis.declare(n)
 				}
 			}
 		}
-		return inVis;
+		return inVis
 	case *ast.SwitchStmt, *ast.ForStmt, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.TypeCaseClause:
-		return vis.getInnerVisitor();
+		return vis.getInnerVisitor()
 	case *ast.Ident:
-		if _,found := vis.declared.LookUp(t.Name,"");!found{
-			vis.symbols.AddIdent(t,vis.globalIdentMap.GetSymbol(t));
+		if _, found := vis.declared.LookUp(t.Name, ""); !found {
+			vis.symbols.AddIdent(t, vis.globalIdentMap.GetSymbol(t))
 		}
 	}
-	return vis;
+	return vis
 }
 
 func getParameters(pack *st.Package, stmtList *vector.Vector, globalIdentMap st.IdentifierMap) st.IdentifierMap {
-	vis := &getParametersVisitor{pack,st.NewSymbolTable(pack), make(map[*ast.Ident]st.Symbol), globalIdentMap}
-	vis.declared.AddOpenedScope(pack.Symbols);
+	vis := &getParametersVisitor{pack, st.NewSymbolTable(pack), make(map[*ast.Ident]st.Symbol), globalIdentMap}
+	vis.declared.AddOpenedScope(pack.Symbols)
 	for _, stmt := range *stmtList {
-		ast.Walk(vis, stmt)
+		ast.Walk(vis, stmt.(ast.Node))
 	}
-	return vis.symbols;
+	return vis.symbols
 }
 
 func CheckExtractMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
@@ -261,13 +276,13 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
 	}
 
-	parList := getParameters(pack,vis.resultBlock,programTree.IdentMap)
+	parList := getParameters(pack, vis.resultBlock, programTree.IdentMap)
 	fmt.Println("Parameters:")
-	mmm:=make(map[st.Symbol]bool);
-	for _,sym := range parList{
-		if _,ok:=mmm[sym];!ok{
-			fmt.Println(sym.Name());
-			mmm[sym] = true;
+	mmm := make(map[st.Symbol]bool)
+	for _, sym := range parList {
+		if _, ok := mmm[sym]; !ok {
+			fmt.Println(sym.Name())
+			mmm[sym] = true
 		}
 	}
 	return true, nil

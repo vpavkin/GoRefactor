@@ -19,7 +19,7 @@ type innerScopeVisitor struct {
 	IotaType st.ITypeSymbol
 }
 
-func (lv *localsVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (lv *localsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	w = lv
 	switch f := node.(type) {
 
@@ -300,7 +300,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				ww.Parser.parseExpr(v)
 			}
 		}
-		ast.Walk(ww, inNode.Body)
+		for _, stmt := range inNode.Body {
+			ast.Walk(ww, stmt)
+		}
 		w = nil
 	case *ast.CommClause:
 		switch {
@@ -320,7 +322,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		case inNode.Rhs != nil:
 			ww.Parser.parseExpr(inNode.Rhs)
 		}
-		ast.Walk(ww, inNode.Body)
+		for _, stmt := range inNode.Body {
+			ast.Walk(ww, stmt)
+		}
 		w = nil
 	case *ast.TypeCaseClause:
 		switch {
@@ -341,7 +345,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				ww.Parser.parseExpr(t)
 			}
 		}
-		ast.Walk(ww, inNode.Body)
+		for _, stmt := range inNode.Body {
+			ast.Walk(ww, stmt)
+		}
 		w = nil
 	case *ast.FuncLit:
 		meth := st.MakeFunction("#", ww.Current, lv.Parser.parseTypeSymbol(inNode.Type))
@@ -357,7 +363,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 	}
 	return w
 }
-func (isv *innerScopeVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (isv *innerScopeVisitor) Visit(node ast.Node) (w ast.Visitor) {
 
 	return isv.parseStmt(node)
 
