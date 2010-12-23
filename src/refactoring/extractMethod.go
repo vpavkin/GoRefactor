@@ -5,12 +5,9 @@ import (
 	"container/vector"
 	"st"
 	"go/token"
-	//"fmt"
 	"utils"
 	"errors"
 	"program"
-	"go/printer"
-	"os"
 	"packageParser"
 )
 
@@ -81,8 +78,8 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			caseClause := cc.(*ast.CommClause)
 			vis.checkStmtList(caseClause.Body)
 		}
-// 	case *ast.BasicLit:
-// 		return nil
+		// 	case *ast.BasicLit:
+		// 		return nil
 	case ast.Expr:
 		if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.Pos()), vis.lastNodePos) == 0 {
 			if utils.ComparePosWithinFile(vis.firstNodePos, vis.lastNodePos) == 0 {
@@ -275,12 +272,12 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 	return stmtList
 }
 
-func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol,pack *st.Package,filename string) *ast.FuncDecl {
+func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol, pack *st.Package, filename string) *ast.FuncDecl {
 
-	flist := params.ToAstFieldList(pack,filename)
+	flist := params.ToAstFieldList(pack, filename)
 	ftype := &ast.FuncType{token.NoPos, flist, nil}
 	if result != nil {
-		ftype.Results = &ast.FieldList{token.NoPos, []*ast.Field{ &ast.Field{nil,nil,result.ToAstExpr(pack,filename),nil,nil}}, token.NoPos}
+		ftype.Results = &ast.FieldList{token.NoPos, []*ast.Field{&ast.Field{nil, nil, result.ToAstExpr(pack, filename), nil, nil}}, token.NoPos}
 	}
 	fbody := &ast.BlockStmt{token.NoPos, stmtList, token.NoPos}
 	return &ast.FuncDecl{nil, nil, ast.NewIdent(name), ftype, fbody}
@@ -319,8 +316,8 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
-	fdecl := makeFuncDecl(methodName, stmtList, params, result,pack,filename)
-	printer.Fprint(os.Stdout, token.NewFileSet(), fdecl)
+	fdecl := makeFuncDecl(methodName, stmtList, params, result, pack, filename)
+	file.Decls = append(file.Decls, fdecl)
 	return true, nil
 
 }

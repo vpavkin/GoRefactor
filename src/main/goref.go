@@ -105,6 +105,7 @@ func main() {
 		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, varLine, varColumn); !ok {
 			fmt.Println("error:", err.Message)
 		}
+		p.SaveFile(filename)
 	case INLINE_METHOD:
 		fmt.Println("this feature is not implemented yet")
 	case EXTRACT_INTERFACE:

@@ -320,3 +320,16 @@ func (p *Program) Save() {
 		}
 	}
 }
+func (p *Program) SaveFile(filename string) {
+	pack, file := p.FindPackageAndFileByFilename(filename)
+	fmt.Printf("saving file: %s\n", filename)
+	fd, err := os.Open(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+	if err != nil {
+		panic("couldn't open file " + filename + "for writing")
+	}
+	err = printer.Fprint(fd, pack.FileSet, file)
+	if err != nil {
+		panic("couldn't write to file " + filename)
+	}
+	fd.Close()
+}
