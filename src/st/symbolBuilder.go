@@ -40,8 +40,8 @@ func MakeMapType(name string, scope *SymbolTable, keyType ITypeSymbol, elemType 
 	return &MapTypeSymbol{makeTypeSymbol(name, scope), keyType, elemType}
 }
 
-func MakeChannelType(name string, scope *SymbolTable, valueType ITypeSymbol) *ChanTypeSymbol {
-	return &ChanTypeSymbol{makeTypeSymbol(name, scope), valueType}
+func MakeChannelType(name string, scope *SymbolTable, valueType ITypeSymbol, dir ast.ChanDir) *ChanTypeSymbol {
+	return &ChanTypeSymbol{makeTypeSymbol(name, scope), dir, valueType}
 }
 
 func MakeBasicType(name string, scope *SymbolTable) *BasicTypeSymbol {

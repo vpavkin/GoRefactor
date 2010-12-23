@@ -23,6 +23,7 @@ const (
 	GLOBALS_FIXING_MODE
 	METHODS_MODE
 	LOCALS_MODE
+	REFACTORING_MODE
 )
 
 
@@ -168,13 +169,19 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 
 }
 
-
-// func (pp *packageParser) registerNewSymbolTable() (table *st.SymbolTable) {
-// 	table = st.NewSymbolTable(pp.Package)
-// 	pp.Package.SymbolTablePool.Push(table)
-// 	return
-// }
-
+func ParseExpr(expr ast.Expr, pack *st.Package, filename string, identMap st.IdentifierMap) st.ITypeSymbol {
+	pp := newPackageParser(pack, identMap)
+	pp.CurrentFileName = filename
+	pp.Mode = REFACTORING_MODE
+	v := pp.parseExpr(expr)
+	if len(*v) == 0 {
+		return st.MakeInterfaceType(st.NO_NAME, pack.Symbols)
+	}
+	if t, ok := v.At(0).(st.ITypeSymbol); ok {
+		return t
+	}
+	return st.MakeInterfaceType(st.NO_NAME, pack.Symbols)
+}
 
 /*^^SymbolTableBuilder Methods^^*/
 func newPackageParser(p *st.Package, identMap st.IdentifierMap) *packageParser {
@@ -188,11 +195,6 @@ func newPackageParser(p *st.Package, identMap st.IdentifierMap) *packageParser {
 	pp.LocalsParser = &localsVisitor{pp}
 
 	return pp
-}
-
-func getIntValue(t *ast.BasicLit) int {
-	l, _ := strconv.Atoi(string(t.Value))
-	return l
 }
 
 func (pp *packageParser) registerIdent(sym st.Symbol, ident *ast.Ident) {
@@ -303,13 +305,14 @@ func (pp *packageParser) tParseArrayType(t *ast.ArrayType) (result *st.ArrayType
 		case *ast.Ellipsis:
 			result.Len = st.ELLIPSIS
 		case *ast.BasicLit:
-			result.Len = getIntValue(tt)
+			l, _ := strconv.Atoi(string(tt.Value))
+			result.Len = l
 		}
 	}
 	return
 }
 func (pp *packageParser) tParseChanType(t *ast.ChanType) (result *st.ChanTypeSymbol) {
-	result = st.MakeChannelType(st.NO_NAME, pp.CurrentSymbolTable, pp.parseTypeSymbol(t.Value))
+	result = st.MakeChannelType(st.NO_NAME, pp.CurrentSymbolTable, pp.parseTypeSymbol(t.Value), t.Dir)
 	return
 }
 func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.InterfaceTypeSymbol) {

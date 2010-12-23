@@ -34,10 +34,10 @@ func init() {
 	capFts.Results.addSymbol(MakeVariable("_", nil, PredeclaredTypes["int"]))
 
 	closeFts := MakeFunctionType(NO_NAME, nil)
-	closeFts.Parameters.addSymbol(MakeVariable("_", nil, MakeChannelType(NO_NAME, nil, nil)))
+	closeFts.Parameters.addSymbol(MakeVariable("_", nil, MakeChannelType(NO_NAME, nil, nil, ast.SEND|ast.RECV)))
 
 	closedFts := MakeFunctionType(NO_NAME, nil)
-	closedFts.Parameters.addSymbol(MakeVariable("_", nil, MakeChannelType(NO_NAME, nil, nil)))
+	closedFts.Parameters.addSymbol(MakeVariable("_", nil, MakeChannelType(NO_NAME, nil, nil, ast.SEND|ast.RECV)))
 	closedFts.Results.addSymbol(MakeVariable("_", nil, PredeclaredTypes["bool"]))
 
 	copyFts := MakeFunctionType(NO_NAME, nil)
@@ -104,8 +104,6 @@ type Symbol interface {
 	HasPosition(token.Position) bool
 	PackageFrom() *Package
 	Scope() *SymbolTable
-
-	String() string
 }
 
 type IdentifierMap map[*ast.Ident]Symbol
@@ -144,7 +142,7 @@ type ITypeSymbol interface {
 	SetMethods(*SymbolTable)
 	Methods() *SymbolTable //Returns type's methods
 	AddMethod(meth Symbol) //Adds a method to the type symbol
-	//Copy() ITypeSymbol     //Returns a value-copy of a type symbol
+	ToAstExpr(pack *Package, filename string) ast.Expr
 }
 
 /***TypeSymbols. Implement ITypeSymbol***/
@@ -189,6 +187,7 @@ type ArrayTypeSymbol struct {
 //Channel type symbol
 type ChanTypeSymbol struct {
 	*TypeSymbol
+	Dir       ast.ChanDir
 	ValueType ITypeSymbol
 }
 //Function type symbol
@@ -256,7 +255,16 @@ func NewPackage(qualifiedPath string, fileSet *token.FileSet, astPackage *ast.Pa
 	p.Communication = make(chan int)
 	return p
 }
-
+func (pack *Package) getImport(filename string, imported *Package) *PackageSymbol {
+	imps := pack.Imports[filename]
+	for _, el := range *imps {
+		imp := el.(*PackageSymbol)
+		if imp.Package == imported {
+			return imp
+		}
+	}
+	return nil
+}
 //Symbol represents a function or a method
 type FunctionSymbol struct {
 	name              string
@@ -281,6 +289,7 @@ type VariableSymbol struct {
 
 /*^^Other Symbol Methods^^*/
 const NO_NAME string = ""
+const UNNAMED_PREFIX string = "$"
 
 func (s *TypeSymbol) Name() string { return s.name }
 
@@ -427,47 +436,6 @@ func (s *VariableSymbol) AddIdent(ident *ast.Ident) {
 func (s *FunctionSymbol) AddIdent(ident *ast.Ident) {
 	addIdent(s, ident)
 }
-/* ITypeSymbol.Copy() Methods */
-
-// func (ts TypeSymbol) Copy() ITypeSymbol {
-// 	return &TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}
-// }
-// func (ts UnresolvedTypeSymbol) Copy() ITypeSymbol {
-// 	return &UnresolvedTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.Declaration}
-// }
-// func (ts AliasTypeSymbol) Copy() ITypeSymbol {
-// 	return &AliasTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.BaseType}
-// }
-// func (ts ArrayTypeSymbol) Copy() ITypeSymbol {
-// 	return &ArrayTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.ElemType, ts.Len}
-// }
-// func (ts InterfaceTypeSymbol) Copy() ITypeSymbol {
-// 	return &InterfaceTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}}
-// }
-// func (ts ChanTypeSymbol) Copy() ITypeSymbol {
-// 	return &ChanTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.ValueType}
-// }
-// func (ts FunctionTypeSymbol) Copy() ITypeSymbol {
-// 	return &FunctionTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.Parameters, ts.Results, ts.Reciever}
-// }
-// func (ts MapTypeSymbol) Copy() ITypeSymbol {
-// 	return &MapTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.KeyType, ts.ValueType}
-// }
-// func (ts PointerTypeSymbol) Copy() ITypeSymbol {
-// 	return &PointerTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: nil, PackFrom: ts.PackFrom}, ts.BaseType, ts.Fields}
-// }
-// func (ts StructTypeSymbol) Copy() ITypeSymbol {
-// 	return &StructTypeSymbol{&TypeSymbol{Ident: ts.Ident, Meths: NewSymbolTable(nil), Posits: make(map[string]token.Position), PackFrom: ts.PackFrom}, ts.Fields}
-// }
-// func (vs VariableSymbol) Copy() *VariableSymbol {
-// 	return &VariableSymbol{vs.Ident, vs.VariableType, vs.Posits, vs.PackFrom, vs.ReadOnly}
-// }
-// func (fs FunctionSymbol) Copy() *FunctionSymbol {
-// 	return &FunctionSymbol{fs.Ident, fs.FunctionType, fs.Locals, fs.Posits, fs.PackFrom, fs.ReadOnly}
-// }
-
-/*^^Other ITypeSymbol Methods^^*/
-
 
 //ITypeSymbol.Methods()
 func (ts *TypeSymbol) Methods() *SymbolTable { return ts.Meths }
@@ -589,119 +557,4 @@ func IsFloatType(name string) (r bool) {
 func IsComplexType(name string) (r bool) {
 	_, r = complexTypes[name]
 	return
-}
-
-/*^^Symbol.String() Methods^^*/
-
-
-func (ts TypeSymbol) String() string {
-	return ts.Name()
-}
-
-//Symbol.String()
-func (ts BasicTypeSymbol) String() string {
-
-	return ts.Name()
-}
-
-//Symbol.String()
-func (ut UnresolvedTypeSymbol) String() string {
-
-	return "?" + ut.Name() + "?"
-}
-
-//Symbol.String()
-func (ats AliasTypeSymbol) String() string {
-	return ats.Name() + " " + ats.BaseType.Name()
-}
-
-//Symbol.String()
-func (ats ArrayTypeSymbol) String() string {
-	return ats.Name() + " [" + strconv.Itoa(ats.Len) + "]" + ats.ElemType.Name()
-}
-
-//Symbol.String()
-func (cts ChanTypeSymbol) String() string { return "chan " + cts.ValueType.Name() }
-
-//Symbol.String()
-func (fs FunctionTypeSymbol) String() string {
-
-	s1 := ""
-	s2 := ""
-	if fs.Parameters != nil {
-		fs.Parameters.forEach(func(v Symbol) {
-			s1 += v.String() + ","
-		})
-	}
-	if fs.Results != nil {
-		fs.Results.forEach(func(v Symbol) {
-			s2 += v.String() + ","
-		})
-	}
-	return fs.Name() + "(" + s1 + ")(" + s2 + ")"
-
-}
-
-//Symbol.String()
-func (its InterfaceTypeSymbol) String() string {
-	//if its.Name() != "" { return its.Name()}
-	s := "\n"
-	if its.Methods() != nil {
-		its.Methods().forEach(func(sym Symbol) {
-			s += sym.String() + "\n"
-		})
-	}
-	return its.Name() + " interface {" + s + "}"
-}
-
-//Symbol.String()
-func (mts MapTypeSymbol) String() string {
-	//fmt.Printf("BBBB")
-	return mts.Name() + " map[" + mts.KeyType.Name() + "]" + mts.ValueType.Name()
-}
-
-//Symbol.String()
-func (pts PointerTypeSymbol) String() string {
-
-	return pts.Name()
-}
-
-//Symbol.String()
-func (ts StructTypeSymbol) String() string {
-
-	s := "\n"
-	ts.Fields.forEach(func(v Symbol) {
-		s += v.String() + "\n"
-	})
-	return ts.Name() + " struct {" + s + "}"
-}
-
-//Symbol.String()
-func (fs FunctionSymbol) String() string {
-
-	s := ""
-	if fts, ok := fs.FunctionType.(*FunctionTypeSymbol); ok && fts != nil {
-		if fts.Reciever != nil {
-			fts.Reciever.forEach(func(r Symbol) {
-				s = "(" + r.String() + ")"
-			})
-		}
-	}
-	fss := ""
-	if fs.FunctionType.Name() == "" {
-		fss += fs.FunctionType.String()
-	} else {
-		fss += fs.FunctionType.Name()
-	}
-	return fs.Name() + s + " " + fss
-}
-
-//Symbol.String()
-func (vs VariableSymbol) String() string {
-	return vs.Name() + " " + vs.VariableType.Name()
-}
-
-//Symbol.String()
-func (vs PackageSymbol) String() string {
-	return vs.name + " " + vs.ShortPath
 }

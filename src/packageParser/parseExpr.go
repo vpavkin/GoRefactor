@@ -6,6 +6,7 @@ import (
 	"container/vector"
 	//"fmt"
 	"st"
+	"strconv"
 )
 
 type exprParser struct {
@@ -39,7 +40,11 @@ func (pp *packageParser) parseExpr(exp ast.Expr) (res *vector.Vector) {
 		res.Push(pp.parseExpr(e.Type).At(0))
 
 	case *ast.Ident:
-		return pp.eParseIdent(e)
+		if pp.Mode == REFACTORING_MODE {
+			return pp.eParseIdentRef(e)
+		} else {
+			return pp.eParseIdent(e)
+		}
 	case *ast.IndexExpr:
 		return pp.eParseIndexExpr(e)
 	case *ast.KeyValueExpr:
@@ -270,7 +275,8 @@ func (pp *packageParser) eParseKeyValueExpr(e *ast.KeyValueExpr) (res *vector.Ve
 	//return array index to count it's length
 	if l, ok := e.Key.(*ast.BasicLit); ok {
 		if l.Kind == token.INT || l.Kind == token.CHAR {
-			res.Push(getIntValue(l))
+			val, _ := strconv.Atoi(string(l.Value))
+			res.Push(val)
 		}
 	}
 	return

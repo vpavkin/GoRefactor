@@ -6,7 +6,6 @@ import (
 )
 
 import "fmt"
-import "sort"
 
 
 //Represents a local SymbolTable with a number of opened scopes
@@ -346,7 +345,7 @@ func (table *SymbolTable) FindTypeSwitchVar() (*VariableSymbol, bool) {
 
 	return vs, found
 }
-
+/*
 func (table *SymbolTable) String() *vector.StringVector {
 
 	var res = new(vector.StringVector)
@@ -410,7 +409,7 @@ func (table *SymbolTable) String() *vector.StringVector {
 	res.AppendVector(s)
 
 	return res
-}
+}*/
 
 
 func (table *SymbolTable) FindSymbolByPosition(filename string, line int, column int) (sym Symbol, found bool) {

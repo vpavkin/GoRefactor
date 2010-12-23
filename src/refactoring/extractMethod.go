@@ -5,10 +5,13 @@ import (
 	"container/vector"
 	"st"
 	"go/token"
-	"fmt"
+	//"fmt"
 	"utils"
 	"errors"
 	"program"
+	"go/printer"
+	"os"
+	"packageParser"
 )
 
 type extractedSetVisitor struct {
@@ -78,8 +81,8 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			caseClause := cc.(*ast.CommClause)
 			vis.checkStmtList(caseClause.Body)
 		}
-	case *ast.BasicLit:
-		return nil
+// 	case *ast.BasicLit:
+// 		return nil
 	case ast.Expr:
 		if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.Pos()), vis.lastNodePos) == 0 {
 			if utils.ComparePosWithinFile(vis.firstNodePos, vis.lastNodePos) == 0 {
@@ -259,6 +262,30 @@ func CheckExtractMethodParameters(filename string, lineStart int, colStart int, 
 	return true, nil
 }
 
+func makeStmtList(block *vector.Vector) []ast.Stmt {
+	stmtList := make([]ast.Stmt, len(*block))
+	for i, stmt := range *block {
+		switch el := stmt.(type) {
+		case ast.Stmt:
+			stmtList[i] = el
+		case ast.Expr:
+			stmtList[i] = &ast.ReturnStmt{token.NoPos, []ast.Expr{el}}
+		}
+	}
+	return stmtList
+}
+
+func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol,pack *st.Package,filename string) *ast.FuncDecl {
+
+	flist := params.ToAstFieldList(pack,filename)
+	ftype := &ast.FuncType{token.NoPos, flist, nil}
+	if result != nil {
+		ftype.Results = &ast.FieldList{token.NoPos, []*ast.Field{ &ast.Field{nil,nil,result.ToAstExpr(pack,filename),nil,nil}}, token.NoPos}
+	}
+	fbody := &ast.BlockStmt{token.NoPos, stmtList, token.NoPos}
+	return &ast.FuncDecl{nil, nil, ast.NewIdent(name), ftype, fbody}
+}
+
 func ExtractMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
 
 	if ok, err := CheckExtractMethodParameters(filename, lineStart, colStart, lineEnd, colEnd, methodName, recieverVarLine, recieverVarCol); !ok {
@@ -277,13 +304,23 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	}
 
 	parList := getParameters(pack, vis.resultBlock, programTree.IdentMap)
-	fmt.Println("Parameters:")
-	mmm := make(map[st.Symbol]bool)
+	paramSymbolsMap := make(map[st.Symbol]bool)
+	params := st.NewSymbolTable(pack)
 	for _, sym := range parList {
-		if _, ok := mmm[sym]; !ok {
-			fmt.Println(sym.Name())
-			mmm[sym] = true
+		if _, ok := paramSymbolsMap[sym]; !ok {
+			paramSymbolsMap[sym] = true
+			params.AddSymbol(sym)
 		}
 	}
+
+	stmtList := makeStmtList(vis.resultBlock)
+
+	var result st.ITypeSymbol
+	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
+		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
+	}
+	fdecl := makeFuncDecl(methodName, stmtList, params, result,pack,filename)
+	printer.Fprint(os.Stdout, token.NewFileSet(), fdecl)
 	return true, nil
+
 }

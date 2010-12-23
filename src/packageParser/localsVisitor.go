@@ -234,7 +234,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 			case *st.MapTypeSymbol:
 				kT = rT.KeyType
 				vT = rT.ValueType
-			case *st.TypeSymbol: //string
+			case *st.BasicTypeSymbol: //string
 				kT = st.PredeclaredTypes["int"]
 				vT = st.PredeclaredTypes["byte"]
 			case *st.ChanTypeSymbol:
