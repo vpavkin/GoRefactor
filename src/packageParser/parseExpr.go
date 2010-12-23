@@ -385,7 +385,7 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 		return
 	case "real", "imag":
 
-		tt = pp.parseTypeSymbol(e.Args[0])
+		tt = pp.parseExpr(e.Args[0]).At(0).(st.ITypeSymbol)
 
 		switch tt.Name() {
 		case "cmplx":
@@ -399,8 +399,8 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 	case "cmplx":
 		var t1, t2 st.ITypeSymbol
 
-		t1 = pp.parseTypeSymbol(e.Args[0])
-		t2 = pp.parseTypeSymbol(e.Args[1])
+		t1 = pp.parseExpr(e.Args[0]).At(0).(st.ITypeSymbol)
+		t2 = pp.parseExpr(e.Args[1]).At(0).(st.ITypeSymbol)
 
 		switch {
 		case t1.Name() == "float64" || t2.Name() == "float64":
@@ -413,7 +413,7 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 		return
 	case "append":
 
-		tt = pp.parseTypeSymbol(e.Args[0])
+		tt = pp.parseExpr(e.Args[0]).At(0).(st.ITypeSymbol)
 
 		res.Push(tt)
 
