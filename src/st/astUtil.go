@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func makeNamedExpr(s ITypeSymbol, pack *Package, filename string) ast.Expr {
+func makeNamedExpr(s Symbol, pack *Package, filename string) ast.Expr {
 	if s.PackageFrom() != pack {
 		imp := pack.getImport(filename, s.PackageFrom())
 		prefix := imp.Name()
@@ -94,13 +94,34 @@ func (ps *PackageSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
 	panic("mustn't call ITypeSymbol methods on PackageSymbol")
 }
 
-//VariableSymbol
+//VariableSymbol & FunctionSymbol
 
 func (s *VariableSymbol) ToAstField(pack *Package, filename string) *ast.Field {
 	if s.Name() == NO_NAME || strings.HasPrefix(s.Name(), UNNAMED_PREFIX) {
 		return &ast.Field{nil, nil, s.VariableType.ToAstExpr(pack, filename), nil, nil}
 	}
 	return &ast.Field{nil, []*ast.Ident{ast.NewIdent(s.Name())}, s.VariableType.ToAstExpr(pack, filename), nil, nil}
+}
+
+func (s *FunctionSymbol) ToAstField(pack *Package, filename string) *ast.Field {
+	if s.Name() == NO_NAME {
+		return &ast.Field{nil, nil, s.FunctionType.ToAstExpr(pack, filename), nil, nil}
+	}
+	return &ast.Field{nil, []*ast.Ident{ast.NewIdent(s.Name())}, s.FunctionType.ToAstExpr(pack, filename), nil, nil}
+}
+
+func (s *VariableSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
+	if s.Name() != NO_NAME {
+		return makeNamedExpr(s, pack, filename)
+	}
+	panic("can't make an expr out of unnamed variable/function")
+}
+
+func (s *FunctionSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
+	if s.Name() != NO_NAME {
+		return makeNamedExpr(s, pack, filename)
+	}
+	panic("can't make an expr out of unnamed variable/function")
 }
 
 // Symbol Table
@@ -110,11 +131,14 @@ func (s *VariableSymbol) ToAstField(pack *Package, filename string) *ast.Field {
 func (s *SymbolTable) ToAstFieldList(pack *Package, filename string) *ast.FieldList {
 	vect := new(vector.Vector)
 	s.ForEachNoLock(func(sym Symbol) {
-		v, ok := sym.(*VariableSymbol)
-		if !ok {
+		switch t := sym.(type) {
+		case *VariableSymbol:
+			vect.Push(t.ToAstField(pack, filename))
+		case *FunctionSymbol:
+			vect.Push(t.ToAstField(pack, filename))
+		default:
 			panic("can't convert symbol table with non-variable symbols to ast.FieldList")
 		}
-		vect.Push(v.ToAstField(pack, filename))
 	})
 
 	list := make([]*ast.Field, len(*vect))
@@ -122,4 +146,25 @@ func (s *SymbolTable) ToAstFieldList(pack *Package, filename string) *ast.FieldL
 		list[i] = el.(*ast.Field)
 	}
 	return &ast.FieldList{token.NoPos, list, token.NoPos}
+}
+
+func (s *SymbolTable) ToAstExprSlice(pack *Package, filename string) []ast.Expr {
+	vect := new(vector.Vector)
+	s.ForEachNoLock(func(sym Symbol) {
+		switch t := sym.(type) {
+		case *VariableSymbol:
+			vect.Push(t.ToAstExpr(pack, filename))
+		case *FunctionSymbol:
+			vect.Push(t.ToAstExpr(pack, filename))
+		default:
+			panic("can't convert symbol table with non-variable symbols to ast.FieldList")
+		}
+
+	})
+
+	list := make([]ast.Expr, len(*vect))
+	for i, el := range *vect {
+		list[i] = el.(ast.Expr)
+	}
+	return list
 }
