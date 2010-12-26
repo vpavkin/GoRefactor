@@ -22,8 +22,6 @@ echo STATEMENT_LISTS
 ./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 16 -c 2 -el 16 -ec 2 -e SomeMeth9
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/parseExpr.go -l 170 -c 2 -el 175 -ec 2 -e SomeMeth10
-./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 29 -c 2 -el 48 -ec 2 -e SomeMeth11
 ./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 60 -c 2 -el 81 -ec 2 -e SomeMeth12

@@ -241,6 +241,26 @@ func getParameters(pack *st.Package, stmtList *vector.Vector, globalIdentMap st.
 	return vis.symbols
 }
 
+type checkReturnVisitor struct{
+	has bool
+}
+func (vis *checkReturnVisitor) Visit(node ast.Node) ast.Visitor{
+	switch node.(type){
+		case *ast.ReturnStmt:
+			vis.has = true;
+	}
+	return vis;
+}
+
+func checkForReturns(block *vector.Vector) bool {
+	
+	vis := &checkReturnVisitor{};
+	for _, stmt := range *block {
+		ast.Walk(vis,stmt.(ast.Node))
+	}
+	return vis.has;
+}
+
 func CheckExtractMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
 	switch {
 	case filename == "" || !utils.IsGoFile(filename):
@@ -298,6 +318,10 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	ast.Walk(vis, file)
 	if !vis.isValid() {
 		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
+	}
+
+	if checkForReturns(vis.resultBlock) {
+		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code with return statements"}
 	}
 
 	parList := getParameters(pack, vis.resultBlock, programTree.IdentMap)

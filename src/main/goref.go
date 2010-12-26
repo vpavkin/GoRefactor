@@ -104,6 +104,7 @@ func main() {
 		p := program.ParseProgram(srcDir, nil)
 		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, varLine, varColumn); !ok {
 			fmt.Println("error:", err.Message)
+			return
 		}
 		p.SaveFile(filename)
 	case INLINE_METHOD:
