@@ -24,7 +24,7 @@ echo STATEMENT_LISTS
 ./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 29 -c 2 -el 48 -ec 2 -e SomeMeth11
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 60 -c 2 -el 81 -ec 2 -e SomeMeth12
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 41 -c 2 -el 51 -ec 2 -e SomeMeth12
 ./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 105 -c 2 -el 105 -ec 2 -e SomeMeth13
 ./build

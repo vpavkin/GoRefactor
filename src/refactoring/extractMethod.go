@@ -9,6 +9,7 @@ import (
 	"errors"
 	"program"
 	"packageParser"
+	"fmt"
 )
 
 type extractedSetVisitor struct {
@@ -20,7 +21,7 @@ type extractedSetVisitor struct {
 	firstNode    ast.Node
 	lastNode     ast.Node
 
-	listFrom []ast.Stmt
+	nodeFrom ast.Node
 }
 
 func (vis *extractedSetVisitor) foundFirst() bool {
@@ -37,7 +38,6 @@ func (vis *extractedSetVisitor) checkStmtList(list []ast.Stmt) {
 		if !vis.foundFirst() {
 			if utils.ComparePosWithinFile(vis.Package.FileSet.Position(stmt.Pos()), vis.firstNodePos) == 0 {
 				vis.firstNode = stmt
-				vis.listFrom = list
 				vis.resultBlock.Push(stmt)
 
 				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(stmt.Pos()), vis.lastNodePos) == 0 {
@@ -63,23 +63,36 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 	switch t := node.(type) {
 	case *ast.BlockStmt:
 		vis.checkStmtList(t.List)
+		if vis.isValid() {
+			vis.nodeFrom = t
+		}
 	case *ast.SwitchStmt:
 		for _, cc := range t.Body.List {
 			caseClause := cc.(*ast.CaseClause)
 			vis.checkStmtList(caseClause.Body)
+			if vis.isValid() {
+				vis.nodeFrom = caseClause
+				break;
+			}
 		}
 	case *ast.TypeSwitchStmt:
 		for _, cc := range t.Body.List {
 			caseClause := cc.(*ast.TypeCaseClause)
 			vis.checkStmtList(caseClause.Body)
+			if vis.isValid() {
+				vis.nodeFrom = caseClause
+				break;
+			}
 		}
 	case *ast.SelectStmt:
 		for _, cc := range t.Body.List {
 			caseClause := cc.(*ast.CommClause)
 			vis.checkStmtList(caseClause.Body)
+			if vis.isValid() {
+				vis.nodeFrom = caseClause
+				break;
+			}
 		}
-		// 	case *ast.BasicLit:
-		// 		return nil
 	case ast.Expr:
 		if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.Pos()), vis.lastNodePos) == 0 {
 			if utils.ComparePosWithinFile(vis.firstNodePos, vis.lastNodePos) == 0 {
@@ -241,24 +254,25 @@ func getParameters(pack *st.Package, stmtList *vector.Vector, globalIdentMap st.
 	return vis.symbols
 }
 
-type checkReturnVisitor struct{
+type checkReturnVisitor struct {
 	has bool
 }
-func (vis *checkReturnVisitor) Visit(node ast.Node) ast.Visitor{
-	switch node.(type){
-		case *ast.ReturnStmt:
-			vis.has = true;
+
+func (vis *checkReturnVisitor) Visit(node ast.Node) ast.Visitor {
+	switch node.(type) {
+	case *ast.ReturnStmt:
+		vis.has = true
 	}
-	return vis;
+	return vis
 }
 
 func checkForReturns(block *vector.Vector) bool {
-	
-	vis := &checkReturnVisitor{};
+
+	vis := &checkReturnVisitor{}
 	for _, stmt := range *block {
-		ast.Walk(vis,stmt.(ast.Node))
+		ast.Walk(vis, stmt.(ast.Node))
 	}
-	return vis.has;
+	return vis.has
 }
 
 func CheckExtractMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
@@ -303,6 +317,37 @@ func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, resu
 	return &ast.FuncDecl{nil, nil, ast.NewIdent(name), ftype, fbody}
 }
 
+func makeCallExpr(name string, params *st.SymbolTable,pos token.Pos, pack *st.Package, filename string) *ast.CallExpr {
+	Fun := ast.NewIdent(name)
+	Fun.NamePos = pos;
+	Args := params.ToAstExprSlice(pack,filename)
+	return &ast.CallExpr{Fun,token.NoPos,Args,token.NoPos,token.NoPos}
+}
+
+
+func replaceStmtsWithCall(origin []ast.Stmt,replace []ast.Stmt,with *ast.CallExpr) []ast.Stmt{
+	
+	ind:=-1;
+	for i,stmt := range origin{
+		if replace[0] == stmt {
+			ind = i
+			break;
+		}
+	}
+	if ind == -1{
+		panic("didn't find replace origin");
+	}
+	result := make([]ast.Stmt,ind);
+	fmt.Printf("%v\n",result);
+	copy(result,origin[0:ind])
+	fmt.Printf("%v\n",result);
+	result = append(result,&ast.ExprStmt{with})
+	fmt.Printf("%v\n",result);
+	result = append(result,origin[ind + len(replace):]...)
+	fmt.Printf("%v\n",result);
+	return result;
+}
+
 func ExtractMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
 
 	if ok, err := CheckExtractMethodParameters(filename, lineStart, colStart, lineEnd, colEnd, methodName, recieverVarLine, recieverVarCol); !ok {
@@ -341,6 +386,27 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
 	fdecl := makeFuncDecl(methodName, stmtList, params, result, pack, filename)
+	callExpr := makeCallExpr(methodName, params,stmtList[0].Pos(), pack, filename)
+	if _, ok := stmtList[0].(*ast.ReturnStmt); !ok {
+		switch t := vis.nodeFrom.(type) {
+		case *ast.BlockStmt:
+			list := t.List
+			newList := replaceStmtsWithCall(list, stmtList, callExpr)
+			t.List = newList
+		case *ast.CaseClause:
+			list := t.Body
+			newList := replaceStmtsWithCall(list, stmtList, callExpr)
+			t.Body = newList
+		case *ast.TypeCaseClause:
+			list := t.Body
+			newList := replaceStmtsWithCall(list, stmtList, callExpr)
+			t.Body = newList
+		case *ast.CommClause:
+			list := t.Body
+			newList := replaceStmtsWithCall(list, stmtList, callExpr)
+			t.Body = newList
+		}
+	}
 	file.Decls = append(file.Decls, fdecl)
 	return true, nil
 
