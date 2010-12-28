@@ -72,7 +72,7 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			vis.checkStmtList(caseClause.Body)
 			if vis.isValid() {
 				vis.nodeFrom = caseClause
-				break;
+				break
 			}
 		}
 	case *ast.TypeSwitchStmt:
@@ -81,7 +81,7 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			vis.checkStmtList(caseClause.Body)
 			if vis.isValid() {
 				vis.nodeFrom = caseClause
-				break;
+				break
 			}
 		}
 	case *ast.SelectStmt:
@@ -90,7 +90,7 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			vis.checkStmtList(caseClause.Body)
 			if vis.isValid() {
 				vis.nodeFrom = caseClause
-				break;
+				break
 			}
 		}
 	case ast.Expr:
@@ -108,7 +108,7 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 type getParametersVisitor struct {
 	Package        *st.Package
 	declared       *st.SymbolTable
-	symbols        st.IdentifierMap
+	params         st.IdentifierMap
 	globalIdentMap st.IdentifierMap
 }
 
@@ -119,7 +119,7 @@ func (vis *getParametersVisitor) declare(ident *ast.Ident) {
 	}
 }
 func (vis *getParametersVisitor) getInnerVisitor() *getParametersVisitor {
-	inVis := &getParametersVisitor{vis.Package, st.NewSymbolTable(vis.Package), vis.symbols, vis.globalIdentMap}
+	inVis := &getParametersVisitor{vis.Package, st.NewSymbolTable(vis.Package), vis.params, vis.globalIdentMap}
 	inVis.declared.AddOpenedScope(vis.declared)
 	return inVis
 }
@@ -239,19 +239,19 @@ func (vis *getParametersVisitor) Visit(node ast.Node) ast.Visitor {
 		return vis.getInnerVisitor()
 	case *ast.Ident:
 		if _, found := vis.declared.LookUp(t.Name, ""); !found {
-			vis.symbols.AddIdent(t, vis.globalIdentMap.GetSymbol(t))
+			vis.params.AddIdent(t, vis.globalIdentMap.GetSymbol(t))
 		}
 	}
 	return vis
 }
 
-func getParameters(pack *st.Package, stmtList *vector.Vector, globalIdentMap st.IdentifierMap) st.IdentifierMap {
+func getParameters(pack *st.Package, stmtList []ast.Stmt, globalIdentMap st.IdentifierMap) (st.IdentifierMap, *st.SymbolTable) {
 	vis := &getParametersVisitor{pack, st.NewSymbolTable(pack), make(map[*ast.Ident]st.Symbol), globalIdentMap}
 	vis.declared.AddOpenedScope(pack.Symbols)
-	for _, stmt := range *stmtList {
-		ast.Walk(vis, stmt.(ast.Node))
+	for _, stmt := range stmtList {
+		ast.Walk(vis, stmt)
 	}
-	return vis.symbols
+	return vis.params, vis.declared
 }
 
 type checkReturnVisitor struct {
@@ -266,13 +266,51 @@ func (vis *checkReturnVisitor) Visit(node ast.Node) ast.Visitor {
 	return vis
 }
 
-func checkForReturns(block *vector.Vector) bool {
+func checkForReturns(block []ast.Stmt) bool {
 
 	vis := &checkReturnVisitor{}
-	for _, stmt := range *block {
-		ast.Walk(vis, stmt.(ast.Node))
+	for _, stmt := range block {
+		ast.Walk(vis, stmt)
 	}
 	return vis.has
+}
+
+type checkScopingVisitor struct {
+	declaredInExtracted *st.SymbolTable
+	errs                *st.SymbolTable
+	globalIdentMap      st.IdentifierMap
+}
+
+func checkScoping(block ast.Node, stmtList []ast.Stmt, declaredInExtracted *st.SymbolTable, globalIdentMap st.IdentifierMap) (bool, *st.SymbolTable) {
+	source := getStmtList(block)
+	i, found := getIndexOfStmt(stmtList[len(stmtList)-1], source)
+	if !found {
+		panic("didn't find extracted code's end")
+	}
+	if i == len(source)-1 {
+		return true, nil
+	}
+	vis := &checkScopingVisitor{declaredInExtracted, st.NewSymbolTable(declaredInExtracted.Package), globalIdentMap}
+	for j := i + 1; j < len(source); j++ {
+		ast.Walk(vis, source[j])
+	}
+	if vis.errs.Count() > 0 {
+		return false, vis.errs
+	}
+	return true, nil
+}
+
+func (vis *checkScopingVisitor) Visit(node ast.Node) ast.Visitor {
+	switch t := node.(type) {
+	case *ast.Ident:
+		s := vis.globalIdentMap.GetSymbol(t)
+		if vis.declaredInExtracted.Contains(s) {
+			if !vis.errs.Contains(s) {
+				vis.errs.AddSymbol(s)
+			}
+		}
+	}
+	return vis
 }
 
 func CheckExtractMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
@@ -317,35 +355,66 @@ func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, resu
 	return &ast.FuncDecl{nil, nil, ast.NewIdent(name), ftype, fbody}
 }
 
-func makeCallExpr(name string, params *st.SymbolTable,pos token.Pos, pack *st.Package, filename string) *ast.CallExpr {
+func makeCallExpr(name string, params *st.SymbolTable, pos token.Pos, pack *st.Package, filename string) *ast.CallExpr {
 	Fun := ast.NewIdent(name)
-	Fun.NamePos = pos;
-	Args := params.ToAstExprSlice(pack,filename)
-	return &ast.CallExpr{Fun,token.NoPos,Args,token.NoPos,token.NoPos}
+	Fun.NamePos = pos
+	Args := params.ToAstExprSlice(pack, filename)
+	return &ast.CallExpr{Fun, token.NoPos, Args, token.NoPos, token.NoPos}
 }
 
-
-func replaceStmtsWithCall(origin []ast.Stmt,replace []ast.Stmt,with *ast.CallExpr) []ast.Stmt{
-	
-	ind:=-1;
-	for i,stmt := range origin{
-		if replace[0] == stmt {
-			ind = i
-			break;
+func getIndexOfStmt(entry ast.Stmt, in []ast.Stmt) (int, bool) {
+	for i, stmt := range in {
+		if entry == stmt {
+			return i, true
 		}
 	}
-	if ind == -1{
-		panic("didn't find replace origin");
+	return -1, false
+}
+func getStmtList(node ast.Node) []ast.Stmt {
+	switch t := node.(type) {
+	case *ast.BlockStmt:
+		return t.List
+	case *ast.CaseClause:
+		return t.Body
+	case *ast.TypeCaseClause:
+		return t.Body
+	case *ast.CommClause:
+		return t.Body
 	}
-	result := make([]ast.Stmt,ind);
-	fmt.Printf("%v\n",result);
-	copy(result,origin[0:ind])
-	fmt.Printf("%v\n",result);
-	result = append(result,&ast.ExprStmt{with})
-	fmt.Printf("%v\n",result);
-	result = append(result,origin[ind + len(replace):]...)
-	fmt.Printf("%v\n",result);
-	return result;
+	panic("wrong node type")
+}
+
+func setStmtList(node ast.Node, stmtList []ast.Stmt) {
+	switch t := node.(type) {
+	case *ast.BlockStmt:
+		t.List = stmtList
+	case *ast.CaseClause:
+		t.Body = stmtList
+	case *ast.TypeCaseClause:
+		t.Body = stmtList
+	case *ast.CommClause:
+		t.Body = stmtList
+	default:
+		panic("wrong node type")
+	}
+}
+
+func replaceStmtsWithCall(origin []ast.Stmt, replace []ast.Stmt, with *ast.CallExpr) []ast.Stmt {
+
+	ind, found := getIndexOfStmt(replace[0], origin)
+
+	if !found {
+		panic("didn't find replace origin")
+	}
+	result := make([]ast.Stmt, ind)
+	fmt.Printf("%v\n", result)
+	copy(result, origin[0:ind])
+	fmt.Printf("%v\n", result)
+	result = append(result, &ast.ExprStmt{with})
+	fmt.Printf("%v\n", result)
+	result = append(result, origin[ind+len(replace):]...)
+	fmt.Printf("%v\n", result)
+	return result
 }
 
 func ExtractMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
@@ -365,11 +434,13 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
 	}
 
-	if checkForReturns(vis.resultBlock) {
+	stmtList := makeStmtList(vis.resultBlock)
+
+	if checkForReturns(stmtList) {
 		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code with return statements"}
 	}
 
-	parList := getParameters(pack, vis.resultBlock, programTree.IdentMap)
+	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
 	paramSymbolsMap := make(map[st.Symbol]bool)
 	params := st.NewSymbolTable(pack)
 	for _, sym := range parList {
@@ -379,33 +450,24 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		}
 	}
 
-	stmtList := makeStmtList(vis.resultBlock)
+	if ok, errs := checkScoping(vis.nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
+		s := ""
+		errs.ForEach(func(sym st.Symbol) {
+			s += sym.Name() + " "
+		})
+		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
+	}
 
 	var result st.ITypeSymbol
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
 	fdecl := makeFuncDecl(methodName, stmtList, params, result, pack, filename)
-	callExpr := makeCallExpr(methodName, params,stmtList[0].Pos(), pack, filename)
+	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), pack, filename)
 	if _, ok := stmtList[0].(*ast.ReturnStmt); !ok {
-		switch t := vis.nodeFrom.(type) {
-		case *ast.BlockStmt:
-			list := t.List
-			newList := replaceStmtsWithCall(list, stmtList, callExpr)
-			t.List = newList
-		case *ast.CaseClause:
-			list := t.Body
-			newList := replaceStmtsWithCall(list, stmtList, callExpr)
-			t.Body = newList
-		case *ast.TypeCaseClause:
-			list := t.Body
-			newList := replaceStmtsWithCall(list, stmtList, callExpr)
-			t.Body = newList
-		case *ast.CommClause:
-			list := t.Body
-			newList := replaceStmtsWithCall(list, stmtList, callExpr)
-			t.Body = newList
-		}
+		list := getStmtList(vis.nodeFrom)
+		newList := replaceStmtsWithCall(list, stmtList, callExpr)
+		setStmtList(vis.nodeFrom, newList)
 	}
 	file.Decls = append(file.Decls, fdecl)
 	return true, nil

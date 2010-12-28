@@ -345,72 +345,6 @@ func (table *SymbolTable) FindTypeSwitchVar() (*VariableSymbol, bool) {
 
 	return vs, found
 }
-/*
-func (table *SymbolTable) String() *vector.StringVector {
-
-	var res = new(vector.StringVector)
-	var s = new(vector.StringVector)
-
-	table.forEach(func(sym Symbol) {
-		if _, ok := sym.(*PackageSymbol); ok {
-			s.Push("   package " + sym.String() + "\n")
-		}
-	})
-
-	sort.Sort(s)
-	s.Insert(0, "packages:\n")
-	res.AppendVector(s)
-
-	s = new(vector.StringVector)
-	table.forEach(func(sym Symbol) {
-		if ts, ok := sym.(ITypeSymbol); ok {
-			if _, ok := PredeclaredTypes[ts.Name()]; !ok {
-				s.Push("   type " + sym.String() + "\n")
-			}
-		}
-	})
-
-	sort.Sort(s)
-	s.Insert(0, "types:\n")
-	res.AppendVector(s)
-
-	s = new(vector.StringVector)
-	table.forEach(func(sym Symbol) {
-		if ts, ok := sym.(*FunctionSymbol); ok {
-			if _, ok := PredeclaredFunctions[ts.Name()]; !ok {
-				s.Push("   func " + sym.String() + "\n")
-			}
-		}
-	})
-	table.forEachOpenedScope(func(symT *SymbolTable) {
-		symT.forEach(func(sym Symbol) {
-			if ts, ok := sym.(*FunctionSymbol); ok {
-				if _, ok := PredeclaredFunctions[ts.Name()]; !ok {
-					s.Push("   func " + sym.String() + "\n")
-				}
-			}
-		})
-	})
-
-	sort.Sort(s)
-	s.Insert(0, "methods:\n")
-	res.AppendVector(s)
-
-	s = new(vector.StringVector)
-	table.forEach(func(sym Symbol) {
-		if ts, ok := sym.(*VariableSymbol); ok {
-			if _, ok := PredeclaredConsts[ts.Name()]; !ok {
-				s.Push("   var " + sym.String() + "\n")
-			}
-		}
-	})
-	sort.Sort(s)
-	s.Insert(0, "vars:\n")
-	res.AppendVector(s)
-
-	return res
-}*/
-
 
 func (table *SymbolTable) FindSymbolByPosition(filename string, line int, column int) (sym Symbol, found bool) {
 	pos := token.Position{Filename: filename, Line: line, Column: column}
@@ -420,10 +354,13 @@ func (table *SymbolTable) FindSymbolByPosition(filename string, line int, column
 	return
 }
 
-/*
-func (table *SymbolTable) FindSymbolByIdent(ident *ast.Ident) (sym Symbol, found bool) {
-	sym, found = table.forEachStoppableReverse(func(eachSym Symbol) bool {
-		return eachSym.Identifier() == ident
+func (table *SymbolTable) Contains(sym Symbol) bool {
+	_, found := table.forEachStoppableReverse(func(ss Symbol) bool {
+		return sym == ss
 	})
-	return
-}*/
+	return found
+}
+
+func (table *SymbolTable) Count() int {
+	return len(*table.Table)
+}
