@@ -9,7 +9,6 @@ import (
 	"errors"
 	"program"
 	"packageParser"
-	"fmt"
 )
 
 type extractedSetVisitor struct {
@@ -124,6 +123,7 @@ func (vis *getParametersVisitor) getInnerVisitor() *getParametersVisitor {
 	return inVis
 }
 func (vis *getParametersVisitor) Visit(node ast.Node) ast.Visitor {
+	
 	switch t := node.(type) {
 
 	case *ast.AssignStmt:
@@ -266,11 +266,11 @@ func (vis *checkReturnVisitor) Visit(node ast.Node) ast.Visitor {
 	return vis
 }
 
-func checkForReturns(block []ast.Stmt) bool {
+func checkForReturns(block *vector.Vector) bool {
 
 	vis := &checkReturnVisitor{}
-	for _, stmt := range block {
-		ast.Walk(vis, stmt)
+	for _, stmt := range *block {
+		ast.Walk(vis, stmt.(ast.Node))
 	}
 	return vis.has
 }
@@ -308,6 +308,288 @@ func (vis *checkScopingVisitor) Visit(node ast.Node) ast.Visitor {
 			if !vis.errs.Contains(s) {
 				vis.errs.AddSymbol(s)
 			}
+		}
+	}
+	return vis
+}
+
+type replaceExprVisitor struct {
+	Package *st.Package
+	newExpr ast.Expr
+	exprPos token.Position
+	found   bool
+	error   *errors.GoRefactorError
+}
+
+func replaceExpr(exprPos token.Position, newExpr ast.Expr, Package *st.Package, file *ast.File) (bool, *errors.GoRefactorError) {
+	vis := &replaceExprVisitor{Package, newExpr, exprPos, false, nil}
+	ast.Walk(vis, file)
+	return vis.error == nil, vis.error
+}
+
+func (vis *replaceExprVisitor) find(expr ast.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	vis.found = utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(expr.Pos())) == 0
+	return vis.found
+}
+
+func (vis *replaceExprVisitor) replaceInSlice(exprs []ast.Expr) bool {
+	for i, e := range exprs {
+		if vis.find(e) {
+			exprs[i] = vis.newExpr
+			return true
+		}
+	}
+	return false
+}
+
+func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
+	if node == nil{
+		return nil
+	}
+	if vis.found {
+		return nil
+	}
+
+	switch t := node.(type) {
+	case *ast.ArrayType:
+		if vis.find(t.Elt) || vis.find(t.Len) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+	case *ast.AssignStmt:
+		for _, e := range t.Lhs {
+			if vis.find(e) {
+				vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in left side of assignment"}
+				return nil
+			}
+		}
+		if vis.replaceInSlice(t.Rhs) {
+			return nil
+		}
+	case *ast.BinaryExpr:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+		if vis.find(t.Y) {
+			t.Y = vis.newExpr
+			return nil
+		}
+	case *ast.CallExpr:
+		if vis.find(t.Fun) {
+			t.Fun = vis.newExpr
+			return nil
+		}
+		if vis.replaceInSlice(t.Args) {
+			return nil
+		}
+	case *ast.CaseClause:
+		if vis.replaceInSlice(t.Values) {
+			return nil
+		}
+	case *ast.ChanType:
+		if vis.find(t.Value) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+	case *ast.CommClause:
+		if vis.find(t.Lhs) {
+			t.Lhs = vis.newExpr
+			return nil
+		}
+		if vis.find(t.Rhs) {
+			t.Rhs = vis.newExpr
+			return nil
+		}
+	case *ast.CompositeLit:
+		if vis.find(t.Type) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
+			return nil
+		}
+		if t.Elts != nil && len(t.Elts) != 0 {
+			if _, ok := t.Elts[0].(*ast.KeyValueExpr); ok {
+				vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract a key-value pair"}
+				return nil
+			}
+		}
+		vis.replaceInSlice(t.Elts)
+	case *ast.DeferStmt:
+		if vis.find(t.Call) {
+			t.Call = vis.newExpr.(*ast.CallExpr)
+			return nil
+		}
+	case *ast.Ellipsis:
+		if vis.find(t.Elt) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
+			return nil
+		}
+	case *ast.ExprStmt:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+	case *ast.Field:
+		if vis.find(t.Type) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
+			return nil
+		}
+// 		if vis.find(t.Tag) {
+// 			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in field tags"}
+// 			return nil
+// 		}
+		for _, e := range t.Names {
+			if vis.find(e) {
+				vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in field names"}
+				return nil
+			}
+		}
+	case *ast.ForStmt:
+		if vis.find(t.Cond) {
+			t.Cond = vis.newExpr
+			return nil
+		}
+	case *ast.FuncLit:
+		if vis.find(t.Type) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
+			return nil
+		}
+	case *ast.GoStmt:
+		if vis.find(t.Call) {
+			t.Call = vis.newExpr.(*ast.CallExpr)
+			return nil
+		}
+		case *ast.IfStmt:
+		if vis.find(t.Cond) {
+			t.Cond = vis.newExpr
+			return nil
+		}
+	case *ast.IncDecStmt:
+		if vis.find(t.X) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "incrementing method result makes no sense"}
+			return nil
+		}
+	case *ast.IndexExpr:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+		if vis.find(t.Index) {
+			t.Index = vis.newExpr
+			return nil
+		}
+	case *ast.KeyValueExpr:
+		if vis.find(t.Key) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract key-value pair key"}
+			return nil
+		}
+		if vis.find(t.Value) {
+			t.Value = vis.newExpr
+			return nil
+		}
+	case *ast.MapType:
+		if vis.find(t.Key) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+		if vis.find(t.Value) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+	case *ast.ParenExpr:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+	case *ast.RangeStmt:
+		if vis.find(t.Key) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in left side of assignment"}
+			return nil
+		}
+		if vis.find(t.Value) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in left side of assignment"}
+			return nil
+		}
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+	case *ast.ReturnStmt:
+		if vis.replaceInSlice(t.Results) {
+			return nil
+		}
+	case *ast.SelectorExpr:
+		if vis.find(t.X) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract a part of selector expression"}
+			return nil
+		}
+		if vis.find(t.Sel) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract a part of selector expression"}
+			return nil
+		}
+	case *ast.SliceExpr:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+		if vis.find(t.Index) {
+			t.Index = vis.newExpr
+			return nil
+		}
+		if vis.find(t.End) {
+			t.End = vis.newExpr
+			return nil
+		}
+	case *ast.StarExpr:
+		if vis.find(t.X) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract indirected code"}
+			return nil
+		}
+	case *ast.SwitchStmt:
+		if vis.find(t.Tag) {
+			t.Tag = vis.newExpr
+			return nil
+		}
+	case *ast.TypeAssertExpr:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			return nil
+		}
+		if vis.find(t.Type) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
+			return nil
+		}
+	case *ast.TypeCaseClause:
+		for _, e := range t.Types {
+			if vis.find(e) {
+				vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
+				return nil
+			}
+		}
+	case *ast.TypeSpec:
+		if vis.find(t.Name) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+		if vis.find(t.Type) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+	case *ast.ValueSpec:
+		for _, e := range t.Names {
+			if vis.find(e) {
+				vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in variable definitions"}
+				return nil
+			}
+		}
+		if vis.find(t.Type) {
+			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+		if vis.replaceInSlice(t.Values) {
+			return nil
 		}
 	}
 	return vis
@@ -407,13 +689,9 @@ func replaceStmtsWithCall(origin []ast.Stmt, replace []ast.Stmt, with *ast.CallE
 		panic("didn't find replace origin")
 	}
 	result := make([]ast.Stmt, ind)
-	fmt.Printf("%v\n", result)
 	copy(result, origin[0:ind])
-	fmt.Printf("%v\n", result)
 	result = append(result, &ast.ExprStmt{with})
-	fmt.Printf("%v\n", result)
 	result = append(result, origin[ind+len(replace):]...)
-	fmt.Printf("%v\n", result)
 	return result
 }
 
@@ -434,11 +712,11 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
 	}
 
-	stmtList := makeStmtList(vis.resultBlock)
-
-	if checkForReturns(stmtList) {
-		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code with return statements"}
+	if checkForReturns(vis.resultBlock) {
+		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code witn return statements"}
 	}
+		
+	stmtList := makeStmtList(vis.resultBlock)
 
 	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
 	paramSymbolsMap := make(map[st.Symbol]bool)
@@ -449,25 +727,31 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 			params.AddSymbol(sym)
 		}
 	}
-
-	if ok, errs := checkScoping(vis.nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
-		s := ""
-		errs.ForEach(func(sym st.Symbol) {
-			s += sym.Name() + " "
-		})
-		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
-	}
-
+	
 	var result st.ITypeSymbol
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
 	fdecl := makeFuncDecl(methodName, stmtList, params, result, pack, filename)
 	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), pack, filename)
-	if _, ok := stmtList[0].(*ast.ReturnStmt); !ok {
+	
+	if vis.nodeFrom != nil{
+		if ok, errs := checkScoping(vis.nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
+			s := ""
+			errs.ForEach(func(sym st.Symbol) {
+				s += sym.Name() + " "
+			})
+			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
+		}	
 		list := getStmtList(vis.nodeFrom)
 		newList := replaceStmtsWithCall(list, stmtList, callExpr)
 		setStmtList(vis.nodeFrom, newList)
+	} else {
+		rs := stmtList[0].(*ast.ReturnStmt)
+		ok, err := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()), callExpr, pack, file)
+		if !ok {
+			return false, err
+		}
 	}
 	file.Decls = append(file.Decls, fdecl)
 	return true, nil
