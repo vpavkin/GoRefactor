@@ -9,6 +9,7 @@ import (
 	"errors"
 	"program"
 	"packageParser"
+	"fmt"
 )
 
 type extractedSetVisitor struct {
@@ -123,7 +124,7 @@ func (vis *getParametersVisitor) getInnerVisitor() *getParametersVisitor {
 	return inVis
 }
 func (vis *getParametersVisitor) Visit(node ast.Node) ast.Visitor {
-	
+
 	switch t := node.(type) {
 
 	case *ast.AssignStmt:
@@ -303,6 +304,10 @@ func checkScoping(block ast.Node, stmtList []ast.Stmt, declaredInExtracted *st.S
 func (vis *checkScopingVisitor) Visit(node ast.Node) ast.Visitor {
 	switch t := node.(type) {
 	case *ast.Ident:
+		fmt.Println(t.Name)
+		if t.Name == "_" {
+			return vis
+		}
 		s := vis.globalIdentMap.GetSymbol(t)
 		if vis.declaredInExtracted.Contains(s) {
 			if !vis.errs.Contains(s) {
@@ -346,7 +351,7 @@ func (vis *replaceExprVisitor) replaceInSlice(exprs []ast.Expr) bool {
 }
 
 func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
-	if node == nil{
+	if node == nil {
 		return nil
 	}
 	if vis.found {
@@ -436,10 +441,10 @@ func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
 			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
 			return nil
 		}
-// 		if vis.find(t.Tag) {
-// 			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in field tags"}
-// 			return nil
-// 		}
+		// 		if vis.find(t.Tag) {
+		// 			vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in field tags"}
+		// 			return nil
+		// 		}
 		for _, e := range t.Names {
 			if vis.find(e) {
 				vis.error = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in field names"}
@@ -461,7 +466,7 @@ func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
 			t.Call = vis.newExpr.(*ast.CallExpr)
 			return nil
 		}
-		case *ast.IfStmt:
+	case *ast.IfStmt:
 		if vis.find(t.Cond) {
 			t.Cond = vis.newExpr
 			return nil
@@ -534,12 +539,12 @@ func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
 			t.X = vis.newExpr
 			return nil
 		}
-		if vis.find(t.Index) {
-			t.Index = vis.newExpr
+		if vis.find(t.Low) {
+			t.Low = vis.newExpr
 			return nil
 		}
-		if vis.find(t.End) {
-			t.End = vis.newExpr
+		if vis.find(t.High) {
+			t.High = vis.newExpr
 			return nil
 		}
 	case *ast.StarExpr:
@@ -715,7 +720,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	if checkForReturns(vis.resultBlock) {
 		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code witn return statements"}
 	}
-		
+
 	stmtList := makeStmtList(vis.resultBlock)
 
 	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
@@ -727,22 +732,22 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 			params.AddSymbol(sym)
 		}
 	}
-	
+
 	var result st.ITypeSymbol
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
 	fdecl := makeFuncDecl(methodName, stmtList, params, result, pack, filename)
 	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), pack, filename)
-	
-	if vis.nodeFrom != nil{
+
+	if vis.nodeFrom != nil {
 		if ok, errs := checkScoping(vis.nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
 			s := ""
 			errs.ForEach(func(sym st.Symbol) {
 				s += sym.Name() + " "
 			})
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
-		}	
+		}
 		list := getStmtList(vis.nodeFrom)
 		newList := replaceStmtsWithCall(list, stmtList, callExpr)
 		setStmtList(vis.nodeFrom, newList)

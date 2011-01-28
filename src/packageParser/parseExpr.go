@@ -243,6 +243,7 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 func (pp *packageParser) eParseIndexExpr(e *ast.IndexExpr) (res *vector.Vector) {
 
 	res = new(vector.Vector)
+	pp.parseExpr(e.Index);
 	x, cyc := st.GetBaseType(pp.parseExpr(e.X).At(0).(st.ITypeSymbol))
 	if cyc {
 		panic("error: cycle wasn't expected")
@@ -313,8 +314,8 @@ func (pp *packageParser) eParseSliceExpr(e *ast.SliceExpr) (res *vector.Vector) 
 	res = new(vector.Vector)
 
 	x := pp.parseExpr(e.X).At(0).(st.ITypeSymbol)
-	pp.parseExpr(e.Index)
-	pp.parseExpr(e.End)
+	pp.parseExpr(e.Low)
+	pp.parseExpr(e.High)
 	r := x
 	// slicing an array results a slice
 	if arr, ok := x.(*st.ArrayTypeSymbol); ok {
