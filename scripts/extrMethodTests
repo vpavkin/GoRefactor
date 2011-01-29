@@ -1,20 +1,20 @@
 #!/bin/bash
 echo EXPRESSIONS
 
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/importsVisitor.go -l 35 -c 6 -el 35 -ec 20 -e SomeMeth1 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/importsVisitor.go -l 35 -c 6 -el 35 -ec 20 -e SomeMeth1 -vl 35 -vc 6
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 238 -c 30 -el 238 -ec 35 -e SomeMeth2 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 238 -c 30 -el 238 -ec 35 -e SomeMeth2
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 66 -c 12 -el 66 -ec 49 -e SomeMeth3 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 66 -c 12 -el 66 -ec 49 -e SomeMeth3
 ./build
 
 echo STATEMENT_LISTS
 
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 164 -c 4 -el 165 -ec 28 -e SomeMeth4 -vl 164 -vc 4
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 153 -c 2 -el 155 -ec 28 -e SomeMeth5
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 153 -c 2 -el 155 -ec 28 -e SomeMeth5 -vl 155 -vc 4
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 60 -c 4 -el 61 -ec 24 -e SomeMeth6
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 60 -c 4 -el 61 -ec 24 -e SomeMeth6 -vl 60 -vc 4
 ./build
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbols.go -l 14 -c 2 -el 76 -ec 57 -e SomeMeth7
 ./build

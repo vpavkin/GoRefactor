@@ -9,7 +9,6 @@ import (
 	"errors"
 	"program"
 	"packageParser"
-	"fmt"
 )
 
 type extractedSetVisitor struct {
@@ -304,7 +303,6 @@ func checkScoping(block ast.Node, stmtList []ast.Stmt, declaredInExtracted *st.S
 func (vis *checkScopingVisitor) Visit(node ast.Node) ast.Visitor {
 	switch t := node.(type) {
 	case *ast.Ident:
-		fmt.Println(t.Name)
 		if t.Name == "_" {
 			return vis
 		}
@@ -633,7 +631,7 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 	return stmtList
 }
 
-func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol, pack *st.Package, filename string) *ast.FuncDecl {
+func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol,recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
 
 	flist := params.ToAstFieldList(pack, filename)
 	ftype := &ast.FuncType{token.NoPos, flist, nil}
@@ -641,12 +639,30 @@ func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, resu
 		ftype.Results = &ast.FieldList{token.NoPos, []*ast.Field{&ast.Field{nil, nil, result.ToAstExpr(pack, filename), nil, nil}}, token.NoPos}
 	}
 	fbody := &ast.BlockStmt{token.NoPos, stmtList, token.NoPos}
-	return &ast.FuncDecl{nil, nil, ast.NewIdent(name), ftype, fbody}
+	
+	var recvList *ast.FieldList;
+	if recvSym != nil{
+		recvSt := st.NewSymbolTable(pack);
+		recvSt.AddSymbol(recvSym);
+		recvList = recvSt.ToAstFieldList(pack,filename);
+	}
+	
+	return &ast.FuncDecl{nil, recvList, ast.NewIdent(name), ftype, fbody}
 }
 
-func makeCallExpr(name string, params *st.SymbolTable, pos token.Pos, pack *st.Package, filename string) *ast.CallExpr {
-	Fun := ast.NewIdent(name)
-	Fun.NamePos = pos
+func makeCallExpr(name string, params *st.SymbolTable, pos token.Pos, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.CallExpr {
+	var Fun ast.Expr;
+	if recvSym != nil{
+		x:= ast.NewIdent(recvSym.Name())
+		x.NamePos = pos;
+		Fun = &ast.SelectorExpr{x,ast.NewIdent(name)}
+	}else{
+		x := ast.NewIdent(name);
+		x.NamePos = pos;
+		Fun = x
+		
+	}
+	//Fun.NamePos = pos
 	Args := params.ToAstExprSlice(pack, filename)
 	return &ast.CallExpr{Fun, token.NoPos, Args, token.NoPos, token.NoPos}
 }
@@ -736,13 +752,32 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 			params.AddSymbol(sym)
 		}
 	}
-
+	
+	var recvSym *st.VariableSymbol;
+	if recieverVarLine >= 0 && recieverVarLine >= 0{
+		rr,err := programTree.FindSymbolByPosition(filename,recieverVarLine, recieverVarCol)
+		if err != nil{
+			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "'recieverVarLine' and 'recieverVarCol' arguments don't point on an identifier"}
+		}
+		if recvSym,_ = rr.(*st.VariableSymbol); recvSym == nil{
+			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a variable symbol"}
+		}
+		if recvSym.VariableType.PackageFrom() != pack{
+			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "reciever type is not from the same package as extracted code (not allowed to define methods for a type from imported package)"}
+		}
+		if _,ok := paramSymbolsMap[recvSym]; !ok{
+			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a parameter to extracted code"}
+		}
+		paramSymbolsMap[recvSym] = false,false;
+		params.RemoveSymbol(recvSym.Name());
+	}
+	
 	var result st.ITypeSymbol
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
-	fdecl := makeFuncDecl(methodName, stmtList, params, result, pack, filename)
-	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), pack, filename)
+	fdecl := makeFuncDecl(methodName, stmtList, params, result,recvSym, pack, filename)
+	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(),recvSym, pack, filename)
 
 	if vis.nodeFrom != nil {
 		if ok, errs := checkScoping(vis.nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
