@@ -19,7 +19,7 @@ type innerScopeVisitor struct {
 	IotaType st.ITypeSymbol
 }
 
-func (lv *localsVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (lv *localsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	w = lv
 	switch f := node.(type) {
 
@@ -41,7 +41,7 @@ func (lv *localsVisitor) Visit(node interface{}) (w ast.Visitor) {
 		}
 		meth := m.(*st.FunctionSymbol)
 		meth.Locals.AddOpenedScope(lv.Parser.RootSymbolTable)
-// 		fmt.Printf("method %s\n", meth.Name())
+		// 		fmt.Printf("method %s\n", meth.Name())
 		ww := &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil}
 		ast.Walk(ww, f.Body)
 		w = nil
@@ -77,11 +77,11 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 		return nil
 	}
 	w = lv
-// 	fmt.Printf("ps %p %p %p %T ", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals, node)
-// 	if id, ok := node.(*ast.Ident); ok {
-// 		fmt.Printf("%s ", id.Name)
-// 	}
-// 	println()
+	// 	fmt.Printf("ps %p %p %p %T ", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals, node)
+	// 	if id, ok := node.(*ast.Ident); ok {
+	// 		fmt.Printf("%s ", id.Name)
+	// 	}
+	// 	println()
 	temp := lv.Parser.CurrentSymbolTable
 	lv.Parser.CurrentSymbolTable = lv.Current
 	defer func() { lv.Parser.CurrentSymbolTable = temp }()
@@ -138,12 +138,12 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 					toAdd := st.MakeVariable(n.Name, lv.Current, valuesTypes.At(i).(st.ITypeSymbol))
 					lv.Parser.registerIdent(toAdd, n)
 					lv.Current.AddSymbol(toAdd)
-// 					fmt.Printf("DEFINED %s\n", toAdd.Name())
+					// 					fmt.Printf("DEFINED %s\n", toAdd.Name())
 				}
 			}
 		case token.ASSIGN: //Pos
 			for _, nn := range s.Lhs {
-// 				fmt.Printf("<!>")
+				// 				fmt.Printf("<!>")
 				lv.Parser.parseExpr(nn)
 			}
 			w = nil
@@ -192,7 +192,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 	}
 	w = lv
 	table := st.NewSymbolTable(lv.Parser.Package)
-// 	fmt.Printf(" %p %p %p \n", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals)
+	// 	fmt.Printf(" %p %p %p \n", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals)
 	table.AddOpenedScope(lv.Current)
 	ww := &innerScopeVisitor{lv.Method, table, lv.Parser, nil}
 
@@ -219,7 +219,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		w = nil
 	case *ast.RangeStmt:
 		rangeType := ww.Parser.parseExpr(inNode.X).At(0).(st.ITypeSymbol)
-// 		fmt.Printf("range type = %s, %T\n", rangeType.Name(), rangeType)
+		// 		fmt.Printf("range type = %s, %T\n", rangeType.Name(), rangeType)
 		switch inNode.Tok {
 		case token.DEFINE:
 			if rangeType, _ = st.GetBaseType(rangeType); rangeType == nil {
@@ -234,7 +234,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 			case *st.MapTypeSymbol:
 				kT = rT.KeyType
 				vT = rT.ValueType
-			case *st.TypeSymbol: //string
+			case *st.BasicTypeSymbol: //string
 				kT = st.PredeclaredTypes["int"]
 				vT = st.PredeclaredTypes["byte"]
 			case *st.ChanTypeSymbol:
@@ -249,7 +249,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				ww.Parser.registerIdent(toAdd, iK)
 				ww.Current.AddSymbol(toAdd)
 
-// 				fmt.Printf("range key added %s %T\n", toAdd.Name(), toAdd)
+				// 				fmt.Printf("range key added %s %T\n", toAdd.Name(), toAdd)
 			}
 			if inNode.Value != nil { // not channel, two range vars
 				iV := inNode.Value.(*ast.Ident)
@@ -257,7 +257,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 					toAdd := st.MakeVariable(iV.Name, ww.Current, vT)
 					ww.Parser.registerIdent(toAdd, iV)
 					ww.Current.AddSymbol(toAdd)
-// 					fmt.Printf("range value added %s %T\n", toAdd.Name(), toAdd)
+					// 					fmt.Printf("range value added %s %T\n", toAdd.Name(), toAdd)
 				}
 			}
 		case token.ASSIGN:
@@ -267,7 +267,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 			}
 		}
 		ast.Walk(ww, inNode.Body)
-// 		fmt.Printf("end of range\n")
+		// 		fmt.Printf("end of range\n")
 		w = nil
 	case *ast.SelectStmt:
 		w = ww
@@ -300,7 +300,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				ww.Parser.parseExpr(v)
 			}
 		}
-		ast.Walk(ww, inNode.Body)
+		for _, stmt := range inNode.Body {
+			ast.Walk(ww, stmt)
+		}
 		w = nil
 	case *ast.CommClause:
 		switch {
@@ -320,7 +322,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		case inNode.Rhs != nil:
 			ww.Parser.parseExpr(inNode.Rhs)
 		}
-		ast.Walk(ww, inNode.Body)
+		for _, stmt := range inNode.Body {
+			ast.Walk(ww, stmt)
+		}
 		w = nil
 	case *ast.TypeCaseClause:
 		switch {
@@ -341,7 +345,9 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 				ww.Parser.parseExpr(t)
 			}
 		}
-		ast.Walk(ww, inNode.Body)
+		for _, stmt := range inNode.Body {
+			ast.Walk(ww, stmt)
+		}
 		w = nil
 	case *ast.FuncLit:
 		meth := st.MakeFunction("#", ww.Current, lv.Parser.parseTypeSymbol(inNode.Type))
@@ -357,7 +363,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 	}
 	return w
 }
-func (isv *innerScopeVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (isv *innerScopeVisitor) Visit(node ast.Node) (w ast.Visitor) {
 
 	return isv.parseStmt(node)
 

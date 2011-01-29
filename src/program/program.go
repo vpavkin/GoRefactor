@@ -76,7 +76,7 @@ func loadConfig(packageName string) *vector.StringVector {
 		res.Push(str[:len(str)-1])
 
 	}
-// 	fmt.Printf("%s:\n%v\n", packageName, res)
+	// 	fmt.Printf("%s:\n%v\n", packageName, res)
 
 	return res
 }
@@ -87,13 +87,13 @@ func isPackageDir(fileInIt *os.FileInfo) bool {
 
 func makeFilter(srcDir string) func(f *os.FileInfo) bool {
 	_, d := path.Split(srcDir)
-// 	println("^&*^&* Specific files for " + d)
+	// 	println("^&*^&* Specific files for " + d)
 	if files, ok := specificFiles[d]; ok {
-// 		println("^&*^&* found " + d)
+		// 		println("^&*^&* found " + d)
 		return func(f *os.FileInfo) bool {
-// 			print("\n" + f.Name)
+			// 			print("\n" + f.Name)
 			for _, fName := range *files {
-// 				print(" " + fName)
+				// 				print(" " + fName)
 				if fName == f.Name {
 					return true
 				}
@@ -222,7 +222,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped fixing \n")
+	// 	fmt.Printf("===================All packages stopped fixing \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -232,7 +232,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped opening \n")
+	// 	fmt.Printf("===================All packages stopped opening \n")
 
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
@@ -242,7 +242,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped parsing globals \n")
+	// 	fmt.Printf("===================All packages stopped parsing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
 		<-pack.Communication
@@ -251,7 +251,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped fixing globals \n")
+	// 	fmt.Printf("===================All packages stopped fixing globals \n")
 	for _, pack := range program.Packages {
 		pack.Communication <- 0
 		<-pack.Communication
@@ -260,7 +260,7 @@ func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Prog
 	// 	for _, pack := range program.Packages {
 	// 		
 	// 	}
-// 	fmt.Printf("===================All packages stopped parsing locals \n")
+	// 	fmt.Printf("===================All packages stopped parsing locals \n")
 
 	return program
 }
@@ -270,7 +270,7 @@ func IsGoSrcPackage(p *st.Package) bool {
 	return strings.HasPrefix(p.QualifiedPath, goSrcDir)
 }
 
-func (p *Program) findPackageAndFileByFilename(filename string) (*st.Package, *ast.File) {
+func (p *Program) FindPackageAndFileByFilename(filename string) (*st.Package, *ast.File) {
 	for _, pack := range p.Packages {
 		for fName, file := range pack.AstPackage.Files {
 			if filename == fName {
@@ -282,7 +282,7 @@ func (p *Program) findPackageAndFileByFilename(filename string) (*st.Package, *a
 }
 
 func (p *Program) FindSymbolByPosition(filename string, line int, column int) (symbol st.Symbol, error *errors.GoRefactorError) {
-	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
+	packageIn, fileIn := p.FindPackageAndFileByFilename(filename)
 	if packageIn == nil {
 		return nil, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
@@ -320,9 +320,16 @@ func (p *Program) Save() {
 		}
 	}
 }
-// func (p *Program) GetCodeBlock(filename string, lineStart int, lineEnd int,colStart int,colEnd int) (ast.Node,*errors.GoRefactorError) {
-// 	packageIn, fileIn := p.findPackageAndFileByFilename(filename)
-// 	if packageIn == nil {
-// 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
-// 	}
-// }
+func (p *Program) SaveFile(filename string) {
+	pack, file := p.FindPackageAndFileByFilename(filename)
+	fmt.Printf("saving file: %s\n", filename)
+	fd, err := os.Open(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+	if err != nil {
+		panic("couldn't open file " + filename + "for writing")
+	}
+	err = printer.Fprint(fd, pack.FileSet, file)
+	if err != nil {
+		panic("couldn't write to file " + filename)
+	}
+	fd.Close()
+}

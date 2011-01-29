@@ -16,7 +16,7 @@ type globalsVisitor struct {
 /*^GlobalsVisitor Methods^^*/
 
 //ast.Visitor.Visit(). Looks for top-level ast.ValueSpec nodes of ast.Tree to register global vars
-func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
+func (gv globalsVisitor) Visit(node ast.Node) ast.Visitor {
 
 	switch t := node.(type) {
 	case *ast.ValueSpec:
@@ -35,9 +35,9 @@ func (gv globalsVisitor) Visit(node interface{}) ast.Visitor {
 
 			if t.Values != nil {
 				exprT = gv.Parser.parseExpr(t.Values[i]).At(0).(st.ITypeSymbol)
-// 				if n.Name == "BothDir" {
-// 					fmt.Printf("((((( %p, %T\n", exprT, exprT)
-// 				}
+				// 				if n.Name == "BothDir" {
+				// 					fmt.Printf("((((( %p, %T\n", exprT, exprT)
+				// 				}
 			}
 			if arrT, ok := ts.(*st.ArrayTypeSymbol); ok {
 				if arrT.Len == st.ELLIPSIS {

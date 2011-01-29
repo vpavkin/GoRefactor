@@ -12,7 +12,7 @@ type methodsVisitor struct {
 	Parser *packageParser
 }
 
-func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
+func (mv *methodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	w = mv
 	switch f := node.(type) {
 	case *ast.FuncDecl:
@@ -41,7 +41,7 @@ func (mv *methodsVisitor) Visit(node interface{}) (w ast.Visitor) {
 				}
 
 				if mv.Parser.Package.AstPackage.Name == "os" {
-// 					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
+					// 					fmt.Printf("###@@@### (%s) %s\n", rtype.Name(), f.Name.Name)
 				}
 				if rtype.Methods() == nil {
 					panic("ok, this is a test panic")
@@ -91,12 +91,12 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 	if pp.checkIsVisited(sym) {
 		return
 	}
-// 	fmt.Printf("opening %s %T from %s\n", sym.Name(), sym, func(p *st.Package) string {
-// 		if p == nil {
-// 			return "nil"
-// 		}
-// 		return p.AstPackage.Name
-// 	}(sym.PackageFrom()))
+	// 	fmt.Printf("opening %s %T from %s\n", sym.Name(), sym, func(p *st.Package) string {
+	// 		if p == nil {
+	// 			return "nil"
+	// 		}
+	// 		return p.AstPackage.Name
+	// 	}(sym.PackageFrom()))
 
 	if st.IsPredeclaredIdentifier(sym.Name()) {
 		return
@@ -138,9 +138,9 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		pp.openMethodsAndFields(t.KeyType)
 		pp.openMethodsAndFields(t.ValueType)
 	case *st.StructTypeSymbol:
-// 		if t.Name() == "Package" {
-// 			fmt.Printf("YEAHHH YEAHHH %p\n", t)
-// 		}
+		// 		if t.Name() == "Package" {
+		// 			fmt.Printf("YEAHHH YEAHHH %p\n", t)
+		// 		}
 		t.Fields.ForEachNoLock(func(variable st.Symbol) {
 			if _, ok := variable.(*st.VariableSymbol); !ok {
 
@@ -177,17 +177,17 @@ func (pp *packageParser) openMethodsAndFields(sym st.Symbol) {
 		}
 
 		if _, cyc := st.GetBaseType(t); cyc {
-// 			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
+			// 			fmt.Printf("%s from %s\n", t.Name(), t.PackageFrom().AstPackage.Name)
 			panic("cycle, don't work with that")
 		}
 
 		if t.BaseType.Methods() != nil {
 			t.Methods().AddOpenedScope(t.BaseType.Methods())
 		}
-// 		if t.BaseType.Name() == "Package" {
-// 			fmt.Printf("YEAHHH YEAHHH %p %p\n", t, t.BaseType)
-// 			fmt.Println(*t.Methods().String());
-// 		}
+		// 		if t.BaseType.Name() == "Package" {
+		// 			fmt.Printf("YEAHHH YEAHHH %p %p\n", t, t.BaseType)
+		// 			fmt.Println(*t.Methods().String());
+		// 		}
 		pp.openMethodsAndFields(t.BaseType)
 	}
 }
