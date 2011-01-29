@@ -717,6 +717,59 @@ func replaceStmtsWithCall(origin []ast.Stmt, replace []ast.Stmt, with *ast.CallE
 	result = append(result, origin[ind+len(replace):]...)
 	return result
 }
+
+func getRecieverSymbol(programTree *program.Program,pack *st.Package, filename string, recieverVarLine int,recieverVarCol int) (*st.VariableSymbol,*errors.GoRefactorError){
+	if recieverVarLine >= 0 && recieverVarLine >= 0{
+		rr,err := programTree.FindSymbolByPosition(filename,recieverVarLine, recieverVarCol)
+		if err != nil{
+			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "'recieverVarLine' and 'recieverVarCol' arguments don't point on an identifier"}
+		}
+		recvSym,ok := rr.(*st.VariableSymbol)
+		if !ok{
+			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a variable symbol"}
+		}
+		if recvSym.VariableType.PackageFrom() != pack{
+			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "reciever type is not from the same package as extracted code (not allowed to define methods for a type from imported package)"}
+		}
+		return recvSym,nil
+	}
+	return nil,nil
+}
+
+func getExtractedStatementList(pack *st.Package,file *ast.File,filename string,lineStart int,colStart int, lineEnd int,colEnd int) ([]ast.Stmt,ast.Node,*errors.GoRefactorError) {
+	vis := &extractedSetVisitor{pack, new(vector.Vector), token.Position{filename, 0, lineStart, colStart}, token.Position{filename, 0, lineEnd, colEnd}, nil, nil, nil}
+	ast.Walk(vis, file)
+	if !vis.isValid() {
+		return nil,nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
+	}
+	
+	if checkForReturns(vis.resultBlock) {
+		return nil,nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code witn return statements"}
+	}
+	
+	return makeStmtList(vis.resultBlock),vis.nodeFrom,nil
+}
+
+func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTree *program.Program) (*st.SymbolTable,*st.SymbolTable){
+	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
+	paramSymbolsMap := make(map[st.Symbol]bool)
+	params := st.NewSymbolTable(pack)
+	for _, sym := range parList {
+		if _, ok := paramSymbolsMap[sym]; !ok {
+			paramSymbolsMap[sym] = true
+			params.AddSymbol(sym)
+		}
+	}
+	return params,declared;
+}
+
+func getResultTypeIfAny(programTree *program.Program,pack *st.Package,filename string,stmtList []ast.Stmt) st.ITypeSymbol{
+	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
+		return packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
+	}
+	return nil
+}
+
 // Extracts a set of statements or expression to a method;
 // start position - where the first statement starts;
 // end position - where the last statement ends.
@@ -731,65 +784,41 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
 
-	vis := &extractedSetVisitor{pack, new(vector.Vector), token.Position{filename, 0, lineStart, colStart}, token.Position{filename, 0, lineEnd, colEnd}, nil, nil, nil}
-	ast.Walk(vis, file)
-	if !vis.isValid() {
-		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
-	}
-
-	if checkForReturns(vis.resultBlock) {
-		return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code witn return statements"}
-	}
-
-	stmtList := makeStmtList(vis.resultBlock)
-
-	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
-	paramSymbolsMap := make(map[st.Symbol]bool)
-	params := st.NewSymbolTable(pack)
-	for _, sym := range parList {
-		if _, ok := paramSymbolsMap[sym]; !ok {
-			paramSymbolsMap[sym] = true
-			params.AddSymbol(sym)
-		}
+	stmtList,nodeFrom,err := getExtractedStatementList(pack,file,filename,lineStart,colStart,lineEnd,colEnd);
+	if err != nil{
+		return false,err;
 	}
 	
-	var recvSym *st.VariableSymbol;
-	if recieverVarLine >= 0 && recieverVarLine >= 0{
-		rr,err := programTree.FindSymbolByPosition(filename,recieverVarLine, recieverVarCol)
-		if err != nil{
-			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "'recieverVarLine' and 'recieverVarCol' arguments don't point on an identifier"}
-		}
-		if recvSym,_ = rr.(*st.VariableSymbol); recvSym == nil{
-			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a variable symbol"}
-		}
-		if recvSym.VariableType.PackageFrom() != pack{
-			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "reciever type is not from the same package as extracted code (not allowed to define methods for a type from imported package)"}
-		}
-		if _,ok := paramSymbolsMap[recvSym]; !ok{
+	params,declared := getParametersAndDeclaredIn(pack, stmtList, programTree);
+		
+	recvSym,err := getRecieverSymbol(programTree,pack,filename,recieverVarLine,recieverVarCol)
+	if err != nil{
+		return false,err;
+	}
+	
+	if recvSym != nil{
+		if _,found := params.LookUp(recvSym.Name(),""); !found{
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a parameter to extracted code"}
 		}
-		paramSymbolsMap[recvSym] = false,false;
 		params.RemoveSymbol(recvSym.Name());
 	}
 	
-	var result st.ITypeSymbol
-	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
-		result = packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
-	}
+	result := getResultTypeIfAny(programTree,pack,filename,stmtList);
+	
 	fdecl := makeFuncDecl(methodName, stmtList, params, result,recvSym, pack, filename)
 	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(),recvSym, pack, filename)
 
-	if vis.nodeFrom != nil {
-		if ok, errs := checkScoping(vis.nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
+	if nodeFrom != nil {
+		if ok, errs := checkScoping(nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
 			s := ""
 			errs.ForEach(func(sym st.Symbol) {
 				s += sym.Name() + " "
 			})
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
 		}
-		list := getStmtList(vis.nodeFrom)
+		list := getStmtList(nodeFrom)
 		newList := replaceStmtsWithCall(list, stmtList, callExpr)
-		setStmtList(vis.nodeFrom, newList)
+		setStmtList(nodeFrom, newList)
 	} else {
 		rs := stmtList[0].(*ast.ReturnStmt)
 		ok, err := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()),pack.FileSet.Position(rs.Results[0].End()) ,callExpr, pack, file)
