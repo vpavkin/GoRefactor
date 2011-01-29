@@ -40,7 +40,7 @@ func (vis *extractedSetVisitor) checkStmtList(list []ast.Stmt) {
 				vis.firstNode = stmt
 				vis.resultBlock.Push(stmt)
 
-				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(stmt.Pos()), vis.lastNodePos) == 0 {
+				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(stmt.End()), vis.lastNodePos) == 0 {
 					//one stmt method
 					vis.lastNode = stmt
 				}
@@ -48,7 +48,7 @@ func (vis *extractedSetVisitor) checkStmtList(list []ast.Stmt) {
 		} else {
 			if !vis.isValid() {
 				vis.resultBlock.Push(stmt)
-				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(stmt.Pos()), vis.lastNodePos) == 0 {
+				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(stmt.End()), vis.lastNodePos) == 0 {
 					vis.lastNode = list[i]
 				}
 			}
@@ -94,8 +94,8 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 	case ast.Expr:
-		if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.Pos()), vis.lastNodePos) == 0 {
-			if utils.ComparePosWithinFile(vis.firstNodePos, vis.lastNodePos) == 0 {
+		if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.Pos()), vis.firstNodePos) == 0 {
+			if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.End()), vis.lastNodePos) == 0 {
 				vis.firstNode = t
 				vis.lastNode = t
 				vis.resultBlock.Push(t)
@@ -322,12 +322,13 @@ type replaceExprVisitor struct {
 	Package *st.Package
 	newExpr ast.Expr
 	exprPos token.Position
+	exprEnd token.Position
 	found   bool
 	error   *errors.GoRefactorError
 }
 
-func replaceExpr(exprPos token.Position, newExpr ast.Expr, Package *st.Package, file *ast.File) (bool, *errors.GoRefactorError) {
-	vis := &replaceExprVisitor{Package, newExpr, exprPos, false, nil}
+func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Expr, Package *st.Package, file *ast.File) (bool, *errors.GoRefactorError) {
+	vis := &replaceExprVisitor{Package, newExpr, exprPos, exprEnd, false, nil}
 	ast.Walk(vis, file)
 	return vis.error == nil, vis.error
 }
@@ -336,7 +337,8 @@ func (vis *replaceExprVisitor) find(expr ast.Expr) bool {
 	if expr == nil {
 		return false
 	}
-	vis.found = utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(expr.Pos())) == 0
+	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(expr.Pos())) == 0) &&
+		(utils.ComparePosWithinFile(vis.exprEnd, vis.Package.FileSet.Position(expr.End())) == 0)
 	return vis.found
 }
 
@@ -699,7 +701,9 @@ func replaceStmtsWithCall(origin []ast.Stmt, replace []ast.Stmt, with *ast.CallE
 	result = append(result, origin[ind+len(replace):]...)
 	return result
 }
-
+// Extracts a set of statements or expression to a method;
+// start position - where the first statement starts;
+// end position - where the last statement ends.
 func ExtractMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
 
 	if ok, err := CheckExtractMethodParameters(filename, lineStart, colStart, lineEnd, colEnd, methodName, recieverVarLine, recieverVarCol); !ok {
@@ -753,7 +757,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		setStmtList(vis.nodeFrom, newList)
 	} else {
 		rs := stmtList[0].(*ast.ReturnStmt)
-		ok, err := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()), callExpr, pack, file)
+		ok, err := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()),pack.FileSet.Position(rs.Results[0].End()) ,callExpr, pack, file)
 		if !ok {
 			return false, err
 		}

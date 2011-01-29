@@ -243,7 +243,7 @@ func (pp *packageParser) eParseIdent(e *ast.Ident) (res *vector.Vector) {
 func (pp *packageParser) eParseIndexExpr(e *ast.IndexExpr) (res *vector.Vector) {
 
 	res = new(vector.Vector)
-	pp.parseExpr(e.Index);
+	pp.parseExpr(e.Index)
 	x, cyc := st.GetBaseType(pp.parseExpr(e.X).At(0).(st.ITypeSymbol))
 	if cyc {
 		panic("error: cycle wasn't expected")

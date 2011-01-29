@@ -1,37 +1,37 @@
 #!/bin/bash
 echo EXPRESSIONS
 
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/importsVisitor.go -l 35 -c 6 -el 35 -ec 6 -e SomeMeth1 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/importsVisitor.go -l 35 -c 6 -el 35 -ec 20 -e SomeMeth1 -vl 164 -vc 4
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 238 -c 30 -el 238 -ec 30 -e SomeMeth2 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 238 -c 30 -el 238 -ec 35 -e SomeMeth2 -vl 164 -vc 4
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 66 -c 12 -el 66 -ec 12 -e SomeMeth3 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 66 -c 12 -el 66 -ec 49 -e SomeMeth3 -vl 164 -vc 4
 ./build
 
 echo STATEMENT_LISTS
 
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 164 -c 4 -el 165 -ec 4 -e SomeMeth4 -vl 164 -vc 4
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/localsVisitor.go -l 164 -c 4 -el 165 -ec 28 -e SomeMeth4 -vl 164 -vc 4
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 153 -c 2 -el 155 -ec 2 -e SomeMeth5
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/packageParser.go -l 153 -c 2 -el 155 -ec 28 -e SomeMeth5
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 60 -c 4 -el 61 -ec 4 -e SomeMeth6
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbolTable.go -l 60 -c 4 -el 61 -ec 24 -e SomeMeth6
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbols.go -l 14 -c 2 -el 76 -ec 2 -e SomeMeth7
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/st/symbols.go -l 14 -c 2 -el 76 -ec 57 -e SomeMeth7
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 37 -c 6 -el 37 -ec 6 -e SomeMeth8
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 37 -c 6 -el 37 -ec 28 -e SomeMeth8
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 16 -c 2 -el 16 -ec 2 -e SomeMeth9
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 16 -c 2 -el 54 -ec 3 -e SomeMeth9
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 29 -c 2 -el 48 -ec 2 -e SomeMeth11
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 29 -c 2 -el 48 -ec 55 -e SomeMeth11
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 41 -c 2 -el 51 -ec 2 -e SomeMeth12
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/program/program.go -l 41 -c 2 -el 59 -ec 3 -e SomeMeth12
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 105 -c 2 -el 105 -ec 2 -e SomeMeth13
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/methodsVisitor.go -l 105 -c 2 -el 192 -ec 3 -e SomeMeth13
 ./build
 
 echo INVALID
 ../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/typesVisitor.go -l 24 -c 3 -el 27 -ec 5 -e SomeMeth14
 ./build
-../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 29 -c 4 -el 37 -ec 6 -e SomeMeth15
+../bin/goref -a exm -f /home/rulerr/GoRefactor/src/packageParser/globalsFixVisitor.go -l 29 -c 4 -el 37 -ec 28 -e SomeMeth15
 ./build
 
