@@ -631,7 +631,7 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 	return stmtList
 }
 
-func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol,recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
+func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
 
 	flist := params.ToAstFieldList(pack, filename)
 	ftype := &ast.FuncType{token.NoPos, flist, nil}
@@ -639,28 +639,28 @@ func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, resu
 		ftype.Results = &ast.FieldList{token.NoPos, []*ast.Field{&ast.Field{nil, nil, result.ToAstExpr(pack, filename), nil, nil}}, token.NoPos}
 	}
 	fbody := &ast.BlockStmt{token.NoPos, stmtList, token.NoPos}
-	
-	var recvList *ast.FieldList;
-	if recvSym != nil{
-		recvSt := st.NewSymbolTable(pack);
-		recvSt.AddSymbol(recvSym);
-		recvList = recvSt.ToAstFieldList(pack,filename);
+
+	var recvList *ast.FieldList
+	if recvSym != nil {
+		recvSt := st.NewSymbolTable(pack)
+		recvSt.AddSymbol(recvSym)
+		recvList = recvSt.ToAstFieldList(pack, filename)
 	}
-	
+
 	return &ast.FuncDecl{nil, recvList, ast.NewIdent(name), ftype, fbody}
 }
 
 func makeCallExpr(name string, params *st.SymbolTable, pos token.Pos, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.CallExpr {
-	var Fun ast.Expr;
-	if recvSym != nil{
-		x:= ast.NewIdent(recvSym.Name())
-		x.NamePos = pos;
-		Fun = &ast.SelectorExpr{x,ast.NewIdent(name)}
-	}else{
-		x := ast.NewIdent(name);
-		x.NamePos = pos;
+	var Fun ast.Expr
+	if recvSym != nil {
+		x := ast.NewIdent(recvSym.Name())
+		x.NamePos = pos
+		Fun = &ast.SelectorExpr{x, ast.NewIdent(name)}
+	} else {
+		x := ast.NewIdent(name)
+		x.NamePos = pos
 		Fun = x
-		
+
 	}
 	//Fun.NamePos = pos
 	Args := params.ToAstExprSlice(pack, filename)
@@ -718,39 +718,39 @@ func replaceStmtsWithCall(origin []ast.Stmt, replace []ast.Stmt, with *ast.CallE
 	return result
 }
 
-func getRecieverSymbol(programTree *program.Program,pack *st.Package, filename string, recieverVarLine int,recieverVarCol int) (*st.VariableSymbol,*errors.GoRefactorError){
-	if recieverVarLine >= 0 && recieverVarLine >= 0{
-		rr,err := programTree.FindSymbolByPosition(filename,recieverVarLine, recieverVarCol)
-		if err != nil{
+func getRecieverSymbol(programTree *program.Program, pack *st.Package, filename string, recieverVarLine int, recieverVarCol int) (*st.VariableSymbol, *errors.GoRefactorError) {
+	if recieverVarLine >= 0 && recieverVarLine >= 0 {
+		rr, err := programTree.FindSymbolByPosition(filename, recieverVarLine, recieverVarCol)
+		if err != nil {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "'recieverVarLine' and 'recieverVarCol' arguments don't point on an identifier"}
 		}
-		recvSym,ok := rr.(*st.VariableSymbol)
-		if !ok{
+		recvSym, ok := rr.(*st.VariableSymbol)
+		if !ok {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a variable symbol"}
 		}
-		if recvSym.VariableType.PackageFrom() != pack{
+		if recvSym.VariableType.PackageFrom() != pack {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "reciever type is not from the same package as extracted code (not allowed to define methods for a type from imported package)"}
 		}
-		return recvSym,nil
+		return recvSym, nil
 	}
-	return nil,nil
+	return nil, nil
 }
 
-func getExtractedStatementList(pack *st.Package,file *ast.File,filename string,lineStart int,colStart int, lineEnd int,colEnd int) ([]ast.Stmt,ast.Node,*errors.GoRefactorError) {
+func getExtractedStatementList(pack *st.Package, file *ast.File, filename string, lineStart int, colStart int, lineEnd int, colEnd int) ([]ast.Stmt, ast.Node, *errors.GoRefactorError) {
 	vis := &extractedSetVisitor{pack, new(vector.Vector), token.Position{filename, 0, lineStart, colStart}, token.Position{filename, 0, lineEnd, colEnd}, nil, nil, nil}
 	ast.Walk(vis, file)
 	if !vis.isValid() {
-		return nil,nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
+		return nil, nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract such set of statements"}
 	}
-	
+
 	if checkForReturns(vis.resultBlock) {
-		return nil,nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code witn return statements"}
+		return nil, nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code witn return statements"}
 	}
-	
-	return makeStmtList(vis.resultBlock),vis.nodeFrom,nil
+
+	return makeStmtList(vis.resultBlock), vis.nodeFrom, nil
 }
 
-func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTree *program.Program) (*st.SymbolTable,*st.SymbolTable){
+func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTree *program.Program) (*st.SymbolTable, *st.SymbolTable) {
 	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
 	paramSymbolsMap := make(map[st.Symbol]bool)
 	params := st.NewSymbolTable(pack)
@@ -760,10 +760,10 @@ func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTr
 			params.AddSymbol(sym)
 		}
 	}
-	return params,declared;
+	return params, declared
 }
 
-func getResultTypeIfAny(programTree *program.Program,pack *st.Package,filename string,stmtList []ast.Stmt) st.ITypeSymbol{
+func getResultTypeIfAny(programTree *program.Program, pack *st.Package, filename string, stmtList []ast.Stmt) st.ITypeSymbol {
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		return packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
 	}
@@ -784,29 +784,29 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
 
-	stmtList,nodeFrom,err := getExtractedStatementList(pack,file,filename,lineStart,colStart,lineEnd,colEnd);
-	if err != nil{
-		return false,err;
+	stmtList, nodeFrom, err := getExtractedStatementList(pack, file, filename, lineStart, colStart, lineEnd, colEnd)
+	if err != nil {
+		return false, err
 	}
-	
-	params,declared := getParametersAndDeclaredIn(pack, stmtList, programTree);
-		
-	recvSym,err := getRecieverSymbol(programTree,pack,filename,recieverVarLine,recieverVarCol)
-	if err != nil{
-		return false,err;
+
+	params, declared := getParametersAndDeclaredIn(pack, stmtList, programTree)
+
+	recvSym, err := getRecieverSymbol(programTree, pack, filename, recieverVarLine, recieverVarCol)
+	if err != nil {
+		return false, err
 	}
-	
-	if recvSym != nil{
-		if _,found := params.LookUp(recvSym.Name(),""); !found{
+
+	if recvSym != nil {
+		if _, found := params.LookUp(recvSym.Name(), ""); !found {
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a parameter to extracted code"}
 		}
-		params.RemoveSymbol(recvSym.Name());
+		params.RemoveSymbol(recvSym.Name())
 	}
-	
-	result := getResultTypeIfAny(programTree,pack,filename,stmtList);
-	
-	fdecl := makeFuncDecl(methodName, stmtList, params, result,recvSym, pack, filename)
-	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(),recvSym, pack, filename)
+
+	result := getResultTypeIfAny(programTree, pack, filename, stmtList)
+
+	fdecl := makeFuncDecl(methodName, stmtList, params, result, recvSym, pack, filename)
+	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), recvSym, pack, filename)
 
 	if nodeFrom != nil {
 		if ok, errs := checkScoping(nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
@@ -821,7 +821,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		setStmtList(nodeFrom, newList)
 	} else {
 		rs := stmtList[0].(*ast.ReturnStmt)
-		ok, err := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()),pack.FileSet.Position(rs.Results[0].End()) ,callExpr, pack, file)
+		ok, err := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()), pack.FileSet.Position(rs.Results[0].End()), callExpr, pack, file)
 		if !ok {
 			return false, err
 		}

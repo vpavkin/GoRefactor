@@ -108,7 +108,18 @@ func main() {
 		}
 		p.SaveFile(filename)
 	case INLINE_METHOD:
-		fmt.Println("this feature is not implemented yet")
+		if ok, err := refactoring.CheckInlineMethodParameters(filename, line, column, endLine, endColumn); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		fmt.Println("inlining call...")
+		srcDir, _ := getInitedDir(filename)
+		p := program.ParseProgram(srcDir, nil)
+		if ok, err := refactoring.InlineMethod(p, filename, line, column, endLine, endColumn); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		p.SaveFile(filename)
 	case EXTRACT_INTERFACE:
 		fmt.Println("this feature is not implemented yet")
 	case IMPLEMENT_INTERFACE:
