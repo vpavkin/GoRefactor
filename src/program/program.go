@@ -40,7 +40,7 @@ func initialize() {
 	}
 
 	goRoot := os.Getenv("GOROOT")
-	if goRoot == ""{
+	if goRoot == "" {
 		panic("please, set environment variable GOROOT (usualy $HOME/go)")
 	}
 	goSrcDir = path.Join(goRoot, "src", "pkg")

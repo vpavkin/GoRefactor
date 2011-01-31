@@ -224,7 +224,7 @@ type StructTypeSymbol struct {
 
 type PackageSymbol struct {
 	name      string
-	Idents    IdentSet     //local name of package (for unnamed - real name)
+	Idents    IdentSet
 	ShortPath string       // "go/ast", "fmt" etc.
 	Posits    PositionSet  //local file name occurances
 	Package   *Package     //package entitie that's described by symbol
@@ -238,7 +238,7 @@ type Package struct { //NOT A SYMBOL
 	SymbolTablePool *vector.Vector //links to all symbol tables including nested
 
 	FileSet     *token.FileSet
-	AstPackage  *ast.Package              //ast tree 
+	AstPackage  *ast.Package              //ast tree
 	Imports     map[string]*vector.Vector //map[file] *[]packageSymbol
 	IsGoPackage bool                      //true if package source is in $GOROOT/src/pkg/
 
