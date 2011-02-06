@@ -180,6 +180,9 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 				lv.Parser.parseExpr(exp)
 			}
 		}
+	case *ast.SendStmt:
+		lv.Parser.parseExpr(s.Chan)
+		lv.Parser.parseExpr(s.Value)
 	case *ast.SwitchStmt, *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.FuncLit, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.TypeCaseClause, *ast.CommClause:
 
 		w = lv.parseBlockStmt(node)
@@ -305,23 +308,8 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		}
 		w = nil
 	case *ast.CommClause:
-		switch {
-		case inNode.Lhs != nil:
-			switch inNode.Tok {
-			case token.DEFINE:
-				ccVar := inNode.Lhs.(*ast.Ident)
-				ccType := ww.Parser.parseExpr(inNode.Rhs).At(0).(st.ITypeSymbol)
+		ww.parseStmt(inNode.Comm)
 
-				toAdd := st.MakeVariable(ccVar.Name, ww.Current, ccType)
-				ww.Parser.registerIdent(toAdd, ccVar)
-				ww.Current.AddSymbol(toAdd)
-			case token.ASSIGN:
-				ww.Parser.parseExpr(inNode.Lhs)
-				ww.Parser.parseExpr(inNode.Rhs)
-			}
-		case inNode.Rhs != nil:
-			ww.Parser.parseExpr(inNode.Rhs)
-		}
 		for _, stmt := range inNode.Body {
 			ast.Walk(ww, stmt)
 		}
