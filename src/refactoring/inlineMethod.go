@@ -94,20 +94,6 @@ func getCall(pack *st.Package, file *ast.File, filename string, lineStart int, c
 	return vis.CallNode, vis.nodeFrom
 }
 
-// convertStatementListVisitor prepares statement list of a method to be inlined in destination scope.
-// It changes imported packages' aliases and adds import statements if needed.
-// Names of method locals, that conflict with destination scope, are renamed.
-type convertStatementListVisitor struct {
-	Package *st.Package
-
-	destScope    *st.SymbolTable
-	newNames     map[st.Symbol]ast.Expr //for method parameters - passed expressions, for locals - their new names
-	importsToAdd map[string]bool
-
-	sourceFile string
-	destFile   string
-}
-
 // support functions
 func getCallExpr(callNode ast.Node) (*ast.CallExpr, *errors.GoRefactorError) {
 	switch node := callNode.(type) {
@@ -215,6 +201,130 @@ func getNewNames(callExpr *ast.CallExpr, funSym *st.FunctionSymbol, destScope ma
 	return newNames
 }
 
+// convertStatementListVisitor prepares statement list of a method to be inlined in destination scope.
+// It changes imported packages' aliases and adds import statements if needed.
+// Names of method locals, that conflict with destination scope, are renamed.
+type statementListConverter struct {
+	IdentMap st.IdentifierMap
+	Package  *st.Package
+
+	newNames     map[st.Symbol]ast.Expr //for method parameters - passed expressions, for locals - their new names
+	importsToAdd map[*st.PackageSymbol]bool
+
+	sourceFile string
+	destFile   string
+
+	sourceList []ast.Stmt
+	destList   []ast.Stmt
+
+	Chan chan ast.Expr
+}
+
+func (slc *statementListConverter) source() {
+	sv := &sourceVisitor{slc}
+	for _, stmt := range slc.sourceList {
+		ast.Walk(sv, stmt)
+	}
+}
+func (slc *statementListConverter) destination(allCovered chan bool) {
+	dv := &destinationVisitor{slc, nil}
+	for _, stmt := range slc.destList {
+		dv.rootNode = stmt
+		ast.Walk(dv, stmt)
+	}
+	allCovered <- true
+}
+
+type sourceVisitor struct {
+	*statementListConverter
+}
+
+func (vis sourceVisitor) Visit(node ast.Node) ast.Visitor {
+	switch t := node.(type) {
+	case *ast.SelectorExpr:
+		ast.Walk(vis, t.X)
+		return nil
+	case *ast.Ident:
+		sym := vis.IdentMap.GetSymbol(t)
+		if ps, ok := sym.(*st.PackageSymbol); ok {
+			p := ps.Package
+			for _, el := range *vis.Package.Imports[vis.destFile] {
+				if p == el.(*st.PackageSymbol).Package {
+					if el.(*st.PackageSymbol).Name() != ps.Name() {
+						vis.Chan <- ast.NewIdent(el.(*st.PackageSymbol).Name())
+					} else {
+						vis.Chan <- nil
+					}
+					return nil
+				}
+			}
+			vis.importsToAdd[ps] = true
+			vis.Chan <- ast.NewIdent(ps.Name())
+			return nil
+		}
+		if nn, ok := vis.newNames[sym]; ok {
+			vis.Chan <- nn
+		} else {
+			vis.Chan <- nil
+		}
+		return nil
+	}
+	return vis
+}
+
+type destinationVisitor struct {
+	*statementListConverter
+	rootNode ast.Node
+}
+
+func (vis destinationVisitor) Visit(node ast.Node) ast.Visitor {
+	switch t := node.(type) {
+	case *ast.SelectorExpr:
+		ast.Walk(vis, t.X)
+		return nil
+	case *ast.Ident:
+		newExpr := <-vis.Chan
+		if newExpr != nil {
+			replaceExpr(vis.Package.FileSet.Position(t.Pos()), vis.Package.FileSet.Position(t.End()), newExpr, vis.Package, vis.rootNode)
+		}
+		return nil
+	}
+	return vis
+}
+
+func getResultStmtList(IdentMap st.IdentifierMap, pack *st.Package, funSym *st.FunctionSymbol, newNames map[st.Symbol]ast.Expr, sourceFile string, destFile string, sourceList []ast.Stmt) []ast.Stmt {
+	listCopy := utils.CopyStmtList(sourceList)
+	converter := &statementListConverter{IdentMap, pack, newNames, make(map[*st.PackageSymbol]bool), sourceFile, destFile, sourceList, listCopy, make(chan ast.Expr)}
+	allCovered := make(chan bool)
+	go converter.source()
+	go converter.destination(allCovered)
+	<-allCovered
+	return converter.destList
+}
+
+type fixPositionsVisitor struct{
+	sourceOrigin token.Pos
+	destOrigin token.Pos
+	list []ast.Stmt
+}
+
+func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos{
+	return vis.destOrigin + (pos - vis.sourceOrigin)
+}
+func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor{
+	switch t := node.(type) {
+		case *ast.Ident:
+			t.NamePos = vis.newPos(t.NamePos)
+	}
+	return vis
+}
+func fixPositions(sourceOrigin token.Pos,destOrigin token.Pos,list []ast.Stmt) {
+	vis := &fixPositionsVisitor{sourceOrigin,destOrigin,list}
+	for _,stmt := range list{
+		ast.Walk(vis,stmt)
+	}
+}
+
 func CheckInlineMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int) (bool, *errors.GoRefactorError) {
 	switch {
 	case filename == "" || !utils.IsGoFile(filename):
@@ -256,19 +366,37 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 	if funSym.PackageFrom() != pack {
 		return false, &errors.GoRefactorError{ErrorType: "inline method error", Message: "can't inline method from other package"}
 	}
-	// 	decl, declaredFileName, err := getDeclarationInFile(programTree, pack, funSym)
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
+	decl, sourceFile, err := getDeclarationInFile(programTree, pack, funSym)
+	if err != nil {
+		return false, err
+	}
 
 	destScope := getDestScope(programTree, pack, nodeFrom)
 	newNames := getNewNames(callExpr, funSym, destScope)
+
+	resList := getResultStmtList(programTree.IdentMap, pack, funSym, newNames, sourceFile, filename, decl.Body.List)
+
+	if len(resList) > 0{
+		sourcePos := resList[0].Pos()
+		destPos := callExpr.Pos()
+		fixPositions(sourcePos,destPos,resList)
+	}
 	fmt.Printf("%T %v %v\n", nodeFrom, CallAsExpression, len(destScope))
 	for sym, expr := range newNames {
 		fmt.Printf("%s -> ", sym.Name())
-		printer.Fprint(os.Stdout, pack.FileSet, expr)
+		printer.Fprint(os.Stdout, token.NewFileSet(), expr)
 		print("; ")
 	}
 	println()
+	for _, stmt := range decl.Body.List {
+		printer.Fprint(os.Stdout, token.NewFileSet(), stmt)
+		println()
+	}
+	
+	println("\n=======================")
+	for _, stmt := range resList {
+		printer.Fprint(os.Stdout, token.NewFileSet(), stmt)
+		println()
+	}
 	return false, errors.ArgumentError("blah", "blah blah blah")
 }

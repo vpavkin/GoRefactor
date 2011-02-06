@@ -227,7 +227,7 @@ type PackageSymbol struct {
 	Idents    IdentSet
 	ShortPath string       // "go/ast", "fmt" etc.
 	Posits    PositionSet  //local file name occurances
-	Package   *Package     //package entitie that's described by symbol
+	Package   *Package     //package entity that's described by symbol
 	Scope_    *SymbolTable //scope where symbol is declared
 }
 

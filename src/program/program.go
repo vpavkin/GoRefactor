@@ -314,7 +314,7 @@ func (p *Program) Save() {
 			if err != nil {
 				panic("couldn't open file " + fName + "for writing")
 			}
-			err = printer.Fprint(fd, pack.FileSet, file)
+			err = printer.Fprint(fd, token.NewFileSet(), file)
 			if err != nil {
 				panic("couldn't write to file " + fName)
 			}
@@ -329,7 +329,7 @@ func (p *Program) SaveFile(filename string) {
 	if err != nil {
 		panic("couldn't open file " + filename + "for writing")
 	}
-	err = printer.Fprint(fd, pack.FileSet, file)
+	err = printer.Fprint(fd, token.NewFileSet(), file)
 	if err != nil {
 		panic("couldn't write to file " + filename)
 	}

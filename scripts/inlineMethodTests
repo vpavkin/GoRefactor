@@ -1,5 +1,5 @@
 #!/bin/bash
 ../bin/goref -a inm -f /home/rulerr/goRefactor/src/packageParser/localsVisitor.go -l 125 -c 4 -el 125 -ec 37
 ./build
-../bin/goref -a inm -f /home/rulerr/goRefactor/src/utils/utils.go -l 11 -c 9 -el 11 -ec 25
+../bin/goref -a inm -f /home/rulerr/goRefactor/src/utils/utils.go -l 12 -c 9 -el 12 -ec 25
 ./build
