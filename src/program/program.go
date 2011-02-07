@@ -40,6 +40,9 @@ func initialize() {
 	}
 
 	goRoot := os.Getenv("GOROOT")
+	if goRoot == "" {
+		panic("please, set environment variable GOROOT (usualy $HOME/go)")
+	}
 	goSrcDir = path.Join(goRoot, "src", "pkg")
 
 	externPackageTrees = new(vector.StringVector)
@@ -59,7 +62,6 @@ type Program struct {
 func loadConfig(packageName string) *vector.StringVector {
 	fd, err := os.Open(packageName+".cfg", os.O_RDONLY, 0)
 	if err != nil {
-		println(err.String())
 		panic("Couldn't open " + packageName + " config: " + err.String())
 	}
 	defer fd.Close()

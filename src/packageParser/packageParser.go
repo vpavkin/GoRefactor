@@ -247,6 +247,9 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 	//anonymous type
 	if base.Name() == st.NO_NAME {
 		result = st.MakePointerType(base.Scope(), base)
+		if s, ok := base.(*st.StructTypeSymbol); ok {
+			result.Fields = s.Fields
+		}
 		return
 	}
 
@@ -277,6 +280,9 @@ func (pp *packageParser) getOrAddPointer(base st.ITypeSymbol) (result *st.Pointe
 	}
 
 	result = st.MakePointerType(toLookUp, base)
+	if s, ok := base.(*st.StructTypeSymbol); ok {
+		result.Fields = s.Fields
+	}
 	// 	fmt.Printf("Adding Pointer Type %s to %s at file of %s\n", result.Name(), func(p *st.Package) string {
 	// 		if p == nil {
 	// 			return "nil"

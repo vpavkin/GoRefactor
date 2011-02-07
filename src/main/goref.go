@@ -19,13 +19,7 @@ var action string
 
 
 const (
-	INIT                string = "init"
-	RENAME              = "ren"
-	EXTRACT_METHOD      = "exm"
-	INLINE_METHOD       = "inm"
-	EXTRACT_INTERFACE   = "exi"
-	IMPLEMENT_INTERFACE = "imi"
-	SORT                = "sort"
+	INIT string = "init"
 )
 
 func init() {
@@ -80,7 +74,7 @@ func main() {
 			defer fd.Close()
 			fmt.Printf("inited\n", action)
 		}
-	case RENAME:
+	case refactoring.RENAME:
 		if ok, err := refactoring.CheckRenameParameters(filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -94,7 +88,7 @@ func main() {
 			fmt.Println(count, "occurences renamed")
 			p.Save()
 		}
-	case EXTRACT_METHOD:
+	case refactoring.EXTRACT_METHOD:
 		if ok, err := refactoring.CheckExtractMethodParameters(filename, line, column, endLine, endColumn, entityName, varLine, varColumn); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -107,13 +101,24 @@ func main() {
 			return
 		}
 		p.SaveFile(filename)
-	case INLINE_METHOD:
+	case refactoring.INLINE_METHOD:
+		if ok, err := refactoring.CheckInlineMethodParameters(filename, line, column, endLine, endColumn); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		fmt.Println("inlining call...")
+		srcDir, _ := getInitedDir(filename)
+		p := program.ParseProgram(srcDir, nil)
+		if ok, err := refactoring.InlineMethod(p, filename, line, column, endLine, endColumn); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		p.SaveFile(filename)
+	case refactoring.EXTRACT_INTERFACE:
 		fmt.Println("this feature is not implemented yet")
-	case EXTRACT_INTERFACE:
+	case refactoring.IMPLEMENT_INTERFACE:
 		fmt.Println("this feature is not implemented yet")
-	case IMPLEMENT_INTERFACE:
-		fmt.Println("this feature is not implemented yet")
-	case SORT:
+	case refactoring.SORT:
 		fmt.Println("this feature is not implemented yet")
 	}
 	//fmt.Printf("%s %s %d %d %s\n", action, filename, line, column, entityName)
