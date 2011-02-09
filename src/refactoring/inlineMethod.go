@@ -10,8 +10,8 @@ import (
 	"strconv"
 
 	"fmt"
-// 	"os"
-// 	"go/printer"
+	// 	"os"
+	// 	"go/printer"
 )
 
 //given start and end positions visitor finds call expression 
@@ -248,15 +248,14 @@ func (vis sourceVisitor) Visit(node ast.Node) ast.Visitor {
 		sym := vis.IdentMap.GetSymbol(t)
 		if ps, ok := sym.(*st.PackageSymbol); ok {
 			p := ps.Package
-			for _, el := range *vis.Package.Imports[vis.destFile] {
-				if p == el.(*st.PackageSymbol).Package {
-					if el.(*st.PackageSymbol).Name() != ps.Name() {
-						vis.Chan <- ast.NewIdent(el.(*st.PackageSymbol).Name())
-					} else {
-						vis.Chan <- nil
-					}
-					return nil
+			imp := vis.Package.GetImport(vis.destFile, p)
+			if imp != nil {
+				if imp.Name() != ps.Name() {
+					vis.Chan <- ast.NewIdent(imp.Name())
+				} else {
+					vis.Chan <- nil
 				}
+				return nil
 			}
 			vis.importsToAdd[ps] = true
 			vis.Chan <- ast.NewIdent(ps.Name())
@@ -302,13 +301,13 @@ func getResultStmtList(IdentMap st.IdentifierMap, pack *st.Package, funSym *st.F
 	return converter.destList
 }
 
-type fixPositionsVisitor struct{
+type fixPositionsVisitor struct {
 	sourceOrigin token.Pos
-	inc int
+	inc          int
 }
 
-func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos{
-	if(pos < vis.sourceOrigin){
+func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos {
+	if pos < vis.sourceOrigin {
 		println(pos)
 		return pos
 	}
@@ -317,121 +316,122 @@ func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos{
 	println(token.Pos(int(pos) + vis.inc))
 	return token.Pos(int(pos) + vis.inc)
 }
-func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor{
+func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 	switch t := node.(type) {
-		case *ast.ArrayType:
-			t.Lbrack = vis.newPos(t.Lbrack)
-		case *ast.AssignStmt:
-			t.TokPos = vis.newPos(t.TokPos)
-		case *ast.BasicLit:
-			t.ValuePos = vis.newPos(t.ValuePos)
-		case *ast.BinaryExpr:
-			t.OpPos = vis.newPos(t.OpPos)
-		case *ast.BlockStmt:
-			t.Lbrace = vis.newPos(t.Lbrace)
-			t.Rbrace = vis.newPos(t.Rbrace)
-			//case *ast.BranchStmt:
-		case *ast.CallExpr:
-			t.Rparen = vis.newPos(t.Rparen)
-			t.Lparen = vis.newPos(t.Lparen)
-			t.Ellipsis = vis.newPos(t.Ellipsis)
-		case *ast.CaseClause:
-			t.Case = vis.newPos(t.Case)
-			t.Colon = vis.newPos(t.Colon)
-		case *ast.ChanType:
-			t.Begin = vis.newPos(t.Begin)
-		case *ast.CommClause:
-			t.Case = vis.newPos(t.Case)
-			t.Colon = vis.newPos(t.Colon)
-		case *ast.Comment:
-			t.Slash = vis.newPos(t.Slash)
-		case *ast.CommentGroup:
-		case *ast.CompositeLit:
-			t.Lbrace = vis.newPos(t.Lbrace)
-			t.Rbrace = vis.newPos(t.Rbrace)
-		case *ast.DeclStmt:
-		case *ast.DeferStmt:
-			t.Defer = vis.newPos(t.Defer)
-		case *ast.Ellipsis:
-			t.Ellipsis = vis.newPos(t.Ellipsis)
-		case *ast.EmptyStmt:
-			t.Semicolon = vis.newPos(t.Semicolon)
-		case *ast.ExprStmt:
-		case *ast.Field:
-		case *ast.FieldList:
-			t.Opening = vis.newPos(t.Opening)
-			t.Closing = vis.newPos(t.Closing)
-		case *ast.File:
-			t.Package = vis.newPos(t.Package)
-		case *ast.ForStmt:
-			t.For = vis.newPos(t.For)
-		case *ast.FuncDecl:
-		case *ast.FuncLit:
-		case *ast.FuncType:
-			t.Func = vis.newPos(t.Func)
-		case *ast.GenDecl:
-			t.TokPos = vis.newPos(t.TokPos)
-			t.Lparen = vis.newPos(t.Lparen)
-			t.Rparen = vis.newPos(t.Rparen)
-		case *ast.GoStmt:
-			t.Go = vis.newPos(t.Go)
-		case *ast.Ident:
-			t.NamePos = vis.newPos(t.NamePos)
-		case *ast.IfStmt:
-			t.If = vis.newPos(t.If)
-		case *ast.ImportSpec:
-		case *ast.IncDecStmt:
-			t.TokPos = vis.newPos(t.TokPos)
-		case *ast.IndexExpr:
-			t.Lbrack = vis.newPos(t.Lbrack)
-			t.Rbrack = vis.newPos(t.Rbrack)
-		case *ast.InterfaceType:
-			t.Interface = vis.newPos(t.Interface)
-		case *ast.KeyValueExpr:
-			t.Colon = vis.newPos(t.Colon)
-			//case *ast.LabeledStmt:
-		case *ast.MapType:
-			t.Map = vis.newPos(t.Map)
-			//case *ast.Package:
-		case *ast.ParenExpr:
-			t.Lparen = vis.newPos(t.Lparen)
-			t.Rparen = vis.newPos(t.Rparen)
-		case *ast.RangeStmt:
-			t.For = vis.newPos(t.For)
-			t.TokPos = vis.newPos(t.TokPos)
-		case *ast.ReturnStmt:
-			t.Return = vis.newPos(t.Return)
-		case *ast.SelectStmt:
-			t.Select = vis.newPos(t.Select)
-		case *ast.SelectorExpr:
-		case *ast.SendStmt:
-			t.Arrow = vis.newPos(t.Arrow)
-		case *ast.SliceExpr:
-			t.Lbrack = vis.newPos(t.Lbrack)
-			t.Rbrack = vis.newPos(t.Rbrack)
-		case *ast.StarExpr:
-			t.Star = vis.newPos(t.Star)
-		case *ast.StructType:
-			t.Struct = vis.newPos(t.Struct)
-		case *ast.SwitchStmt:
-			t.Switch = vis.newPos(t.Switch)
-		case *ast.TypeAssertExpr:
-		case *ast.TypeCaseClause:
-			t.Case = vis.newPos(t.Case)
-			t.Colon = vis.newPos(t.Colon)
-		case *ast.TypeSpec:
-		case *ast.TypeSwitchStmt:
-			t.Switch = vis.newPos(t.Switch)
-		case *ast.UnaryExpr:
-			t.OpPos = vis.newPos(t.OpPos)
-		case *ast.ValueSpec:
+	case *ast.ArrayType:
+		t.Lbrack = vis.newPos(t.Lbrack)
+	case *ast.AssignStmt:
+		t.TokPos = vis.newPos(t.TokPos)
+	case *ast.BasicLit:
+		t.ValuePos = vis.newPos(t.ValuePos)
+	case *ast.BinaryExpr:
+		t.OpPos = vis.newPos(t.OpPos)
+	case *ast.BlockStmt:
+		t.Lbrace = vis.newPos(t.Lbrace)
+		t.Rbrace = vis.newPos(t.Rbrace)
+		//case *ast.BranchStmt:
+	case *ast.CallExpr:
+		t.Rparen = vis.newPos(t.Rparen)
+		t.Lparen = vis.newPos(t.Lparen)
+		t.Ellipsis = vis.newPos(t.Ellipsis)
+	case *ast.CaseClause:
+		t.Case = vis.newPos(t.Case)
+		t.Colon = vis.newPos(t.Colon)
+	case *ast.ChanType:
+		t.Begin = vis.newPos(t.Begin)
+	case *ast.CommClause:
+		t.Case = vis.newPos(t.Case)
+		t.Colon = vis.newPos(t.Colon)
+	case *ast.Comment:
+		t.Slash = vis.newPos(t.Slash)
+	case *ast.CommentGroup:
+	case *ast.CompositeLit:
+		t.Lbrace = vis.newPos(t.Lbrace)
+		t.Rbrace = vis.newPos(t.Rbrace)
+	case *ast.DeclStmt:
+	case *ast.DeferStmt:
+		t.Defer = vis.newPos(t.Defer)
+	case *ast.Ellipsis:
+		t.Ellipsis = vis.newPos(t.Ellipsis)
+	case *ast.EmptyStmt:
+		t.Semicolon = vis.newPos(t.Semicolon)
+	case *ast.ExprStmt:
+	case *ast.Field:
+	case *ast.FieldList:
+		t.Opening = vis.newPos(t.Opening)
+		t.Closing = vis.newPos(t.Closing)
+	case *ast.File:
+		t.Package = vis.newPos(t.Package)
+	case *ast.ForStmt:
+		t.For = vis.newPos(t.For)
+	case *ast.FuncDecl:
+	case *ast.FuncLit:
+	case *ast.FuncType:
+		t.Func = vis.newPos(t.Func)
+	case *ast.GenDecl:
+		t.TokPos = vis.newPos(t.TokPos)
+		t.Lparen = vis.newPos(t.Lparen)
+		t.Rparen = vis.newPos(t.Rparen)
+	case *ast.GoStmt:
+		t.Go = vis.newPos(t.Go)
+	case *ast.Ident:
+		t.NamePos = vis.newPos(t.NamePos)
+	case *ast.IfStmt:
+		t.If = vis.newPos(t.If)
+	case *ast.ImportSpec:
+	case *ast.IncDecStmt:
+		t.TokPos = vis.newPos(t.TokPos)
+	case *ast.IndexExpr:
+		t.Lbrack = vis.newPos(t.Lbrack)
+		t.Rbrack = vis.newPos(t.Rbrack)
+	case *ast.InterfaceType:
+		t.Interface = vis.newPos(t.Interface)
+	case *ast.KeyValueExpr:
+		t.Colon = vis.newPos(t.Colon)
+		//case *ast.LabeledStmt:
+	case *ast.MapType:
+		t.Map = vis.newPos(t.Map)
+		//case *ast.Package:
+	case *ast.ParenExpr:
+		t.Lparen = vis.newPos(t.Lparen)
+		t.Rparen = vis.newPos(t.Rparen)
+	case *ast.RangeStmt:
+		t.For = vis.newPos(t.For)
+		t.TokPos = vis.newPos(t.TokPos)
+	case *ast.ReturnStmt:
+		t.Return = vis.newPos(t.Return)
+	case *ast.SelectStmt:
+		t.Select = vis.newPos(t.Select)
+	case *ast.SelectorExpr:
+	case *ast.SendStmt:
+		t.Arrow = vis.newPos(t.Arrow)
+	case *ast.SliceExpr:
+		t.Lbrack = vis.newPos(t.Lbrack)
+		t.Rbrack = vis.newPos(t.Rbrack)
+	case *ast.StarExpr:
+		t.Star = vis.newPos(t.Star)
+	case *ast.StructType:
+		t.Struct = vis.newPos(t.Struct)
+	case *ast.SwitchStmt:
+		t.Switch = vis.newPos(t.Switch)
+	case *ast.TypeAssertExpr:
+	case *ast.TypeCaseClause:
+		t.Case = vis.newPos(t.Case)
+		t.Colon = vis.newPos(t.Colon)
+	case *ast.TypeSpec:
+	case *ast.TypeSwitchStmt:
+		t.Switch = vis.newPos(t.Switch)
+	case *ast.UnaryExpr:
+		t.OpPos = vis.newPos(t.OpPos)
+	case *ast.ValueSpec:
 	}
 	return vis
 }
-func fixPositions(sourceOrigin token.Pos,inc int,node ast.Node) {
-	print("sourceOrigin = "); println(sourceOrigin)
-	vis := &fixPositionsVisitor{sourceOrigin,inc}
-	ast.Walk(vis,node)
+func fixPositions(sourceOrigin token.Pos, inc int, node ast.Node) {
+	print("sourceOrigin = ")
+	println(sourceOrigin)
+	vis := &fixPositionsVisitor{sourceOrigin, inc}
+	ast.Walk(vis, node)
 }
 
 func CheckInlineMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int) (bool, *errors.GoRefactorError) {
@@ -484,44 +484,44 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 	newNames := getNewNames(callExpr, funSym, destScope)
 
 	resList := getResultStmtList(programTree.IdentMap, pack, funSym, newNames, sourceFile, filename, decl.Body.List)
-	
-	if len(decl.Body.List) > 0{
+
+	if len(decl.Body.List) > 0 {
 		sourcePos := decl.Body.List[0].Pos()
 		destPos := callNode.Pos()
 		inc := int(destPos) - int(sourcePos)
-		for _,stmt := range resList{
-			fixPositions(token.NoPos,inc,stmt)
+		for _, stmt := range resList {
+			fixPositions(token.NoPos, inc, stmt)
 		}
-		inc = int(decl.Body.List[len(decl.Body.List) - 1].End() - sourcePos) - int(callNode.End() - destPos)
-		fixPositions(destPos,inc,file)
+		inc = int(decl.Body.List[len(decl.Body.List)-1].End()-sourcePos) - int(callNode.End()-destPos)
+		fixPositions(destPos, inc, file)
 	}
-	
-	if CallAsExpression{
+
+	if CallAsExpression {
 		newExpr := resList[0].(*ast.ReturnStmt).Results[0]
-		replaceExpr(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), newExpr, pack,nodeFrom)
-	}else{
+		replaceExpr(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), newExpr, pack, nodeFrom)
+	} else {
 		list := getStmtList(nodeFrom)
-		i,ok := getIndexOfStmt(callNode.(ast.Stmt),list)
-		if !ok{
+		i, ok := getIndexOfStmt(callNode.(ast.Stmt), list)
+		if !ok {
 			panic("couldn't find call statement during inline")
 		}
-		if len(resList) == 1{
+		if len(resList) == 1 {
 			list[i] = resList[0]
-			return true,nil
+			return true, nil
 		}
-		fmt.Printf("%v\n",list)
-		newList := append(list,list[len(list) - len(resList) + 1:]...)
-		fmt.Printf("%v\n",newList)
-		for j := i + 1;j < len(list) - len(resList) + 1;j++{
-			newList[j + len(resList) - 1] = newList[j]
+		fmt.Printf("%v\n", list)
+		newList := append(list, list[len(list)-len(resList)+1:]...)
+		fmt.Printf("%v\n", newList)
+		for j := i + 1; j < len(list)-len(resList)+1; j++ {
+			newList[j+len(resList)-1] = newList[j]
 		}
-		fmt.Printf("%v\n",newList)
-		for j := i ;j < len(resList) + i;j++{
-			newList[j] = resList[j - i]
+		fmt.Printf("%v\n", newList)
+		for j := i; j < len(resList)+i; j++ {
+			newList[j] = resList[j-i]
 		}
-		fmt.Printf("%v\n",newList)
-		setStmtList(nodeFrom,newList)
+		fmt.Printf("%v\n", newList)
+		setStmtList(nodeFrom, newList)
 	}
-	
-	return true,nil
+
+	return true, nil
 }

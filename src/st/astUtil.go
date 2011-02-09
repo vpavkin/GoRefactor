@@ -10,7 +10,7 @@ import (
 
 func makeNamedExpr(s Symbol, pack *Package, filename string) ast.Expr {
 	if s.PackageFrom() != pack {
-		imp := pack.getImport(filename, s.PackageFrom())
+		imp := pack.GetImport(filename, s.PackageFrom())
 		prefix := imp.Name()
 		return &ast.SelectorExpr{ast.NewIdent(prefix), ast.NewIdent(s.Name())}
 	}

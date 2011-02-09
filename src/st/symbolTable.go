@@ -362,5 +362,8 @@ func (table *SymbolTable) Contains(sym Symbol) bool {
 }
 
 func (table *SymbolTable) Count() int {
+	if table == nil {
+		return 0
+	}
 	return len(*table.Table)
 }
