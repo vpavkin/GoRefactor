@@ -255,7 +255,7 @@ func NewPackage(qualifiedPath string, fileSet *token.FileSet, astPackage *ast.Pa
 	p.Communication = make(chan int)
 	return p
 }
-func (pack *Package) getImport(filename string, imported *Package) *PackageSymbol {
+func (pack *Package) GetImport(filename string, imported *Package) *PackageSymbol {
 	imps := pack.Imports[filename]
 	for _, el := range *imps {
 		imp := el.(*PackageSymbol)
@@ -557,4 +557,95 @@ func IsFloatType(name string) (r bool) {
 func IsComplexType(name string) (r bool) {
 	_, r = complexTypes[name]
 	return
+}
+
+func EqualsMethods(sym1 *FunctionSymbol, sym2 *FunctionSymbol) bool {
+	return sym1.Name() == sym2.Name() && Equals(sym1.FunctionType, sym2.FunctionType)
+}
+func EqualsVariables(sym1 *VariableSymbol, sym2 *VariableSymbol) bool {
+	return sym1.Name() == sym2.Name() && Equals(sym1.VariableType, sym2.VariableType)
+}
+
+func Equals(sym1 ITypeSymbol, sym2 ITypeSymbol) bool {
+	if sym1.Name() != NO_NAME {
+		return sym1 == sym2
+	} else if sym2.Name() != NO_NAME {
+		return false
+	}
+	switch t1 := sym1.(type) {
+	case *AliasTypeSymbol:
+		panic("basic or alias with no name")
+	case *BasicTypeSymbol:
+		panic("basic or alias with no name")
+	case *StructTypeSymbol:
+		t2, ok := sym2.(*StructTypeSymbol)
+		if !ok {
+			return false
+		}
+		if t1.Fields.Count() != t2.Fields.Count() {
+			return false
+		}
+		for i, v := range *t1.Fields.Table {
+			if !EqualsVariables(v.(*VariableSymbol), t2.Fields.Table.At(i).(*VariableSymbol)) {
+				return false
+			}
+		}
+		return true
+	case *MapTypeSymbol:
+		t2, ok := sym2.(*MapTypeSymbol)
+		if !ok {
+			return false
+		}
+		return Equals(t1.KeyType, t2.KeyType) && Equals(t1.ValueType, t2.ValueType)
+	case *ChanTypeSymbol:
+		t2, ok := sym2.(*ChanTypeSymbol)
+		if !ok {
+			return false
+		}
+		return Equals(t1.ValueType, t2.ValueType) && t1.Dir == t2.Dir
+	case *InterfaceTypeSymbol:
+		t2, ok := sym2.(*InterfaceTypeSymbol)
+		if !ok {
+			return false
+		}
+		if t1.Methods().Count() != t2.Methods().Count() {
+			return false
+		}
+		for i, v := range *t1.Methods().Table {
+			if !EqualsMethods(v.(*FunctionSymbol), t2.Methods().Table.At(i).(*FunctionSymbol)) {
+				return false
+			}
+		}
+		return true
+	case *PointerTypeSymbol:
+		t2, ok := sym2.(*PointerTypeSymbol)
+		if !ok {
+			return false
+		}
+		return Equals(t1.BaseType, t2.BaseType)
+	case *FunctionTypeSymbol:
+		t2, ok := sym2.(*FunctionTypeSymbol)
+		if !ok {
+			return false
+		}
+		if t1.Parameters.Count() != t2.Parameters.Count() {
+			return false
+		}
+		if t1.Results.Count() != t2.Results.Count() {
+			return false
+		}
+		for i, v := range *t1.Parameters.Table {
+			if !Equals(v.(*VariableSymbol).VariableType, t2.Parameters.Table.At(i).(*VariableSymbol).VariableType) {
+				return false
+			}
+		}
+		for i, v := range *t1.Results.Table {
+			if !Equals(v.(*VariableSymbol).VariableType, t2.Results.Table.At(i).(*VariableSymbol).VariableType) {
+				return false
+			}
+		}
+		return true
+
+	}
+	panic("unknown symbol type")
 }

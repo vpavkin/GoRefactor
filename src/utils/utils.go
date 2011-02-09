@@ -77,7 +77,7 @@ func CopyAstNode(node ast.Node) ast.Node {
 		Elt, _ := CopyAstNode(t.Elt).(ast.Expr)
 		return &ast.ArrayType{t.Lbrack, Len, Elt}
 	case *ast.AssignStmt:
-		return &ast.AssignStmt{CopyExprList(t.Lhs),t.TokPos,t.Tok,CopyExprList(t.Rhs)}
+		return &ast.AssignStmt{CopyExprList(t.Lhs), t.TokPos, t.Tok, CopyExprList(t.Rhs)}
 	case *ast.BasicLit:
 		value := make([]byte, len(t.Value))
 		copy(value, t.Value)
@@ -124,7 +124,7 @@ func CopyAstNode(node ast.Node) ast.Node {
 		return &ast.FieldList{t.Opening, CopyFieldList(t.List), t.Closing}
 	//case *ast.File:
 	case *ast.ForStmt:
-		return &ast.ForStmt{t.For, CopyAstNode(t.Init).(ast.Stmt), CopyAstNode(t.Cond).(ast.Expr),CopyAstNode(t.Post).(ast.Stmt),CopyAstNode(t.Body).(*ast.BlockStmt)}
+		return &ast.ForStmt{t.For, CopyAstNode(t.Init).(ast.Stmt), CopyAstNode(t.Cond).(ast.Expr), CopyAstNode(t.Post).(ast.Stmt), CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.FuncDecl:
 		return &ast.FuncDecl{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyAstNode(t.Recv).(*ast.FieldList), CopyAstNode(t.Name).(*ast.Ident), CopyAstNode(t.Type).(*ast.FuncType), CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.FuncLit:
@@ -184,7 +184,7 @@ func CopyAstNode(node ast.Node) ast.Node {
 	case *ast.UnaryExpr:
 		return &ast.UnaryExpr{t.OpPos, t.Op, CopyAstNode(t.X).(ast.Expr)}
 	case *ast.ValueSpec:
-		return &ast.ValueSpec{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyIdentList(t.Names),  CopyAstNode(t.Type).(ast.Expr), CopyExprList(t.Values), CopyAstNode(t.Comment).(*ast.CommentGroup)}
+		return &ast.ValueSpec{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyIdentList(t.Names), CopyAstNode(t.Type).(ast.Expr), CopyExprList(t.Values), CopyAstNode(t.Comment).(*ast.CommentGroup)}
 	}
 	panic("can't copy node")
 }

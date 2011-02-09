@@ -11,7 +11,7 @@ import (
 	"program"
 )
 
-var filename, entityName string
+var filename, varFile, entityName string
 var line, column int
 var endLine, endColumn int
 var varLine, varColumn int
@@ -30,6 +30,7 @@ func init() {
 	flag.IntVar(&column, "c", -1, "usage: -c <column number>")
 	flag.IntVar(&endLine, "el", -1, "usage: -el <line number>")
 	flag.IntVar(&endColumn, "ec", -1, "usage: -ec <column number>")
+	flag.StringVar(&varFile, "vf", "", "usage: -vf <filename>")
 	flag.IntVar(&varLine, "vl", -1, "usage: -vl <line number>")
 	flag.IntVar(&varColumn, "vc", -1, "usage: -vc <column number>")
 	flag.StringVar(&entityName, "e", "", "usage: -e <entity name>")
@@ -117,7 +118,18 @@ func main() {
 	case refactoring.EXTRACT_INTERFACE:
 		fmt.Println("this feature is not implemented yet")
 	case refactoring.IMPLEMENT_INTERFACE:
-		fmt.Println("this feature is not implemented yet")
+		if ok, err := refactoring.CheckImplementInterfaceParameters(filename, line, column, varFile, varLine, varColumn); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		fmt.Println("implementing interface...")
+		srcDir, _ := getInitedDir(filename)
+		p := program.ParseProgram(srcDir, nil)
+		if ok, err := refactoring.ImplementInterface(p, filename, line, column, varFile, varLine, varColumn); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		p.SaveFile(varFile)
 	case refactoring.SORT:
 		fmt.Println("this feature is not implemented yet")
 	}

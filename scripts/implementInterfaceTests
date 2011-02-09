@@ -1,0 +1,5 @@
+#!/bin/bash
+../bin/goref -a imi -f /home/rulerr/goRefactor/src/st/symbols.go -l 140 -c 6 -vf /home/rulerr/goRefactor/src/st/symbols.go -vl 280 -vc 6
+./build
+../bin/goref -a imi -f /home/rulerr/goRefactor/src/utils/utils.go -l 12 -c 9 -el 12 -ec 25
+./build
