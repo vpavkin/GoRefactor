@@ -199,7 +199,6 @@ func newPackageParser(p *st.Package, identMap st.IdentifierMap) *packageParser {
 
 func (pp *packageParser) registerIdent(sym st.Symbol, ident *ast.Ident) {
 	sym.AddIdent(ident)
-	// 	fmt.Printf("%p goes to map as %s %T %p %s\n", ident, sym.Name(), sym, sym, pp.CurrentFileName)
 	pp.IdentMap.AddIdent(ident, sym)
 	sym.AddPosition(pp.Package.FileSet.Position(ident.Pos()))
 }
