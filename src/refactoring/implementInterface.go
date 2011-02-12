@@ -99,17 +99,17 @@ func ImplementInterface(programTree *program.Program, filename string, line int,
 	println("missedMethods:")
 	for s, _ := range missedMethods {
 		list := make([]ast.Stmt, 1)
-		list[0] = &ast.ExprStmt{&ast.CallExpr{ast.NewIdent("panic"),token.NoPos,[]ast.Expr{&ast.BasicLit{token.NoPos,token.STRING,[]byte("\"not implemented yet\"")}},token.NoPos,token.NoPos}}
+		list[0] = &ast.ExprStmt{&ast.CallExpr{ast.NewIdent("panic"), token.NoPos, []ast.Expr{&ast.BasicLit{token.NoPos, token.STRING, []byte("\"not implemented yet\"")}}, token.NoPos, token.NoPos}}
 		fdecl := makeFuncDecl(s.Name(), list, s.FunctionType.(*st.FunctionTypeSymbol).Parameters, s.FunctionType.(*st.FunctionTypeSymbol).Results, st.MakeVariable(st.NO_NAME, sT.Scope(), sT), packType, varFile)
 		printer.Fprint(os.Stdout, token.NewFileSet(), fdecl)
 		println()
-		fileType.Decls = append(fileType.Decls,fdecl)
+		fileType.Decls = append(fileType.Decls, fdecl)
 	}
 	println()
 	println("errors:")
 	for _, err := range errors {
 		println(err.String())
 	}
-	
+
 	return true, nil
 }
