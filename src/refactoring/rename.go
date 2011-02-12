@@ -1,32 +1,13 @@
 package refactoring
 
 import (
-	"unicode"
 	"st"
 	"utils"
 	"errors"
 	"program"
 )
 
-func IsGoIdent(name string) bool {
 
-	if name == "_" || name == "nil" || name == "true" || name == "false" {
-		return false
-	}
-	if st.IsPredeclaredIdentifier(name) {
-		return false
-	}
-
-	if !(unicode.IsLetter(int(name[0])) || name[0] == '_') {
-		return false
-	}
-	for i := 1; i < len(name); i++ {
-		if !(unicode.IsLetter(int(name[i])) || unicode.IsDigit(int(name[i])) || name[0] == '_') {
-			return false
-		}
-	}
-	return true
-}
 func CheckRenameParameters(filename string, line int, column int, newName string) (bool, *errors.GoRefactorError) {
 	switch {
 	case filename == "" || !utils.IsGoFile(filename):
