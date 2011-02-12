@@ -303,6 +303,15 @@ func (p *Program) FindSymbolByPosition(filename string, line int, column int) (s
 	return nil, errors.IdentifierNotFoundError(filename, line, column)
 }
 
+func (p *Program) GetPointerType(t st.ITypeSymbol) *st.PointerTypeSymbol {
+	pack := t.PackageFrom()
+	res, ok := pack.Symbols.LookUpPointerType(t.Name(), 1)
+	if ok {
+		return res
+	}
+	return st.MakePointerType(t.Scope(), t)
+}
+
 func (p *Program) Save() {
 	for _, pack := range p.Packages {
 		if pack.IsGoPackage {

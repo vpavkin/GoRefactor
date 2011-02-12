@@ -44,7 +44,7 @@ func containsMethod(m *st.FunctionSymbol, sym st.ITypeSymbol) (bool, *errors.GoR
 
 	return true, nil
 }
-func ImplementInterface(programTree *program.Program, filename string, line int, column int, varFile string, varLine int, varColumn int) (bool, *errors.GoRefactorError) {
+func ImplementInterface(programTree *program.Program, filename string, line int, column int, varFile string, varLine int, varColumn int, asPointer bool) (bool, *errors.GoRefactorError) {
 	if ok, err := CheckImplementInterfaceParameters(filename, line, column, varFile, varLine, varColumn); !ok {
 		return false, err
 	}
@@ -75,6 +75,9 @@ func ImplementInterface(programTree *program.Program, filename string, line int,
 	sT, ok := symType.(st.ITypeSymbol)
 	if !ok {
 		return false, &errors.GoRefactorError{ErrorType: "implement interface error", Message: "interface can be implemented only by a type"}
+	}
+	if asPointer {
+		sT = programTree.GetPointerType(sT)
 	}
 
 	errors := make([]*errors.GoRefactorError, 0, 10)

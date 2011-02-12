@@ -1,3 +1,3 @@
 #!/bin/bash
-../bin/goref -a imi -f /home/rulerr/goRefactor/src/st/symbols.go -l 140 -c 6 -vf /home/rulerr/goRefactor/src/st/symbols.go -vl 280 -vc 6
+goref imi -p /home/rulerr/goRefactor/src/st/symbols.go 140 6 /home/rulerr/goRefactor/src/st/symbols.go 280 6
 ./build
