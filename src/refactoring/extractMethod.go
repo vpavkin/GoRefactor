@@ -660,12 +660,12 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 	return stmtList
 }
 
-func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, result st.ITypeSymbol, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
+func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, results *st.SymbolTable, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
 
 	flist := params.ToAstFieldList(pack, filename)
 	ftype := &ast.FuncType{token.NoPos, flist, nil}
-	if result != nil {
-		ftype.Results = &ast.FieldList{token.NoPos, []*ast.Field{&ast.Field{nil, nil, result.ToAstExpr(pack, filename), nil, nil}}, token.NoPos}
+	if results.Count() > 0 {
+		ftype.Results = results.ToAstFieldList(pack, filename)
 	}
 	fbody := &ast.BlockStmt{token.NoPos, stmtList, token.NoPos}
 
@@ -833,8 +833,12 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	}
 
 	result := getResultTypeIfAny(programTree, pack, filename, stmtList)
+	results := st.NewSymbolTable(pack)
+	if result != nil {
+		results.AddSymbol(st.MakeVariable(st.NO_NAME, results, result))
+	}
 
-	fdecl := makeFuncDecl(methodName, stmtList, params, result, recvSym, pack, filename)
+	fdecl := makeFuncDecl(methodName, stmtList, params, results, recvSym, pack, filename)
 	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), recvSym, pack, filename)
 
 	if nodeFrom != nil {

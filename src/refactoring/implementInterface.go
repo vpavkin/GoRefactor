@@ -5,8 +5,10 @@ import (
 	"st"
 	"utils"
 	"errors"
-	// 	"go/ast"
-	// 	"go/token"
+	"go/ast"
+	"go/token"
+	"go/printer"
+	"os"
 )
 
 func CheckImplementInterfaceParameters(filename string, line int, column int, varFile string, varLine int, varColumn int) (bool, *errors.GoRefactorError) {
@@ -90,9 +92,12 @@ func ImplementInterface(programTree *program.Program, filename string, line int,
 	sI.Methods().ForEachOpenedScope(func(table *st.SymbolTable) {
 		table.ForEachNoLock(checker)
 	})
+
 	println("missedMethods:")
 	for s, _ := range missedMethods {
-		print(s.Name() + " ")
+		fdecl := makeFuncDecl(s.Name(), make([]ast.Stmt, 0), s.FunctionType.(*st.FunctionTypeSymbol).Parameters, s.FunctionType.(*st.FunctionTypeSymbol).Results, st.MakeVariable(st.NO_NAME, sT.Scope(), sT), packType, filename)
+		printer.Fprint(os.Stdout, token.NewFileSet(), fdecl)
+		println()
 	}
 	println()
 	println("errors:")
