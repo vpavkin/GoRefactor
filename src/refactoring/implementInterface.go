@@ -52,7 +52,7 @@ func ImplementInterface(programTree *program.Program, filename string, line int,
 	if packInt == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
-	packType, _ := programTree.FindPackageAndFileByFilename(varFile)
+	packType, fileType := programTree.FindPackageAndFileByFilename(varFile)
 	if packType == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+varFile+"'")
 	}
@@ -98,15 +98,18 @@ func ImplementInterface(programTree *program.Program, filename string, line int,
 
 	println("missedMethods:")
 	for s, _ := range missedMethods {
-		fdecl := makeFuncDecl(s.Name(), make([]ast.Stmt, 0), s.FunctionType.(*st.FunctionTypeSymbol).Parameters, s.FunctionType.(*st.FunctionTypeSymbol).Results, st.MakeVariable(st.NO_NAME, sT.Scope(), sT), packType, filename)
+		list := make([]ast.Stmt, 1)
+		list[0] = &ast.ExprStmt{&ast.CallExpr{ast.NewIdent("panic"),token.NoPos,[]ast.Expr{&ast.BasicLit{token.NoPos,token.STRING,[]byte("\"not implemented yet\"")}},token.NoPos,token.NoPos}}
+		fdecl := makeFuncDecl(s.Name(), list, s.FunctionType.(*st.FunctionTypeSymbol).Parameters, s.FunctionType.(*st.FunctionTypeSymbol).Results, st.MakeVariable(st.NO_NAME, sT.Scope(), sT), packType, varFile)
 		printer.Fprint(os.Stdout, token.NewFileSet(), fdecl)
 		println()
+		fileType.Decls = append(fileType.Decls,fdecl)
 	}
 	println()
 	println("errors:")
 	for _, err := range errors {
 		println(err.String())
 	}
-
+	
 	return true, nil
 }
