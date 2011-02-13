@@ -8,7 +8,7 @@
 
 8g -I ../bin -o ../bin/program.8 ../src/program/program.go ../src/program/importsVisitor.go ../src/program/findIdentVisitor.go
 
-8g -I ../bin -o ../bin/refactoring.8 ../src/refactoring/common.go ../src/refactoring/rename.go ../src/refactoring/extractMethod.go ../src/refactoring/inlineMethod.go ../src/refactoring/implementInterface.go
+8g -I ../bin -o ../bin/refactoring.8 ../src/refactoring/common.go ../src/refactoring/rename.go ../src/refactoring/extractMethod.go ../src/refactoring/inlineMethod.go ../src/refactoring/implementInterface.go ../src/refactoring/extractInterface.go
 
 #8g -I ../bin -o ../bin/test.8 ../src/tests/testRun.go
 8g -I ../bin -o ../bin/print.8 ../src/tests/printTree.go

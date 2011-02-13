@@ -1,4 +1,5 @@
 #!/bin/bash
 goref imi -p /home/rulerr/goRefactor/src/st/symbols.go 140 6 /home/rulerr/goRefactor/src/st/symbols.go 19 39
+./build
 goref imi -p /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 14 54 /home/rulerr/goRefactor/src/st/symbols.go 19 39
 ./build

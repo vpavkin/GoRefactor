@@ -18,6 +18,7 @@ const renameUsage string = "usage: goref ren <filename> <line> <column> <new nam
 const extractMethodUsage string = "usage: goref exm <filename> <line> <column> <end line> <end column> <new name> [<recvLine> <recvColumn>]"
 const inlineMethodUsage string = "usage: goref inm <filename> <line> <column> <end line> <end column>"
 const implementInterfaceUsage string = "usage: goref imi [-p] <filename> <line> <column> <type line> <type column>\n\t-p: implement interface for pointerType"
+const extractInterfaceUsage string = "usage: goref exi <filename> <line> <column> <interface name>"
 
 func getRenameArgs() (filename string, line int, column int, entityName string, ok bool) {
 	var err os.Error
@@ -138,6 +139,10 @@ func getImplementInterfaceArgs() (filename string, line int, column int, typeFil
 	return
 }
 
+func getExtractInterfaceArgs() (filename string, line int, column int, interfaceName string, ok bool) {
+	return getRenameArgs()
+}
+
 func getInitedDir(filename string) (string, bool) {
 	srcDir, _ := path.Split(filename)
 	srcDir = srcDir[:len(srcDir)-1]
@@ -233,7 +238,24 @@ func main() {
 		}
 		p.SaveFile(filename)
 	case refactoring.EXTRACT_INTERFACE:
-		fmt.Println("this feature is not implemented yet")
+		filename, line, column, interfaceName, ok := getExtractInterfaceArgs()
+		fmt.Println(filename, line, column, interfaceName)
+		if !ok {
+			fmt.Println(extractInterfaceUsage)
+			return
+		}
+		if ok, err := refactoring.CheckExtractInterfaceParameters(filename, line, column, interfaceName); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		fmt.Println("extracting interface " + interfaceName + "...")
+		srcDir, _ := getInitedDir(filename)
+		p := program.ParseProgram(srcDir, nil)
+		if ok, err := refactoring.ExtractInterface(p, filename, line, column, interfaceName); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		p.SaveFile(filename)
 	case refactoring.IMPLEMENT_INTERFACE:
 		filename, line, column, typeFile, typeLine, typeColumn, asPointer, ok := getImplementInterfaceArgs()
 		if !ok {

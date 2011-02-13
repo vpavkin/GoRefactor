@@ -1,0 +1,3 @@
+#!/bin/bash
+goref exi /home/rulerr/goRefactor/src/packageParser/typesVisitor.go 71 48 ISYMBOL_TABLE
+./build
