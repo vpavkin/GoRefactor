@@ -17,8 +17,17 @@ const (
 const renameUsage string = "usage: goref ren <filename> <line> <column> <new name>"
 const extractMethodUsage string = "usage: goref exm <filename> <line> <column> <end line> <end column> <new name> [<recvLine> <recvColumn>]"
 const inlineMethodUsage string = "usage: goref inm <filename> <line> <column> <end line> <end column>"
-const implementInterfaceUsage string = "usage: goref imi [-p] <filename> <line> <column> <type line> <type column>\n\t-p: implement interface for pointerType"
+const implementInterfaceUsage string = `usage: goref imi [-p] <filename> <line> <column> <type line> <type column>
+
+-p: implement interface for pointerType`
 const extractInterfaceUsage string = "usage: goref exi <filename> <line> <column> <interface name>"
+const sortUsage string = `usage: goref sort [-t|-v] <filename> [<order>]
+
+-t:      group methods by reciever type. Methods will be sorted alphabetically by name within group.
+-v:      group methods by visibility. Methods will be sorted alphabetically by name within group.
+<order>: defines custom order of groups of declarations. Default order string is 'cvtmf' which means 'constants, variables, types, methods, functions'
+Custom order string must contain at least one character from default order string. If it's length is less than the length of default order string, other entries will be added in the default order.
+Leave out order parameter to use default order.`
 
 func getRenameArgs() (filename string, line int, column int, entityName string, ok bool) {
 	var err os.Error
@@ -142,6 +151,31 @@ func getImplementInterfaceArgs() (filename string, line int, column int, typeFil
 func getExtractInterfaceArgs() (filename string, line int, column int, interfaceName string, ok bool) {
 	return getRenameArgs()
 }
+
+func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisibility bool, order string, ok bool) {
+	p := 0
+	if len(os.Args) < 3 {
+		return
+	}
+	switch os.Args[2] {
+	case "-t":
+		p++
+		groupMethodsByType = true
+	case "-v":
+		p++
+		groupMethodsByVisibility = true
+	}
+	if len(os.Args) < 3+p {
+		return
+	}
+	filename = os.Args[2+p]
+	if len(os.Args) > 3+p {
+		order = os.Args[3+p]
+	}
+	ok = true
+	return
+}
+
 
 func getInitedDir(filename string) (string, bool) {
 	srcDir, _ := path.Split(filename)
@@ -275,7 +309,23 @@ func main() {
 		}
 		p.SaveFile(typeFile)
 	case refactoring.SORT:
-		fmt.Println("this feature is not implemented yet")
+		filename, groupMethodsByType, groupMethodsByVisibility, order, ok := getSortArgs()
+		if !ok {
+			fmt.Println(sortUsage)
+			return
+		}
+		if ok, err := refactoring.CheckSortParameters(filename, order); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		fmt.Println("sorting file " + filename + "...")
+		srcDir, _ := getInitedDir(filename)
+		p := program.ParseProgram(srcDir, nil)
+		if ok, err := refactoring.Sort(p, filename, groupMethodsByType, groupMethodsByVisibility, order); !ok {
+			fmt.Println("error:", err.Message)
+			return
+		}
+		p.SaveFile(filename)
 	}
 	//fmt.Printf("%s %s %d %d %s\n", action, filename, line, column, entityName)
 }
