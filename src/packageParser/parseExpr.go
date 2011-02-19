@@ -135,6 +135,7 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 
 	//check if builtIn special case
 	if f, ok := e.Fun.(*ast.Ident); ok {
+		pp.parseExpr(e.Fun)
 		name := f.Name
 		if _, ok1 := st.PredeclaredFunctions[name]; ok1 {
 			if vect, ok := pp.eParseBuiltInFunctionCall(name, e); ok {
