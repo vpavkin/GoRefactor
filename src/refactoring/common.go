@@ -7,6 +7,7 @@ import (
 	"utils"
 	"errors"
 	"unicode"
+	"program"
 )
 
 const (
@@ -160,6 +161,19 @@ func getParameters(pack *st.Package, stmtList []ast.Stmt, globalIdentMap st.Iden
 		ast.Walk(vis, stmt)
 	}
 	return vis.params, vis.declared
+}
+
+func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTree *program.Program) (*st.SymbolTable, *st.SymbolTable) {
+	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
+	paramSymbolsMap := make(map[st.Symbol]bool)
+	params := st.NewSymbolTable(pack)
+	for _, sym := range parList {
+		if _, ok := paramSymbolsMap[sym]; !ok {
+			paramSymbolsMap[sym] = true
+			params.AddSymbol(sym)
+		}
+	}
+	return params, declared
 }
 
 // replace expr

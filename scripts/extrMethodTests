@@ -22,9 +22,12 @@ goref exm /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 37 6 37
 ./build
 goref exm /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 16 2 54 3 SomeMeth9
 ./build
-goref exm /home/rulerr/goRefactor/src/program/program.go 29 2 51 55 SomeMeth11
-./build
 goref exm /home/rulerr/goRefactor/src/packageParser/methodsVisitor.go 105 2 192 3 SomeMeth13
+./build
+
+echo with_global_var
+
+goref exm /home/rulerr/goRefactor/src/program/program.go 48 2 49 35 MethodWithGlobalVar
 ./build
 
 echo INVALID

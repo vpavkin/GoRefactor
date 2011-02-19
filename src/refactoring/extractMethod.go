@@ -269,19 +269,6 @@ func getExtractedStatementList(pack *st.Package, file *ast.File, filename string
 	return makeStmtList(vis.resultBlock), vis.nodeFrom, nil
 }
 
-func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTree *program.Program) (*st.SymbolTable, *st.SymbolTable) {
-	parList, declared := getParameters(pack, stmtList, programTree.IdentMap)
-	paramSymbolsMap := make(map[st.Symbol]bool)
-	params := st.NewSymbolTable(pack)
-	for _, sym := range parList {
-		if _, ok := paramSymbolsMap[sym]; !ok {
-			paramSymbolsMap[sym] = true
-			params.AddSymbol(sym)
-		}
-	}
-	return params, declared
-}
-
 func getResultTypeIfAny(programTree *program.Program, pack *st.Package, filename string, stmtList []ast.Stmt) st.ITypeSymbol {
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
 		return packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
