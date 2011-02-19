@@ -21,10 +21,11 @@ const implementInterfaceUsage string = `usage: goref imi [-p] <filename> <line> 
 
 -p: implement interface for pointerType`
 const extractInterfaceUsage string = "usage: goref exi <filename> <line> <column> <interface name>"
-const sortUsage string = `usage: goref sort [-t|-v] <filename> [<order>]
+const sortUsage string = `usage: goref sort [-t|-v] [-i] <filename> [<order>]
 
 -t:      group methods by reciever type. Methods will be sorted alphabetically by name within group.
 -v:      group methods by visibility. Methods will be sorted alphabetically by name within group.
+-i:      sort imports alphabetically.
 <order>: defines custom order of groups of declarations. Default order string is 'cvtmf' which means 'constants, variables, types, methods, functions'
 Custom order string must contain at least one character from default order string. If it's length is less than the length of default order string, other entries will be added in the default order.
 Leave out order parameter to use default order.`
@@ -152,18 +153,28 @@ func getExtractInterfaceArgs() (filename string, line int, column int, interface
 	return getRenameArgs()
 }
 
-func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisibility bool, order string, ok bool) {
+func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisibility bool, sortImports bool, order string, ok bool) {
 	p := 0
-	if len(os.Args) < 3 {
-		return
+	for i := 0; i < 2; i++ {
+		if len(os.Args) < 3+i {
+			return
+		}
+		switch os.Args[2+i] {
+		case "-t":
+			p++
+			groupMethodsByType = true
+		case "-v":
+			p++
+			groupMethodsByVisibility = true
+		case "-i":
+			p++
+			sortImports = true
+		default:
+			break
+		}
 	}
-	switch os.Args[2] {
-	case "-t":
-		p++
-		groupMethodsByType = true
-	case "-v":
-		p++
-		groupMethodsByVisibility = true
+	if groupMethodsByType && groupMethodsByVisibility {
+		return
 	}
 	if len(os.Args) < 3+p {
 		return
@@ -309,7 +320,8 @@ func main() {
 		}
 		p.SaveFile(typeFile)
 	case refactoring.SORT:
-		filename, groupMethodsByType, groupMethodsByVisibility, order, ok := getSortArgs()
+		filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order, ok := getSortArgs()
+		println(filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order)
 		if !ok {
 			fmt.Println(sortUsage)
 			return
@@ -321,7 +333,7 @@ func main() {
 		fmt.Println("sorting file " + filename + "...")
 		srcDir, _ := getInitedDir(filename)
 		p := program.ParseProgram(srcDir, nil)
-		if ok, err := refactoring.Sort(p, filename, groupMethodsByType, groupMethodsByVisibility, order); !ok {
+		if ok, err := refactoring.Sort(p, filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order); !ok {
 			fmt.Println("error:", err.Message)
 			return
 		}
