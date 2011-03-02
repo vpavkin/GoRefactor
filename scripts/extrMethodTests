@@ -36,3 +36,10 @@ goref exm /home/rulerr/goRefactor/src/packageParser/typesVisitor.go 24 3 27 5 So
 goref exm /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 29 4 37 28 SomeMeth15
 ./build
 
+echo INVALID_SCOPE
+goref exm /home/rulerr/goRefactor/src/packageParser/parseExpr.go 49 10 49 31 eParseIndexExpr 49 10
+./build
+goref exm /home/rulerr/goRefactor/src/st/symbolBuilder.go 32 27 32 40 MakeArrayType
+./build
+goref exm /home/rulerr/goRefactor/src/main/goref.go 57 2 58 38 SM 58 2
+./build

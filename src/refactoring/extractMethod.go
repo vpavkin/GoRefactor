@@ -247,6 +247,9 @@ func getRecieverSymbol(programTree *program.Program, pack *st.Package, filename 
 		if !ok {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a variable symbol"}
 		}
+		if _,ok := recvSym.VariableType.(*st.BasicTypeSymbol); ok{
+			return nil,&errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract method for basic type " + recvSym.VariableType.Name()}
+		}
 		if recvSym.VariableType.PackageFrom() != pack {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "reciever type is not from the same package as extracted code (not allowed to define methods for a type from imported package)"}
 		}
@@ -289,18 +292,40 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	if pack == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
-
+	
+	recvSym, err := getRecieverSymbol(programTree, pack, filename, recieverVarLine, recieverVarCol)
+	if err != nil {
+		return false, err
+	}
+	
+	if recvSym != nil{
+		if recvSym.VariableType.Methods() != nil {
+			if _,ok := recvSym.VariableType.Methods().LookUp(methodName,"");ok{
+				return false, errors.ArgumentError("methodName", "reciever already contains a method with name "+ methodName)
+			}
+		}
+		switch t := recvSym.VariableType.(type){
+			case *st.StructTypeSymbol:
+				if _,ok := t.Fields.LookUp(methodName,"");ok{
+					return false, errors.ArgumentError("methodName", "reciever already contains a field with name "+ methodName)
+				}
+			case *st.PointerTypeSymbol:
+				if _,ok := t.Fields.LookUp(methodName,"");ok{
+					return false, errors.ArgumentError("methodName", "reciever already contains a field with name "+ methodName)
+				}
+		}
+	}else{
+		if _,ok := pack.Symbols.LookUp(methodName,"");ok{
+			return false, errors.ArgumentError("methodName", "package already contains a symbol with name "+ methodName)
+		}
+	}
+	
 	stmtList, nodeFrom, err := getExtractedStatementList(pack, file, filename, lineStart, colStart, lineEnd, colEnd)
 	if err != nil {
 		return false, err
 	}
 
 	params, declared := getParametersAndDeclaredIn(pack, stmtList, programTree)
-
-	recvSym, err := getRecieverSymbol(programTree, pack, filename, recieverVarLine, recieverVarCol)
-	if err != nil {
-		return false, err
-	}
 
 	if recvSym != nil {
 		if _, found := params.LookUp(recvSym.Name(), ""); !found {
