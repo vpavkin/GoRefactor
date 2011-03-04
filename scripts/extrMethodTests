@@ -30,6 +30,11 @@ echo with_global_var
 goref exm /home/rulerr/goRefactor/src/program/program.go 48 2 49 35 MethodWithGlobalVar
 ./build
 
+echo multivalue
+
+goref exm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 194 10 194 82 ARRRRR
+./build
+
 echo INVALID
 goref exm /home/rulerr/goRefactor/src/packageParser/typesVisitor.go 24 3 27 5 SomeMeth14
 ./build

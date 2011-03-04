@@ -54,6 +54,19 @@ func (vis *extractedSetVisitor) checkStmtList(list []ast.Stmt) {
 		}
 	}
 }
+
+func (vis *extractedSetVisitor) checkExprList(list []ast.Expr) {
+	if len(list) == 0 {
+		return
+	}
+	if utils.ComparePosWithinFile(vis.Package.FileSet.Position(list[0].Pos()), vis.firstNodePos) == 0 &&
+		utils.ComparePosWithinFile(vis.Package.FileSet.Position(list[len(list)-1].End()), vis.lastNodePos) == 0 {
+		vis.firstNode = list[0]
+		vis.lastNode = list[len(list)-1]
+		vis.resultBlock.Push(list)
+	}
+}
+
 func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 
 	if vis.foundFirst() {
@@ -92,6 +105,12 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 				break
 			}
 		}
+	case *ast.CallExpr:
+		vis.checkExprList(t.Args)
+	case *ast.AssignStmt:
+		vis.checkExprList(t.Rhs)
+	case *ast.ReturnStmt:
+		vis.checkExprList(t.Results)
 	case ast.Expr:
 		if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.Pos()), vis.firstNodePos) == 0 {
 			if utils.ComparePosWithinFile(vis.Package.FileSet.Position(t.End()), vis.lastNodePos) == 0 {
@@ -101,6 +120,7 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 	}
+
 	return vis
 }
 
@@ -120,7 +140,9 @@ func checkForReturns(block *vector.Vector) bool {
 
 	vis := &checkReturnVisitor{}
 	for _, stmt := range *block {
-		ast.Walk(vis, stmt.(ast.Node))
+		if n, ok := stmt.(ast.Node); ok {
+			ast.Walk(vis, n)
+		}
 	}
 	return vis.has
 }
@@ -190,6 +212,8 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 		switch el := stmt.(type) {
 		case ast.Stmt:
 			stmtList[i] = el
+		case []ast.Expr:
+			stmtList[i] = &ast.ReturnStmt{token.NoPos, el}
 		case ast.Expr:
 			stmtList[i] = &ast.ReturnStmt{token.NoPos, []ast.Expr{el}}
 		}
@@ -247,8 +271,8 @@ func getRecieverSymbol(programTree *program.Program, pack *st.Package, filename 
 		if !ok {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a variable symbol"}
 		}
-		if _,ok := recvSym.VariableType.(*st.BasicTypeSymbol); ok{
-			return nil,&errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract method for basic type " + recvSym.VariableType.Name()}
+		if _, ok := recvSym.VariableType.(*st.BasicTypeSymbol); ok {
+			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract method for basic type " + recvSym.VariableType.Name()}
 		}
 		if recvSym.VariableType.PackageFrom() != pack {
 			return nil, &errors.GoRefactorError{ErrorType: "extract method error", Message: "reciever type is not from the same package as extracted code (not allowed to define methods for a type from imported package)"}
@@ -272,9 +296,13 @@ func getExtractedStatementList(pack *st.Package, file *ast.File, filename string
 	return makeStmtList(vis.resultBlock), vis.nodeFrom, nil
 }
 
-func getResultTypeIfAny(programTree *program.Program, pack *st.Package, filename string, stmtList []ast.Stmt) st.ITypeSymbol {
+func getResultList(programTree *program.Program, pack *st.Package, filename string, stmtList []ast.Stmt) []st.ITypeSymbol {
 	if rs, ok := stmtList[0].(*ast.ReturnStmt); ok {
-		return packageParser.ParseExpr(rs.Results[0], pack, filename, programTree.IdentMap)
+		res := make([]st.ITypeSymbol, len(rs.Results))
+		for i, r := range rs.Results {
+			res[i] = packageParser.ParseExpr(r, pack, filename, programTree.IdentMap)
+		}
+		return res
 	}
 	return nil
 }
@@ -292,34 +320,34 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	if pack == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
-	
+
 	recvSym, err := getRecieverSymbol(programTree, pack, filename, recieverVarLine, recieverVarCol)
 	if err != nil {
 		return false, err
 	}
-	
-	if recvSym != nil{
+
+	if recvSym != nil {
 		if recvSym.VariableType.Methods() != nil {
-			if _,ok := recvSym.VariableType.Methods().LookUp(methodName,"");ok{
-				return false, errors.ArgumentError("methodName", "reciever already contains a method with name "+ methodName)
+			if _, ok := recvSym.VariableType.Methods().LookUp(methodName, ""); ok {
+				return false, errors.ArgumentError("methodName", "reciever already contains a method with name "+methodName)
 			}
 		}
-		switch t := recvSym.VariableType.(type){
-			case *st.StructTypeSymbol:
-				if _,ok := t.Fields.LookUp(methodName,"");ok{
-					return false, errors.ArgumentError("methodName", "reciever already contains a field with name "+ methodName)
-				}
-			case *st.PointerTypeSymbol:
-				if _,ok := t.Fields.LookUp(methodName,"");ok{
-					return false, errors.ArgumentError("methodName", "reciever already contains a field with name "+ methodName)
-				}
+		switch t := recvSym.VariableType.(type) {
+		case *st.StructTypeSymbol:
+			if _, ok := t.Fields.LookUp(methodName, ""); ok {
+				return false, errors.ArgumentError("methodName", "reciever already contains a field with name "+methodName)
+			}
+		case *st.PointerTypeSymbol:
+			if _, ok := t.Fields.LookUp(methodName, ""); ok {
+				return false, errors.ArgumentError("methodName", "reciever already contains a field with name "+methodName)
+			}
 		}
-	}else{
-		if _,ok := pack.Symbols.LookUp(methodName,"");ok{
-			return false, errors.ArgumentError("methodName", "package already contains a symbol with name "+ methodName)
+	} else {
+		if _, ok := pack.Symbols.LookUp(methodName, ""); ok {
+			return false, errors.ArgumentError("methodName", "package already contains a symbol with name "+methodName)
 		}
 	}
-	
+
 	stmtList, nodeFrom, err := getExtractedStatementList(pack, file, filename, lineStart, colStart, lineEnd, colEnd)
 	if err != nil {
 		return false, err
@@ -334,10 +362,10 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		params.RemoveSymbol(recvSym.Name())
 	}
 
-	result := getResultTypeIfAny(programTree, pack, filename, stmtList)
+	resultList := getResultList(programTree, pack, filename, stmtList)
 	results := st.NewSymbolTable(pack)
-	if result != nil {
-		results.AddSymbol(st.MakeVariable(st.NO_NAME, results, result))
+	for _, r := range resultList {
+		results.AddSymbol(st.MakeVariable(st.NO_NAME, results, r))
 	}
 
 	fdecl := makeFuncDecl(methodName, stmtList, params, results, recvSym, pack, filename)
@@ -356,7 +384,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		setStmtList(nodeFrom, newList)
 	} else {
 		rs := stmtList[0].(*ast.ReturnStmt)
-		errs := replaceExpr(pack.FileSet.Position(rs.Results[0].Pos()), pack.FileSet.Position(rs.Results[0].End()), callExpr, pack, file)
+		errs := replaceExprList(pack.FileSet.Position(rs.Results[0].Pos()), pack.FileSet.Position(rs.Results[len(rs.Results)-1].End()), []ast.Expr{callExpr}, pack, file)
 		if err, ok := errs[EXTRACT_METHOD]; ok {
 			return false, err
 		}

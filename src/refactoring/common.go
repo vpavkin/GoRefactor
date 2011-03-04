@@ -179,16 +179,24 @@ func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTr
 // replace expr
 
 type replaceExprVisitor struct {
-	Package *st.Package
-	newExpr ast.Expr
-	exprPos token.Position
-	exprEnd token.Position
-	found   bool
-	errors  map[string]*errors.GoRefactorError
+	Package     *st.Package
+	newExpr     ast.Expr
+	newExprList []ast.Expr
+	exprPos     token.Position
+	exprEnd     token.Position
+	found       bool
+	errors      map[string]*errors.GoRefactorError
+	listMode    bool
 }
 
 func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Expr, Package *st.Package, node ast.Node) map[string]*errors.GoRefactorError {
-	vis := &replaceExprVisitor{Package, newExpr, exprPos, exprEnd, false, make(map[string]*errors.GoRefactorError)}
+	vis := &replaceExprVisitor{Package, newExpr, nil, exprPos, exprEnd, false, make(map[string]*errors.GoRefactorError), false}
+	ast.Walk(vis, node)
+	return vis.errors
+}
+
+func replaceExprList(listStart token.Position, listEnd token.Position, newList []ast.Expr, Package *st.Package, node ast.Node) map[string]*errors.GoRefactorError {
+	vis := &replaceExprVisitor{Package, nil, newList, listStart, listEnd, false, make(map[string]*errors.GoRefactorError), true}
 	ast.Walk(vis, node)
 	return vis.errors
 }
@@ -199,6 +207,15 @@ func (vis *replaceExprVisitor) find(expr ast.Expr) bool {
 	}
 	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(expr.Pos())) == 0) &&
 		(utils.ComparePosWithinFile(vis.exprEnd, vis.Package.FileSet.Position(expr.End())) == 0)
+	return vis.found
+}
+
+func (vis *replaceExprVisitor) findList(list []ast.Expr) bool {
+	if len(list) == 0 {
+		return false
+	}
+	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(list[0].Pos())) == 0) &&
+		(utils.ComparePosWithinFile(vis.exprEnd, vis.Package.FileSet.Position(list[len(list)-1].End())) == 0)
 	return vis.found
 }
 
@@ -220,6 +237,13 @@ func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
 		return nil
 	}
 
+	if vis.listMode {
+		return vis.visitExprList(node)
+	}
+	return vis.visitExpr(node)
+}
+
+func (vis *replaceExprVisitor) visitExpr(node ast.Node) ast.Visitor {
 	switch t := node.(type) {
 	case *ast.ArrayType:
 		if vis.find(t.Elt) {
@@ -491,6 +515,28 @@ func (vis *replaceExprVisitor) Visit(node ast.Node) ast.Visitor {
 	}
 	return vis
 }
+
+func (vis *replaceExprVisitor) visitExprList(node ast.Node) ast.Visitor {
+	switch t := node.(type) {
+	case *ast.CallExpr:
+		if vis.findList(t.Args) {
+			t.Args = vis.newExprList
+			return nil
+		}
+	case *ast.AssignStmt:
+		if vis.findList(t.Rhs) {
+			t.Rhs = vis.newExprList
+			return nil
+		}
+	case *ast.ReturnStmt:
+		if vis.findList(t.Results) {
+			t.Results = vis.newExprList
+			return nil
+		}
+	}
+	return vis
+}
+
 
 // make *ast.FuncDecl
 
