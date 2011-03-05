@@ -3,3 +3,7 @@ goref inm /home/rulerr/goRefactor/src/packageParser/localsVisitor.go 125 4 125 3
 ./build
 goref inm /home/rulerr/goRefactor/src/utils/utils.go 12 9 12 25
 ./build
+
+echo multivalue
+goref exm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 194 10 194 82 ARRRRR
+goref inm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 194 10 194 18

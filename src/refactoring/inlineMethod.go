@@ -572,21 +572,37 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 	fmt.Printf("resultDest : %v\n", destLines)
 	ffDest.SetLines(destLines)
 
-	sourceInc := int(replSt) - int(sourceSt)
-	for _, stmt := range resList {
-		fixPositions(token.NoPos, sourceInc, stmt, false)
-	}
-	destInc := int(sourceLen) - int(replLen)
-	for _, stmt := range file.Decls {
-		fixPositions(replSt, destInc, stmt, false)
-	}
-	for _, stmt := range file.Comments {
-		fixPositions(replSt, destInc, stmt, true)
-	}
+// 	sourceInc := int(replSt) - int(sourceSt)
+// 	for _, stmt := range resList {
+// 		fixPositions(token.NoPos, sourceInc, stmt, false)
+// 	}
+// 	destInc := int(sourceLen) - int(replLen)
+// 	for _, stmt := range file.Decls {
+// 		fixPositions(replSt, destInc, stmt, false)
+// 	}
+// 	for _, stmt := range file.Comments {
+// 		fixPositions(replSt, destInc, stmt, true)
+// 	}
 
 	if CallAsExpression {
-		newExpr := resList[0].(*ast.ReturnStmt).Results[0]
-		replaceExpr(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), newExpr, pack, nodeFrom)
+		rs, ok := resList[0].(*ast.ReturnStmt)
+		if !ok {
+			return false, &errors.GoRefactorError{ErrorType: "inline method error", Message: "method, inlined as expression, must have only one statement - return statement"}
+		}
+		switch len(rs.Results) {
+		case 0:
+			panic("methos, inlined as expression, doesn't return anything")
+			// 		case 1:
+			// 			newExpr := rs.Results[0]
+			// 			replaceExpr(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), newExpr, pack, nodeFrom)
+		default:
+			println(pack.FileSet.Position(callExpr.Pos()).String(),pack.FileSet.Position(callExpr.End()).String())
+			errs := replaceExprList(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), rs.Results, pack, file)
+			if err, ok := errs[INLINE_METHOD]; ok {
+				return false, err
+			}
+		}
+
 	} else {
 		list := getStmtList(nodeFrom)
 		i, ok := getIndexOfStmt(callNode.(ast.Stmt), list)
