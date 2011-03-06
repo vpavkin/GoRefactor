@@ -212,9 +212,9 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 		switch el := stmt.(type) {
 		case ast.Stmt:
 			stmtList[i] = el
-		case []ast.Expr:
+		case []ast.Expr: // i == 0
 			stmtList[i] = &ast.ReturnStmt{token.NoPos, el}
-		case ast.Expr:
+		case ast.Expr: // i == 0
 			stmtList[i] = &ast.ReturnStmt{token.NoPos, []ast.Expr{el}}
 		}
 	}
@@ -383,6 +383,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		newList := replaceStmtsWithCall(list, stmtList, callExpr)
 		setStmtList(nodeFrom, newList)
 	} else {
+		stmtList[0] = utils.CopyAstNode(stmtList[0]).(ast.Stmt)
 		rs := stmtList[0].(*ast.ReturnStmt)
 		errs := replaceExprList(pack.FileSet.Position(rs.Results[0].Pos()), pack.FileSet.Position(rs.Results[len(rs.Results)-1].End()), []ast.Expr{callExpr}, pack, file)
 		if err, ok := errs[EXTRACT_METHOD]; ok {

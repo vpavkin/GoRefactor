@@ -32,7 +32,7 @@ goref exm /home/rulerr/goRefactor/src/program/program.go 48 2 49 35 MethodWithGl
 
 echo multivalue
 
-goref exm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 194 10 194 82 ARRRRR
+goref exm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 195 10 195 82 ARRRRR
 ./build
 
 echo INVALID

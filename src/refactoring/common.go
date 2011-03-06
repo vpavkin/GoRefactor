@@ -196,7 +196,7 @@ func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Exp
 }
 
 func replaceExprList(listStart token.Position, listEnd token.Position, newList []ast.Expr, Package *st.Package, node ast.Node) map[string]*errors.GoRefactorError {
-	vis := &replaceExprVisitor{Package, nil, newList, listStart, listEnd, false, make(map[string]*errors.GoRefactorError), true}
+	vis := &replaceExprVisitor{Package, newList[0], newList, listStart, listEnd, false, make(map[string]*errors.GoRefactorError), true}
 	ast.Walk(vis, node)
 	return vis.errors
 }
@@ -533,6 +533,9 @@ func (vis *replaceExprVisitor) visitExprList(node ast.Node) ast.Visitor {
 			t.Results = vis.newExprList
 			return nil
 		}
+	}
+	if !vis.found {
+		return vis.visitExpr(node)
 	}
 	return vis
 }
