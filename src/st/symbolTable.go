@@ -248,6 +248,26 @@ func (table *SymbolTable) removeSymbol(name string) {
 	}
 }
 
+func (table *SymbolTable) LookUpLabel(name string) (Symbol, bool) {
+
+	if sym, found := table.forEachStoppableReverse(func(s Symbol) bool {
+		_, ok := s.(*LabelSymbol)
+		return ok && (s.Name() == name)
+
+	}); found {
+		return sym, true
+	}
+
+	for _, x := range *table.OpenedScopes {
+		v, _ := x.(*SymbolTable)
+		if sym, ok := v.LookUpLabel(name); ok {
+			return sym, true
+		}
+	}
+
+	return nil, false
+}
+
 //Searches symbol table and it's opened scopes for a symbol with a given name
 func (table *SymbolTable) LookUp(name string, fileName string) (Symbol, bool) {
 
@@ -267,11 +287,16 @@ func (table *SymbolTable) LookUp(name string, fileName string) (Symbol, bool) {
 	}
 	return nil, false
 }
+
 func (table *SymbolTable) lookUp(name string, fileName string) (sym Symbol) {
 
 	var found bool
 
-	if sym, found = table.forEachStoppableReverse(func(s Symbol) bool { return s.Name() == name }); found {
+	if sym, found = table.forEachStoppableReverse(func(s Symbol) bool {
+		_, ok := s.(*LabelSymbol)
+		return !ok && (s.Name() == name)
+
+	}); found {
 		return sym
 	}
 

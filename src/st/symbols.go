@@ -286,6 +286,14 @@ type VariableSymbol struct {
 	Scope_          *SymbolTable
 }
 
+//Symbol Represents a label
+type LabelSymbol struct {
+	name   string
+	Idents IdentSet
+	Posits PositionSet
+	Scope_ *SymbolTable
+}
+
 
 /*^^Other Symbol Methods^^*/
 const NO_NAME string = ""
@@ -312,6 +320,8 @@ func (s *PointerTypeSymbol) BaseName() string {
 func (s *PackageSymbol) Name() string { return s.name }
 
 func (s *VariableSymbol) Name() string { return s.name }
+
+func (s *LabelSymbol) Name() string { return s.name }
 
 func (s *FunctionSymbol) Name() string { return s.name }
 
@@ -351,6 +361,9 @@ func (ts *FunctionSymbol) HasPosition(pos token.Position) bool {
 func (ts *VariableSymbol) HasPosition(pos token.Position) bool {
 	return hasPosition(ts, pos)
 }
+func (ts *LabelSymbol) HasPosition(pos token.Position) bool {
+	return hasPosition(ts, pos)
+}
 
 func (ts *TypeSymbol) PackageFrom() *Package {
 	if ts.Scope_ != nil {
@@ -376,29 +389,38 @@ func (vs *VariableSymbol) PackageFrom() *Package {
 	}
 	return nil
 }
+func (vs *LabelSymbol) PackageFrom() *Package {
+	if vs.Scope_ != nil {
+		return vs.Scope_.Package
+	}
+	return nil
+}
 
 func (ts *TypeSymbol) Scope() *SymbolTable     { return ts.Scope_ }
 func (ps *PackageSymbol) Scope() *SymbolTable  { return ps.Scope_ }
 func (fs *FunctionSymbol) Scope() *SymbolTable { return fs.Scope_ }
 func (vs *VariableSymbol) Scope() *SymbolTable { return vs.Scope_ }
+func (vs *LabelSymbol) Scope() *SymbolTable    { return vs.Scope_ }
 
 func (ts *TypeSymbol) Positions() PositionSet        { return ts.Posits }
 func (ps *PackageSymbol) Positions() PositionSet     { return ps.Posits }
 func (fs *FunctionSymbol) Positions() PositionSet    { return fs.Posits }
 func (vs *VariableSymbol) Positions() PositionSet    { return vs.Posits }
 func (ts *PointerTypeSymbol) Positions() PositionSet { return ts.BaseType.Positions() }
+func (ts *LabelSymbol) Positions() PositionSet       { return ts.Posits }
 
 
 func (ts *TypeSymbol) Identifiers() IdentSet     { return ts.Idents }
 func (ps *PackageSymbol) Identifiers() IdentSet  { return ps.Idents }
 func (fs *FunctionSymbol) Identifiers() IdentSet { return fs.Idents }
 func (vs *VariableSymbol) Identifiers() IdentSet { return vs.Idents }
-
+func (vs *LabelSymbol) Identifiers() IdentSet    { return vs.Idents }
 
 func (ts *TypeSymbol) SetName(name string)     { ts.name = name }
 func (ps *PackageSymbol) SetName(name string)  { ps.name = name }
 func (vs *VariableSymbol) SetName(name string) { vs.name = name }
 func (fs *FunctionSymbol) SetName(name string) { fs.name = name }
+func (fs *LabelSymbol) SetName(name string)    { fs.name = name }
 
 func addPosition(sym Symbol, p token.Position) {
 	if sym.Positions() != nil {
@@ -418,6 +440,9 @@ func (ts *VariableSymbol) AddPosition(p token.Position) {
 func (ts *FunctionSymbol) AddPosition(p token.Position) {
 	addPosition(ts, p)
 }
+func (ts *LabelSymbol) AddPosition(p token.Position) {
+	addPosition(ts, p)
+}
 
 
 func addIdent(sym Symbol, ident *ast.Ident) {
@@ -434,6 +459,9 @@ func (s *VariableSymbol) AddIdent(ident *ast.Ident) {
 	addIdent(s, ident)
 }
 func (s *FunctionSymbol) AddIdent(ident *ast.Ident) {
+	addIdent(s, ident)
+}
+func (s *LabelSymbol) AddIdent(ident *ast.Ident) {
 	addIdent(s, ident)
 }
 

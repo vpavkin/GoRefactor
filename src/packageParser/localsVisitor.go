@@ -17,6 +17,7 @@ type innerScopeVisitor struct {
 	Current  *st.SymbolTable
 	Parser   *packageParser
 	IotaType st.ITypeSymbol
+	LabelsData map[*ast.Ident]bool
 }
 
 func (lv *localsVisitor) Visit(node ast.Node) (w ast.Visitor) {
@@ -42,7 +43,7 @@ func (lv *localsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 		meth := m.(*st.FunctionSymbol)
 		meth.Locals.AddOpenedScope(lv.Parser.RootSymbolTable)
 		// 		fmt.Printf("method %s\n", meth.Name())
-		ww := &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil}
+		ww := &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil,make(map[*ast.Ident]bool)}
 		ast.Walk(ww, f.Body)
 		w = nil
 	}
@@ -106,7 +107,7 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 				}
 			}
 		}
-		w = &innerScopeVisitor{lv.Method, lv.Current, lv.Parser, IotaType}
+		w = &innerScopeVisitor{lv.Method, lv.Current, lv.Parser, IotaType,lv.LabelsData}
 
 	case *ast.ValueSpec: //Specify a new variable
 
@@ -174,6 +175,31 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 		lv.Parser.parseExpr(s.Call)
 	case *ast.IncDecStmt:
 		lv.Parser.parseExpr(s.X)
+	//labels beg
+	case *ast.LabeledStmt:
+		l := st.MakeLabel(s.Label.Name,lv.Current)
+		for id,_ := range lv.LabelsData{
+			if id.Name == s.Label.Name{
+				lv.Parser.registerIdent(l, id)
+			}
+		}
+		for id,_ := range l.Idents{
+			lv.LabelsData[id] = false,false
+		}
+		lv.Parser.registerIdent(l, s.Label)
+		lv.Current.AddSymbol(l)
+		ast.Walk(lv,s.Stmt)
+		w = nil //prevent from usual ident registration
+	case *ast.BranchStmt:
+		if s.Label != nil{
+			if l,ok := lv.Current.LookUpLabel(s.Label.Name); ok{
+				lv.Parser.registerIdent(l, s.Label)
+			}else{
+				lv.LabelsData[s.Label] = true
+			}
+		}
+		w = nil //prevent from usual ident registration
+	//labels end
 	case *ast.ReturnStmt:
 		if s.Results != nil { //mb not needed
 			for _, exp := range s.Results {
@@ -197,7 +223,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 	table := st.NewSymbolTable(lv.Parser.Package)
 	// 	fmt.Printf(" %p %p %p \n", lv.Parser.CurrentSymbolTable, lv.Current, lv.Method.Locals)
 	table.AddOpenedScope(lv.Current)
-	ww := &innerScopeVisitor{lv.Method, table, lv.Parser, nil}
+	ww := &innerScopeVisitor{lv.Method, table, lv.Parser, nil,lv.LabelsData}
 
 	temp := lv.Parser.CurrentSymbolTable
 	lv.Parser.CurrentSymbolTable = table
@@ -213,8 +239,8 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 	case *ast.IfStmt:
 		ww.parseStmt(inNode.Init)
 		ww.Parser.parseExpr(inNode.Cond)
-		ww1 := &innerScopeVisitor{lv.Method, st.NewSymbolTable(lv.Parser.Package), lv.Parser, nil}
-		ww2 := &innerScopeVisitor{lv.Method, st.NewSymbolTable(lv.Parser.Package), lv.Parser, nil}
+		ww1 := &innerScopeVisitor{lv.Method, st.NewSymbolTable(lv.Parser.Package), lv.Parser, nil,lv.LabelsData}
+		ww2 := &innerScopeVisitor{lv.Method, st.NewSymbolTable(lv.Parser.Package), lv.Parser, nil,lv.LabelsData}
 		ww1.Current.AddOpenedScope(ww.Current)
 		ww2.Current.AddOpenedScope(ww.Current)
 		ast.Walk(ww1, inNode.Body)
@@ -347,7 +373,7 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		if meth.FunctionType.(*st.FunctionTypeSymbol).Results != nil {
 			meth.Locals.AddOpenedScope(meth.FunctionType.(*st.FunctionTypeSymbol).Results)
 		}
-		w = &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil}
+		w = &innerScopeVisitor{meth, meth.Locals, lv.Parser, nil,lv.LabelsData}
 	}
 	return w
 }

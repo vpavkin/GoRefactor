@@ -83,3 +83,7 @@ func MakeFunction(name string, scope *SymbolTable, fType ITypeSymbol) *FunctionS
 func MakeVariable(name string, scope *SymbolTable, vType ITypeSymbol) *VariableSymbol {
 	return &VariableSymbol{name, NewIdentSet(), vType, false, NewPositionSet(), scope}
 }
+
+func MakeLabel(name string, scope *SymbolTable) *LabelSymbol {
+	return &LabelSymbol{name, NewIdentSet(), NewPositionSet(), scope}
+}
