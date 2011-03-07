@@ -75,13 +75,13 @@ func (pp *packageParser) eParseBasicLit(e *ast.BasicLit) (res *vector.Vector) {
 	case token.INT:
 		res.Push(st.PredeclaredTypes["int"])
 	case token.FLOAT:
-		res.Push(st.PredeclaredTypes["float"])
+		res.Push(st.PredeclaredTypes["float64"])
 	case token.CHAR:
 		res.Push(st.PredeclaredTypes["byte"])
 	case token.STRING:
 		res.Push(st.PredeclaredTypes["string"])
 	case token.IMAG:
-		res.Push(st.PredeclaredTypes["complex"])
+		res.Push(st.PredeclaredTypes["complex128"])
 	}
 	return
 }
@@ -390,15 +390,13 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 		tt = pp.parseExpr(e.Args[0]).At(0).(st.ITypeSymbol)
 
 		switch tt.Name() {
-		case "cmplx":
-			res.Push(st.PredeclaredTypes["float"])
-		case "cmplx64":
+		case "complex64":
 			res.Push(st.PredeclaredTypes["float32"])
-		case "cmplx128":
+		case "complex128":
 			res.Push(st.PredeclaredTypes["float64"])
 		}
 		return
-	case "cmplx":
+	case "complex":
 		var t1, t2 st.ITypeSymbol
 
 		t1 = pp.parseExpr(e.Args[0]).At(0).(st.ITypeSymbol)
@@ -406,11 +404,11 @@ func (pp *packageParser) eParseBuiltInFunctionCall(name string, e *ast.CallExpr)
 
 		switch {
 		case t1.Name() == "float64" || t2.Name() == "float64":
-			res.Push(st.PredeclaredTypes["cmplx128"])
+			res.Push(st.PredeclaredTypes["complex128"])
 		case t1.Name() == "float32" || t2.Name() == "float32":
-			res.Push(st.PredeclaredTypes["cmplx64"])
+			res.Push(st.PredeclaredTypes["complex64"])
 		default:
-			res.Push(st.PredeclaredTypes["float"])
+			res.Push(st.PredeclaredTypes["complex128"])
 		}
 		return
 	case "append":

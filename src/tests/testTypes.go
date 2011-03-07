@@ -35,7 +35,7 @@ type (
 
     S1 struct {
         a, b, c int
-        u, v float
+        u, v float64
     }
 
 
@@ -47,10 +47,10 @@ type (
     A4 [10]A1
 
     F1 func()
-    F2 func(x, y, z float)
-    F3 func(x, y float)
-    F4 func() (x, y float)
-    F5 func(x int) (x float)
+    F2 func(x, y, z float64)
+    F3 func(x, y float64)
+    F4 func() (x, y float64)
+    F5 func(x int) (x float64)
 
     I1 interface{}
     I2 interface {
@@ -60,9 +60,9 @@ type (
         m1()
     }
     I4 interface {
-        m1(x, y float)
-        m2() (x, y float)
-        m3(x int) (x float)
+        m1(x, y float64)
+        m2() (x, y float64)
+        m3(x int) (x float64)
     }
     I5 interface {
         m1(I5)

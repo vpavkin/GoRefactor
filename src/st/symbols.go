@@ -26,7 +26,7 @@ func init() {
 	PredeclaredConsts["nil"] = MakeVariable("nil", nil, n)
 	PredeclaredConsts["iota"] = MakeVariable("iota", nil, PredeclaredTypes["int"])
 
-	//make,new,cmplx,imag,real,append - in concrete occasion
+	//make,new,cmoplex,imag,real,append - in concrete occasion
 	//print, println - nothing interesting
 
 	capFts := MakeFunctionType(NO_NAME, nil)
@@ -65,7 +65,7 @@ func init() {
 	predeclaredFunctionTypes["recover"] = recoverFts
 	predeclaredFunctionTypes["print"] = noResultsFts
 	predeclaredFunctionTypes["println"] = noResultsFts
-	predeclaredFunctionTypes["cmplx"] = noResultsFts
+	predeclaredFunctionTypes["complex"] = noResultsFts
 	predeclaredFunctionTypes["imag"] = noResultsFts
 	predeclaredFunctionTypes["len"] = lenFts
 	predeclaredFunctionTypes["make"] = noResultsFts
@@ -80,11 +80,11 @@ func init() {
 
 }
 
-var builtIn []string = []string{"cap", "close", "closed", "cmplx", "copy", "imag", "len", "make", "new", "panic",
+var builtIn []string = []string{"cap", "close", "closed", "complex", "copy", "imag", "len", "make", "new", "panic",
 	"print", "println", "real", "recover", "append"}
 var integerTypes map[string]bool = map[string]bool{"uintptr": true, "byte": true, "int8": true, "int16": true, "int32": true, "int64": true, "uint8": true, "uint16": true, "uint32": true, "uint64": true, "int": true, "uint": true}
-var floatTypes map[string]bool = map[string]bool{"float32": true, "float64": true, "float": true}
-var complexTypes map[string]bool = map[string]bool{"complex64": true, "complex128": true, "complex": true}
+var floatTypes map[string]bool = map[string]bool{"float32": true, "float64": true}
+var complexTypes map[string]bool = map[string]bool{"complex64": true, "complex128": true}
 
 var PredeclaredTypes map[string]*BasicTypeSymbol
 var PredeclaredFunctions map[string]*FunctionSymbol
