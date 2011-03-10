@@ -12,7 +12,8 @@ var tests = []testing.InternalTest{
 	{"st.TestLookUpPointerType", st.TestLookUpPointerType},
 	{"st.TestGetBaseType", st.TestGetBaseType},
 }
-var benchmarks = []testing.InternalBenchmark{}
+var benchmarks = []testing.InternalBenchmark{ //
+}
 
 func main() {
 	testing.Main(__regexp__.MatchString, tests)

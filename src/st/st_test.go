@@ -7,20 +7,20 @@ import (
 func TestLookUp(t *testing.T) {
 
 	s := NewSymbolTable(nil)
-	vsym := MakeVariable("vs", nil, nil, false)
+	vsym := MakeVariable("vs", nil, nil)
 	s.Table.Push(vsym)
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
 		t.Fatalf("LookUp failed1")
 	}
-	s.Table.Push(MakeVariable("aaa", nil, nil, false))
-	s.Table.Insert(0, MakeVariable("vs", nil, nil, false))
+	s.Table.Push(MakeVariable("aaa", nil, nil))
+	s.Table.Insert(0, MakeVariable("vs", nil, nil))
 
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
 		t.Fatalf("LookUp failed2")
 	}
 
 	ss := NewSymbolTable(nil)
-	vvsym := MakeVariable("vvs", nil, nil, false)
+	vvsym := MakeVariable("vvs", nil, nil)
 	ss.Table.Push(vvsym)
 	s.AddOpenedScope(ss)
 
@@ -29,7 +29,7 @@ func TestLookUp(t *testing.T) {
 	}
 
 	sss := NewSymbolTable(nil)
-	vvvsym := MakeVariable("vvvs", nil, nil, false)
+	vvvsym := MakeVariable("vvvs", nil, nil)
 	sss.Table.Push(vvvsym)
 	ss.AddOpenedScope(sss)
 	if r, ok := s.LookUp("vvvs", ""); !ok || r != vvvsym {
@@ -39,7 +39,7 @@ func TestLookUp(t *testing.T) {
 
 func TestAddSymbol(t *testing.T) {
 	s := NewSymbolTable(nil)
-	vsym := MakeVariable("vs", nil, nil, false)
+	vsym := MakeVariable("vs", nil, nil)
 
 	s.AddSymbol(vsym)
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
@@ -49,11 +49,11 @@ func TestAddSymbol(t *testing.T) {
 }
 func TestReplaceSymbol(t *testing.T) {
 	s := NewSymbolTable(nil)
-	vsym := MakeVariable("vs", nil, nil, false)
+	vsym := MakeVariable("vs", nil, nil)
 	s.AddSymbol(vsym)
-	vvsym := MakeVariable("vvs", nil, nil, false)
+	vvsym := MakeVariable("vvs", nil, nil)
 	s.AddSymbol(vvsym)
-	aaa := MakeVariable("aaa", nil, nil, false)
+	aaa := MakeVariable("aaa", nil, nil)
 	s.ReplaceSymbol("vvs", aaa)
 
 	if r, ok := s.LookUp("vs", ""); !ok || r != vsym {
@@ -70,11 +70,11 @@ func TestReplaceSymbol(t *testing.T) {
 func TestRemoveSymbol(t *testing.T) {
 
 	s := NewSymbolTable(nil)
-	vsym := MakeVariable("vs", nil, nil, false)
+	vsym := MakeVariable("vs", nil, nil)
 	s.AddSymbol(vsym)
-	vvsym := MakeVariable("vvs", nil, nil, false)
+	vvsym := MakeVariable("vvs", nil, nil)
 	s.AddSymbol(vvsym)
-	aaa := MakeVariable("aaa", nil, nil, false)
+	aaa := MakeVariable("aaa", nil, nil)
 	s.AddSymbol(aaa)
 	s.RemoveSymbol("aaa")
 
