@@ -5,8 +5,43 @@ import (
 	"utils"
 	"errors"
 	"program"
+	"go/ast"
 )
 
+type findImportVisitor struct {
+	Package *st.Package
+	ps      *st.PackageSymbol
+	result  *ast.ImportSpec
+}
+
+func (v *findImportVisitor) found() bool {
+	return v.result != nil
+}
+
+func (v *findImportVisitor) find(i *ast.ImportSpec) bool {
+	if ("\"" + v.ps.ShortPath + "\"") == string(i.Path.Value) {
+		v.result = i
+		return true
+	}
+	return false
+}
+
+func (v *findImportVisitor) Visit(node ast.Node) ast.Visitor {
+	if v.found() {
+		return nil
+	}
+	if is, ok := node.(*ast.ImportSpec); ok {
+		v.find(is)
+		return nil
+	}
+	return v
+}
+
+func findImportDecl(pack *st.Package, file *ast.File, ps *st.PackageSymbol) *ast.ImportSpec {
+	v := &findImportVisitor{pack, ps, nil}
+	ast.Walk(v, file)
+	return v.result
+}
 
 func CheckRenameParameters(filename string, line int, column int, newName string) (bool, *errors.GoRefactorError) {
 	switch {
@@ -47,6 +82,16 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 		if meth, ok := sym.(*st.FunctionSymbol); ok {
 			if meth.IsInterfaceMethod {
 				return false, 0, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
+			}
+		}
+		if ps, ok := sym.(*st.PackageSymbol); ok {
+			pack, file := programTree.FindPackageAndFileByFilename(filename)
+			impDecl := findImportDecl(pack, file, ps)
+			if impDecl == nil {
+				panic("couldn't find import decl")
+			}
+			if impDecl.Name == nil || impDecl.Name.Name == "" {
+				impDecl.Name = ast.NewIdent(newName)
 			}
 		}
 		count = renameSymbol(sym, newName)

@@ -177,7 +177,7 @@ func ParseProgram(srcDir string, externSourceFolders []string) *Program {
 
 	initialize()
 	externPackageTrees.Push(srcDir)
-	for _,fldr := range externSourceFolders{
+	for _, fldr := range externSourceFolders {
 		externPackageTrees.Push(fldr)
 	}
 

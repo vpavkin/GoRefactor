@@ -11,9 +11,9 @@ import (
 )
 
 type getSelectedArgumentVisitor struct {
-	Package *st.Package
-	argPos  token.Position
-	result  *ast.Field
+	Package    *st.Package
+	argPos     token.Position
+	result     *ast.Field
 	nameNumber int
 }
 
@@ -28,7 +28,7 @@ func (vis *getSelectedArgumentVisitor) Visit(node ast.Node) (w ast.Visitor) {
 			return nil
 		}
 		for _, f := range t.Type.Params.List {
-			for i,n := range f.Names{
+			for i, n := range f.Names {
 				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(n.Pos()), vis.argPos) == 0 {
 					vis.result = f
 					vis.nameNumber = i
@@ -46,14 +46,14 @@ func (vis *getSelectedArgumentVisitor) Visit(node ast.Node) (w ast.Visitor) {
 }
 
 func getSelectedArgument(file *ast.File, argPos token.Position, pack *st.Package) (*ast.Field, int, *ast.FuncDecl, bool) {
-	vis := &getSelectedArgumentVisitor{pack, argPos, nil,-1}
+	vis := &getSelectedArgumentVisitor{pack, argPos, nil, -1}
 	for _, d := range file.Decls {
 		ast.Walk(vis, d)
 		if vis.result != nil {
 			return vis.result, vis.nameNumber, d.(*ast.FuncDecl), true
 		}
 	}
-	return nil, 0 , nil, false
+	return nil, 0, nil, false
 }
 
 type getUsedMethodsVisitor struct {
@@ -148,7 +148,7 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 		return false, errors.IdentifierAlreadyExistsError(interfaceName)
 	}
 
-	field,nameNum,fdecl, ok := getSelectedArgument(file, token.Position{filename, 0, line, column}, pack)
+	field, nameNum, fdecl, ok := getSelectedArgument(file, token.Position{filename, 0, line, column}, pack)
 	if !ok {
 		return false, &errors.GoRefactorError{ErrorType: "extract interface error", Message: "couldn't find function argument to extract interface"}
 	}
@@ -179,33 +179,33 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 	interfaceDecl := &ast.TypeSpec{nil, ast.NewIdent(interfaceName), interfaceType, nil}
 	genDecl := &ast.GenDecl{nil, token.NoPos, token.TYPE, token.NoPos, []ast.Spec{interfaceDecl}, token.NoPos}
 	file.Decls = append(file.Decls, genDecl)
-	
+
 	fieldNum := 0
-	for i:=0; i < len(fdecl.Type.Params.List);i++{
-		if field == fdecl.Type.Params.List[i]{
+	for i := 0; i < len(fdecl.Type.Params.List); i++ {
+		if field == fdecl.Type.Params.List[i] {
 			fieldNum = i
 			break
 		}
 	}
-	var lField,mField,rField *ast.Field
-	mField = &ast.Field{nil,  []*ast.Ident{field.Names[nameNum]}, ast.NewIdent(interfaceName), nil, nil}
-	if nameNum > 0{
+	var lField, mField, rField *ast.Field
+	mField = &ast.Field{nil, []*ast.Ident{field.Names[nameNum]}, ast.NewIdent(interfaceName), nil, nil}
+	if nameNum > 0 {
 		lField = &ast.Field{nil, field.Names[:nameNum], field.Type, nil, nil}
 	}
-	if nameNum < len(field.Names) - 1{
+	if nameNum < len(field.Names)-1 {
 		rField = &ast.Field{nil, field.Names[(nameNum + 1):], field.Type, nil, nil}
 	}
-	newList := make([]*ast.Field,fieldNum)
-	copy(newList,fdecl.Type.Params.List[:fieldNum])
-	
-	if lField != nil{
-		newList = append(newList,lField)
+	newList := make([]*ast.Field, fieldNum)
+	copy(newList, fdecl.Type.Params.List[:fieldNum])
+
+	if lField != nil {
+		newList = append(newList, lField)
 	}
-	newList = append(newList,mField)
-	if rField != nil{
-		newList = append(newList,rField)
+	newList = append(newList, mField)
+	if rField != nil {
+		newList = append(newList, rField)
 	}
-	newList = append(newList,fdecl.Type.Params.List[(fieldNum + 1):]...)
+	newList = append(newList, fdecl.Type.Params.List[(fieldNum+1):]...)
 	fdecl.Type.Params.List = newList
 
 	return true, nil

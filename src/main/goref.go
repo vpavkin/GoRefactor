@@ -189,43 +189,43 @@ func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisi
 	return
 }
 
-func getExternSources(pa string) ([]string,bool){
-	f,err := os.Open(pa,os.O_RDONLY,0)
-	if err != nil{
+func getExternSources(pa string) ([]string, bool) {
+	f, err := os.Open(pa, os.O_RDONLY, 0)
+	if err != nil {
 		panic("couldn't open goref.cfg")
 	}
-	d,err := ioutil.ReadAll(f)
-	if err != nil{
+	d, err := ioutil.ReadAll(f)
+	if err != nil {
 		panic("couldn't read from goref.cfg")
 	}
 	data := string(d)
-	i :=strings.Index(data,".externSources")
-	if i == -1{
-		return nil,true
+	i := strings.Index(data, ".externSources")
+	if i == -1 {
+		return nil, true
 	}
 	sources := []string{}
 	st := i + len(".externSources") + 1
-	for st < len(data) && data[st] != '.'{
+	for st < len(data) && data[st] != '.' {
 		s := ""
-		for data[st] != '\n'{
-			s+=string(data[st])
+		for data[st] != '\n' {
+			s += string(data[st])
 			st++
 		}
-		sources = append(sources,s)
+		sources = append(sources, s)
 		println(s)
 		st++
 	}
-	return sources,true
+	return sources, true
 }
 
-func getProjectInfo(filename string) (srcDir string, externSources []string , ok bool) {
+func getProjectInfo(filename string) (srcDir string, externSources []string, ok bool) {
 	srcDir, _ = path.Split(filename)
 	srcDir = srcDir[:len(srcDir)-1]
 	srcDir, _ = path.Split(srcDir)
 	for {
 		srcDir = srcDir[:len(srcDir)-1]
 		if srcDir == "" {
-			return "",nil, false
+			return "", nil, false
 		}
 		//fmt.Println(srcDir)
 		fd, _ := os.Open(srcDir, os.O_RDONLY, 0)
@@ -235,15 +235,15 @@ func getProjectInfo(filename string) (srcDir string, externSources []string , ok
 		for i := 0; i < len(list); i++ {
 			d := &list[i]
 			if d.Name == "goref.cfg" {
-				if sources,ok := getExternSources(path.Join(srcDir,d.Name));ok{
-					return srcDir,sources,true
+				if sources, ok := getExternSources(path.Join(srcDir, d.Name)); ok {
+					return srcDir, sources, true
 				}
 			}
 		}
 		srcDir, _ = path.Split(srcDir)
 		fd.Close()
 	}
-	return "",nil, false
+	return "", nil, false
 }
 
 //TODO: add extern sources support
