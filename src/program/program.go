@@ -19,7 +19,7 @@ import "fmt"
 
 
 var program *Program
-var externPackageTrees *vector.StringVector // [dir][packagename]package
+var externPackageTrees *vector.StringVector
 var goSrcDir string
 var specificFiles map[string]*vector.StringVector
 var specificFilesPackages []string = []string{"syscall", "os", "runtime"}
@@ -171,14 +171,14 @@ func locatePackages(srcDir string) {
 
 }
 
-func ParseProgram(srcDir string, externSourceFolders *vector.StringVector) *Program {
+func ParseProgram(srcDir string, externSourceFolders []string) *Program {
 
 	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package), make(map[*ast.Ident]st.Symbol)}
 
 	initialize()
 	externPackageTrees.Push(srcDir)
-	if externSourceFolders != nil {
-		externPackageTrees.AppendVector(externSourceFolders)
+	for _,fldr := range externSourceFolders{
+		externPackageTrees.Push(fldr)
 	}
 
 	for _, pName := range specificFilesPackages {

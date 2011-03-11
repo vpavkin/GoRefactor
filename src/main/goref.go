@@ -9,6 +9,8 @@ import (
 	"refactoring"
 	//"errors"
 	"program"
+	"io/ioutil"
+	"strings"
 )
 
 const (
@@ -187,15 +189,43 @@ func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisi
 	return
 }
 
+func getExternSources(pa string) ([]string,bool){
+	f,err := os.Open(pa,os.O_RDONLY,0)
+	if err != nil{
+		panic("couldn't open goref.cfg")
+	}
+	d,err := ioutil.ReadAll(f)
+	if err != nil{
+		panic("couldn't read from goref.cfg")
+	}
+	data := string(d)
+	i :=strings.Index(data,".externSources")
+	if i == -1{
+		return nil,true
+	}
+	sources := []string{}
+	st := i + len(".externSources") + 1
+	for st < len(data) && data[st] != '.'{
+		s := ""
+		for data[st] != '\n'{
+			s+=string(data[st])
+			st++
+		}
+		sources = append(sources,s)
+		println(s)
+		st++
+	}
+	return sources,true
+}
 
-func getInitedDir(filename string) (string, bool) {
-	srcDir, _ := path.Split(filename)
+func getProjectInfo(filename string) (srcDir string, externSources []string , ok bool) {
+	srcDir, _ = path.Split(filename)
 	srcDir = srcDir[:len(srcDir)-1]
 	srcDir, _ = path.Split(srcDir)
 	for {
 		srcDir = srcDir[:len(srcDir)-1]
 		if srcDir == "" {
-			return "", false
+			return "",nil, false
 		}
 		//fmt.Println(srcDir)
 		fd, _ := os.Open(srcDir, os.O_RDONLY, 0)
@@ -205,13 +235,15 @@ func getInitedDir(filename string) (string, bool) {
 		for i := 0; i < len(list); i++ {
 			d := &list[i]
 			if d.Name == "goref.cfg" {
-				return srcDir, true
+				if sources,ok := getExternSources(path.Join(srcDir,d.Name));ok{
+					return srcDir,sources,true
+				}
 			}
 		}
 		srcDir, _ = path.Split(srcDir)
 		fd.Close()
 	}
-	return "", false
+	return "",nil, false
 }
 
 //TODO: add extern sources support
@@ -238,8 +270,8 @@ func main() {
 			return
 		}
 		fmt.Println("renaming symbol to ", entityName+"...")
-		srcDir, _ := getInitedDir(filename)
-		p := program.ParseProgram(srcDir, nil)
+		srcDir, sources, _ := getProjectInfo(filename)
+		p := program.ParseProgram(srcDir, sources)
 		if ok, count, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
 		} else {
@@ -257,8 +289,8 @@ func main() {
 			return
 		}
 		fmt.Println("extracting code to method ", entityName+"...")
-		srcDir, _ := getInitedDir(filename)
-		p := program.ParseProgram(srcDir, nil)
+		srcDir, sources, _ := getProjectInfo(filename)
+		p := program.ParseProgram(srcDir, sources)
 		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -275,8 +307,8 @@ func main() {
 			return
 		}
 		fmt.Println("inlining call...")
-		srcDir, _ := getInitedDir(filename)
-		p := program.ParseProgram(srcDir, nil)
+		srcDir, sources, _ := getProjectInfo(filename)
+		p := program.ParseProgram(srcDir, sources)
 		if ok, err := refactoring.InlineMethod(p, filename, line, column, endLine, endColumn); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -294,8 +326,8 @@ func main() {
 			return
 		}
 		fmt.Println("extracting interface " + interfaceName + "...")
-		srcDir, _ := getInitedDir(filename)
-		p := program.ParseProgram(srcDir, nil)
+		srcDir, sources, _ := getProjectInfo(filename)
+		p := program.ParseProgram(srcDir, sources)
 		if ok, err := refactoring.ExtractInterface(p, filename, line, column, interfaceName); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -312,8 +344,8 @@ func main() {
 			return
 		}
 		fmt.Println("implementing interface...")
-		srcDir, _ := getInitedDir(filename)
-		p := program.ParseProgram(srcDir, nil)
+		srcDir, sources, _ := getProjectInfo(filename)
+		p := program.ParseProgram(srcDir, sources)
 		if ok, err := refactoring.ImplementInterface(p, filename, line, column, typeFile, typeLine, typeColumn, asPointer); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -331,8 +363,8 @@ func main() {
 			return
 		}
 		fmt.Println("sorting file " + filename + "...")
-		srcDir, _ := getInitedDir(filename)
-		p := program.ParseProgram(srcDir, nil)
+		srcDir, sources, _ := getProjectInfo(filename)
+		p := program.ParseProgram(srcDir, sources)
 		if ok, err := refactoring.Sort(p, filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order); !ok {
 			fmt.Println("error:", err.Message)
 			return
