@@ -64,40 +64,115 @@ type getUsedMethodsVisitor struct {
 	result   map[*st.FunctionSymbol]bool
 }
 
+func (vis *getUsedMethodsVisitor) isDesiredMethodExpression(node ast.Node) bool {
+	n := node
+	stars := 0
+	for {
+		switch nt := n.(type) {
+		case *ast.Ident:
+			s := vis.identMap.GetSymbol(nt)
+			switch vtt := vis.varS.VariableType.(type) {
+			case *st.PointerTypeSymbol:
+				return stars == vtt.Depth() && vtt.BaseType == s
+			default:
+				return stars == 0 && vtt == s
+			}
+		case *ast.ParenExpr:
+			n = nt.X
+		case *ast.StarExpr:
+			stars++
+			n = nt.X
+		case *ast.SelectorExpr:
+			n = nt.Sel
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func (vis *getUsedMethodsVisitor) checkEditME(callExpr *ast.CallExpr, mId *ast.Ident) {
+	m, ok := vis.identMap.GetSymbol(mId).(*st.FunctionSymbol)
+	if !ok {
+		panic("couldn't find method selector in method expression")
+	}
+	if id, ok := callExpr.Args[0].(*ast.Ident); ok {
+		if vis.identMap.GetSymbol(id) == vis.varS {
+			callExpr.Fun = &ast.SelectorExpr{id, mId}
+			callExpr.Args = callExpr.Args[1:]
+			vis.result[m] = true
+		}
+	}
+}
+
 func (vis *getUsedMethodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	if node == nil {
 		return nil
 	}
 	pos := vis.Package.FileSet.Position(node.Pos())
-	switch t := node.(type) {
-	case *ast.SelectorExpr:
-		x, ok := t.X.(*ast.Ident)
-		if !ok {
-			return vis
-		}
-		s := vis.identMap.GetSymbol(x)
-		if vis.varS == s {
-			m, ok := vis.identMap.GetSymbol(t.Sel).(*st.FunctionSymbol)
-			if !ok {
+	switch tt := node.(type) {
+	case *ast.CallExpr:
 
-				vis.errs[&errors.GoRefactorError{ErrorType: "extract interface error", Message: "symbol used in selector expression that is not a call. at " + strconv.Itoa(pos.Line) + ":" + strconv.Itoa(pos.Column)}] = true
-				return nil
+		if t, ok := tt.Fun.(*ast.SelectorExpr); ok {
+
+			switch x := t.X.(type) {
+			case *ast.Ident:
+				s := vis.identMap.GetSymbol(x)
+
+				if vis.varS == s {
+					for _, a := range tt.Args {
+						ast.Walk(vis, a)
+					}
+					m, ok := vis.identMap.GetSymbol(t.Sel).(*st.FunctionSymbol)
+					if !ok {
+
+						vis.errs[&errors.GoRefactorError{ErrorType: "extract interface error", Message: "symbol used in selector expression that is not a call. at " + strconv.Itoa(pos.Line) + ":" + strconv.Itoa(pos.Column)}] = true
+						return nil
+					}
+					vis.result[m] = true
+					return nil
+				}
+				if vis.isDesiredMethodExpression(x) {
+					for i, a := range tt.Args {
+						if i > 0 {
+							ast.Walk(vis, a)
+						}
+					}
+					vis.checkEditME(tt, t.Sel)
+					return nil
+				}
+			default:
+				if vis.isDesiredMethodExpression(node) {
+					for i, a := range tt.Args {
+						if i > 0 {
+							ast.Walk(vis, a)
+						}
+					}
+					vis.checkEditME(tt, t.Sel)
+					return nil
+				}
 			}
-			vis.result[m] = true
-			return nil
 		}
-		if vis.varS.VariableType == s {
-			m, ok := vis.identMap.GetSymbol(t.Sel).(*st.FunctionSymbol)
-			if !ok {
-				panic("couldn't find method selector in method expression")
+		return nil
+	case *ast.SelectorExpr:
+
+		switch x := tt.X.(type) {
+		case *ast.Ident:
+			s := vis.identMap.GetSymbol(x)
+
+			if vis.varS == s {
+				_, ok := vis.identMap.GetSymbol(tt.Sel).(*st.FunctionSymbol)
+				if !ok {
+
+					vis.errs[&errors.GoRefactorError{ErrorType: "extract interface error", Message: "symbol used in selector expression that is not a call. at " + strconv.Itoa(pos.Line) + ":" + strconv.Itoa(pos.Column)}] = true
+					return nil
+				}
 			}
-			vis.result[m] = true
-			return nil
 		}
 
 	case *ast.BinaryExpr:
-		x, okX := t.X.(*ast.Ident)
-		y, okY := t.Y.(*ast.Ident)
+		x, okX := tt.X.(*ast.Ident)
+		y, okY := tt.Y.(*ast.Ident)
 		if !okX || !okY {
 			return vis
 		}
@@ -106,7 +181,7 @@ func (vis *getUsedMethodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 			return nil
 		}
 	case *ast.Ident:
-		if vis.identMap.GetSymbol(t) == vis.varS {
+		if vis.identMap.GetSymbol(tt) == vis.varS {
 			vis.errs[&errors.GoRefactorError{ErrorType: "extract interface error", Message: "symbol is used as standalone identifier, changing type can cause errors. at " + strconv.Itoa(pos.Line) + ":" + strconv.Itoa(pos.Column)}] = true
 			return nil
 		}
