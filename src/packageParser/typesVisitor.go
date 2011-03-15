@@ -3,7 +3,7 @@ package packageParser
 import (
 	"go/ast"
 	//"go/token"
-	"st"
+	"refactoring/st"
 	//"strings"
 )
 

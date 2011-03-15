@@ -2,8 +2,8 @@ package program
 
 import "go/ast"
 import "go/token"
-import "utils"
-import "st"
+import "refactoring/utils"
+import "refactoring/st"
 
 
 type findIdentVisitor struct {

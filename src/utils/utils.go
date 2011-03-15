@@ -6,6 +6,9 @@ import (
 	"strings"
 	"go/token"
 	"go/ast"
+	"io/ioutil"
+	"unicode"
+	"bufio"
 )
 
 func GoFilter(f *os.FileInfo) bool {
@@ -187,4 +190,129 @@ func CopyAstNode(node ast.Node) ast.Node {
 		return &ast.ValueSpec{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyIdentList(t.Names), CopyAstNode(t.Type).(ast.Expr), CopyExprList(t.Values), CopyAstNode(t.Comment).(*ast.CommentGroup)}
 	}
 	panic("can't copy node")
+}
+
+// refactoring project functions
+
+func loadConfig(configPath string) []string {
+	fd, err := os.Open(configPath, os.O_RDONLY, 0)
+	if err != nil {
+		panic("Couldn't open config \"" + configPath + "\": " + err.String())
+	}
+	defer fd.Close()
+	
+	res := []string{}
+	
+	reader := bufio.NewReader(fd)
+	for {
+		
+		str, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		res = append(res,(str[:len(str)-1]))
+		
+	}
+	//fmt.Printf("%s:\n%v\n", configPath, res)
+	
+	return res
+}
+
+func getInfo(projectDir string, pa string) (sources map[string]string, specialPackages map[string][]string, ok bool) {
+	f, err := os.Open(pa, os.O_RDONLY, 0)
+	if err != nil {
+		panic("couldn't open goref.cfg")
+	}
+	d, err := ioutil.ReadAll(f)
+	if err != nil {
+		panic("couldn't read from goref.cfg")
+	}
+	data := string(d)
+	//sources
+	i := strings.Index(data, ".packages")
+	if i == -1 {
+		panic("couldn't find .package field in goref.cfg")
+	}
+	st := i + len(".packages") + 1
+
+	end := strings.Index(data[st:], ".")
+	if end == -1 {
+		end = len(data)
+	}
+	end--
+
+	packages := strings.Split(data[st:end], "\n", -1)
+	sources = make(map[string]string)
+	for _, pack := range packages {
+		realpath, goPath := "", ""
+		i := 0
+		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
+			realpath += string(pack[i])
+		}
+		for ; i < len(pack) && unicode.IsSpace(int(pack[i])); i++ {
+
+		}
+		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
+			goPath += string(pack[i])
+		}
+		if goPath == "" || realpath == "" || i < len(pack) {
+			panic(".package field has invalid format")
+		}
+		sources[path.Join(projectDir, realpath)] = goPath
+	}
+	
+	//specialPackages
+	specialPackages = make(map[string][]string)
+	i = strings.Index(data, ".specialPackages")
+	if i != -1 {
+		
+		st := i + len(".specialPackages") + 1
+		
+		end := strings.Index(data[st:], ".")
+		if end == -1 {
+			end = len(data)
+		}
+		end--
+		packages := strings.Split(data[st:end], "\n", -1)
+		for _,pack := range packages{
+			specialPackages[pack] = loadConfig(path.Join(projectDir,pack) + ".cfg")
+		}
+	}
+	
+	return sources,specialPackages, true
+}
+
+func getProjectInfo(filename string) (projectDir string, sources map[string]string,specialPackages map[string][]string, ok bool) {
+	projectDir, _ = path.Split(filename)
+	projectDir = projectDir[:len(projectDir)-1]
+	projectDir, _ = path.Split(projectDir)
+	for {
+		projectDir = projectDir[:len(projectDir)-1]
+		if projectDir == "" {
+			return "", nil, nil, false
+		}
+		//fmt.Println(projectDir)
+		fd, _ := os.Open(projectDir, os.O_RDONLY, 0)
+
+		list, _ := fd.Readdir(-1)
+
+		for i := 0; i < len(list); i++ {
+			d := &list[i]
+			if d.Name == "goref.cfg" {
+				srcs,specialPacks, ok := getInfo(projectDir, path.Join(projectDir, d.Name))
+				if !ok {
+					return "", nil, nil, false
+				}
+				
+				return projectDir, srcs,specialPacks, true
+			}
+		}
+		projectDir, _ = path.Split(projectDir)
+		fd.Close()
+	}
+	return "", nil, nil, false
+}
+
+func GetProjectInfo(filename string) (projectDir string, sources map[string]string,specialPackages map[string][]string, ok bool) {
+	return getProjectInfo(filename)
 }

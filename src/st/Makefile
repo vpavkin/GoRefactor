@@ -2,11 +2,11 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=st
+TARG=refactoring/st
 GOFILES=\
 	symbolTable.go \
 	symbols.go \
 	symbolBuilder.go \
-	astUtil.go
+	astUtil.go\
 
 include $(GOROOT)/src/Make.pkg

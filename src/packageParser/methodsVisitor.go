@@ -4,7 +4,7 @@ import (
 	"go/ast"
 	"strconv"
 	//"go/token"
-	"st"
+	"refactoring/st"
 )
 //import "fmt"
 //Represents an ast.Visitor, walking along ast.tree and registering all methods and functions met

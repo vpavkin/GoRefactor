@@ -4,7 +4,7 @@ import (
 	"go/ast"
 	"go/token"
 	"container/vector"
-	"st"
+	"refactoring/st"
 	//"fmt"
 )
 

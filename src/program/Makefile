@@ -2,9 +2,10 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=program
+TARG=refactoring/program
 GOFILES=\
-	importsVisitor.go \
+	findIdentVisitor.go\
+	importsVisitor.go\
 	program.go 
 
 include $(GOROOT)/src/Make.pkg

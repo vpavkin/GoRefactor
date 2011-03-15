@@ -35,3 +35,8 @@ func ArgumentError(parameterName string,reason string) *GoRefactorError{
 	
 	return &GoRefactorError{4,"argument error", "parameter "+ parameterName +" has invalid value. " + reason};
 }
+
+func PrinterError(message string) *GoRefactorError{
+	
+	return &GoRefactorError{6,"printer error", message};
+}

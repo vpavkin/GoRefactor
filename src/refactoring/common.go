@@ -2,12 +2,12 @@ package refactoring
 
 import (
 	"go/ast"
-	"st"
+	"refactoring/st"
 	"go/token"
-	"utils"
-	"errors"
+	"refactoring/utils"
+	"refactoring/errors"
 	"unicode"
-	"program"
+	"refactoring/program"
 )
 
 const (

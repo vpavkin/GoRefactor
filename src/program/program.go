@@ -2,27 +2,24 @@ package program
 
 import (
 	"container/vector"
-	"st"
+	"refactoring/st"
 	"os"
-	"utils"
+	"refactoring/utils"
 	"path"
-	"packageParser"
+	"refactoring/packageParser"
 	"go/parser"
 	"go/token"
 	"go/printer"
-	"bufio"
 	"go/ast"
 	"strings"
-	"errors"
+	"refactoring/errors"
 )
 import "fmt"
 
 
 var program *Program
-var externPackageTrees *vector.StringVector
+var packages map[string]string //address, go pkg address (import address)
 var goSrcDir string
-var specificFiles map[string]*vector.StringVector
-var specificFilesPackages []string = []string{"syscall", "os", "runtime"}
 
 func initialize() {
 
@@ -45,10 +42,7 @@ func initialize() {
 	}
 	goSrcDir = path.Join(goRoot, "src", "pkg")
 
-	externPackageTrees = new(vector.StringVector)
-	externPackageTrees.Push(goSrcDir)
-
-	specificFiles = make(map[string]*vector.StringVector)
+	packages = make(map[string]string)
 
 }
 
@@ -59,133 +53,78 @@ type Program struct {
 	IdentMap        st.IdentifierMap
 }
 
-func loadConfig(packageName string) *vector.StringVector {
-	fd, err := os.Open(packageName+".cfg", os.O_RDONLY, 0)
-	if err != nil {
-		panic("Couldn't open " + packageName + " config: " + err.String())
-	}
-	defer fd.Close()
-
-	res := new(vector.StringVector)
-
-	reader := bufio.NewReader(fd)
-	for {
-
-		str, err := reader.ReadString('\n')
-		if err != nil {
-			break
-		}
-		res.Push(str[:len(str)-1])
-
-	}
-	// 	fmt.Printf("%s:\n%v\n", packageName, res)
-
-	return res
-}
-
 func isPackageDir(fileInIt *os.FileInfo) bool {
 	return !fileInIt.IsDirectory() && utils.IsGoFile(fileInIt.Name)
 }
 
-func makeFilter(srcDir string) func(f *os.FileInfo) bool {
-	_, d := path.Split(srcDir)
-	// 	println("^&*^&* Specific files for " + d)
-	if files, ok := specificFiles[d]; ok {
-		// 		println("^&*^&* found " + d)
-		return func(f *os.FileInfo) bool {
-			// 			print("\n" + f.Name)
-			for _, fName := range *files {
-				// 				print(" " + fName)
-				if fName == f.Name {
-					return true
-				}
-			}
-			return false
-		}
-	}
-	return utils.GoFilter
-
-}
-func getFullNameFiles(files *vector.StringVector, srcDir string) []string {
-	var res vector.StringVector
-	for _, fName := range *files {
-		res.Push(path.Join(srcDir, fName))
+func getFullNameFiles(files []string, srcDir string) []string {
+	res := []string{}
+	for _, fName := range files {
+		res = append(res,path.Join(srcDir, fName))
 	}
 	return res
 }
-func getAstTree(srcDir string) (*token.FileSet, map[string]*ast.Package, os.Error) {
-	_, d := path.Split(srcDir)
+func getAstTree(srcDir string,specialFiles []string) (*token.FileSet, map[string]*ast.Package, os.Error) {
 	fileSet := token.NewFileSet()
-	if files, ok := specificFiles[d]; ok {
-		pckgs, err := parser.ParseFiles(fileSet, getFullNameFiles(files, srcDir), parser.ParseComments)
+	if specialFiles != nil {
+		pckgs, err := parser.ParseFiles(fileSet, getFullNameFiles(specialFiles, srcDir), parser.ParseComments)
 		return fileSet, pckgs, err
 	}
 	pckgs, err := parser.ParseDir(fileSet, srcDir, utils.GoFilter, parser.ParseComments)
 	return fileSet, pckgs, err
 
 }
-func parsePack(srcDir string) {
+func parsePack(srcDir string,specialFiles []string) {
 
-	fileSet, packs, err := getAstTree(srcDir)
+	fileSet, packs, err := getAstTree(srcDir,specialFiles)
 	if err != nil {
 		fmt.Printf("Warning: some errors occured during parsing package %s:\n %v\n", srcDir, err)
 	}
 
 	_, d := path.Split(srcDir)
 	if packTree, ok := packs[d]; !ok {
-		panic("Couldn't find a package " + d + " in " + d + " directory")
+		panic("Couldn't find a package " + d + " in directory \"" + srcDir + "\"")
 	} else {
-		pack := st.NewPackage(srcDir, fileSet, packTree)
+		pack := st.NewPackage(srcDir, packages[srcDir], fileSet, packTree)
 		program.Packages[srcDir] = pack
 	}
 }
 
-func locatePackages(srcDir string) {
+func locatePackage(dir string,specialFiles []string) {
 
-	fd, err := os.Open(srcDir, os.O_RDONLY, 0)
+	fd, err := os.Open(dir, os.O_RDONLY, 0)
 	if err != nil {
-		panic("Couldn't open src directory")
+		panic("Couldn't open directory \"" + dir + "\"")
 	}
 	defer fd.Close()
 
 	list, err := fd.Readdir(-1)
 	if err != nil {
-		panic("Couldn't read src directory")
+		panic("Couldn't read from directory \"" + dir + "\"")
 	}
 
 	for i := 0; i < len(list); i++ {
 		d := &list[i]
 		if isPackageDir(d) { //current dir describes a package
-			parsePack(srcDir)
+			parsePack(dir,specialFiles)
 			return
 		}
 	}
-
-	//no package in this dir, look inside dirs' dirs
-	for i := 0; i < len(list); i++ {
-		d := &list[i]
-		if d.IsDirectory() { //can still contain packages inside
-			locatePackages(path.Join(srcDir, d.Name))
-		}
-	}
-
+	panic("invalid .package field entity \"" + dir + "\"")
 }
 
-func ParseProgram(srcDir string, externSourceFolders []string) *Program {
+func ParseProgram(projectDir string, sources map[string]string, specialPackages map[string][]string) *Program {
 
 	program = &Program{st.NewSymbolTable(nil), make(map[string]*st.Package), make(map[*ast.Ident]st.Symbol)}
 
 	initialize()
-	externPackageTrees.Push(srcDir)
-	for _, fldr := range externSourceFolders {
-		externPackageTrees.Push(fldr)
+	for fldr, goPath := range sources {
+		packages[fldr] = goPath
 	}
 
-	for _, pName := range specificFilesPackages {
-		specificFiles[pName] = loadConfig(pName)
+	for fldr, goPath := range sources {
+		locatePackage(fldr,specialPackages[goPath])
 	}
-
-	locatePackages(srcDir)
 
 	packs := new(vector.Vector)
 	for _, pack := range program.Packages {
@@ -195,7 +134,7 @@ func ParseProgram(srcDir string, externSourceFolders []string) *Program {
 	// Recursively fills program.Packages map.
 	for _, ppack := range *packs {
 		pack := ppack.(*st.Package)
-		parseImports(pack)
+		parseImports(pack,specialPackages)
 	}
 
 	for _, pack := range program.Packages {
@@ -270,6 +209,15 @@ func ParseProgram(srcDir string, externSourceFolders []string) *Program {
 func IsGoSrcPackage(p *st.Package) bool {
 	//fmt.Printf("IS GO? %s %s\n", p.QualifiedPath,goSrcDir)
 	return strings.HasPrefix(p.QualifiedPath, goSrcDir)
+}
+
+func (p *Program) FindPackageByGoPath(goPath string) (*st.Package, bool) {
+	for _, pack := range p.Packages {
+		if pack.GoPath == goPath {
+			return pack, true
+		}
+	}
+	return nil, false
 }
 
 func (p *Program) FindPackageAndFileByFilename(filename string) (*st.Package, *ast.File) {

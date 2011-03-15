@@ -2,11 +2,11 @@ package refactoring
 
 import (
 	"go/ast"
-	"st"
+	"refactoring/st"
 	"go/token"
-	"utils"
-	"errors"
-	"program"
+	"refactoring/utils"
+	"refactoring/errors"
+	"refactoring/program"
 	"strconv"
 )
 

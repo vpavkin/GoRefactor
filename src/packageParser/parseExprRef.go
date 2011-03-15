@@ -3,7 +3,7 @@ package packageParser
 import (
 	"go/ast"
 	"container/vector"
-	"st"
+	"refactoring/st"
 )
 
 func (pp *packageParser) eParseIdentRef(e *ast.Ident) (res *vector.Vector) {

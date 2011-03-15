@@ -1,10 +1,10 @@
 package refactoring
 
 import (
-	"st"
-	"utils"
-	"errors"
-	"program"
+	"refactoring/st"
+	"refactoring/utils"
+	"refactoring/errors"
+	"refactoring/program"
 	"go/ast"
 )
 

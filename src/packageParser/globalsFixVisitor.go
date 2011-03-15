@@ -2,7 +2,7 @@ package packageParser
 
 import (
 	"go/ast"
-	"st"
+	"refactoring/st"
 )
 import "fmt"
 

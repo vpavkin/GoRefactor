@@ -232,8 +232,8 @@ type PackageSymbol struct {
 }
 
 type Package struct { //NOT A SYMBOL
-	QualifiedPath string //full filesystem path to package src folder
-
+	QualifiedPath   string         //full filesystem path to package src folder
+	GoPath          string         // import path
 	Symbols         *SymbolTable   //top level declarations
 	SymbolTablePool *vector.Vector //links to all symbol tables including nested
 
@@ -245,8 +245,8 @@ type Package struct { //NOT A SYMBOL
 	Communication chan int
 }
 
-func NewPackage(qualifiedPath string, fileSet *token.FileSet, astPackage *ast.Package) *Package {
-	p := &Package{QualifiedPath: qualifiedPath, FileSet: fileSet, AstPackage: astPackage}
+func NewPackage(qualifiedPath string, goPath string, fileSet *token.FileSet, astPackage *ast.Package) *Package {
+	p := &Package{QualifiedPath: qualifiedPath, GoPath: goPath, FileSet: fileSet, AstPackage: astPackage}
 
 	p.Symbols = NewSymbolTable(p)
 	p.SymbolTablePool = new(vector.Vector)

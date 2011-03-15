@@ -3,19 +3,20 @@ package main
 import (
 	"fmt"
 	"os"
-	"path"
 	"strconv"
 	//"utils"
-	"refactoring"
+	"refactoring/refactoring"
 	//"errors"
-	"program"
-	"io/ioutil"
-	"strings"
+	"refactoring/program"
+	"refactoring/utils"
 )
 
 const (
 	INIT string = "init"
+	HELP string = "help"
 )
+const usage string = `usage: goref <action> {arguments}.
+type "goref help" to look at allowed actions.`
 const renameUsage string = "usage: goref ren <filename> <line> <column> <new name>"
 const extractMethodUsage string = "usage: goref exm <filename> <line> <column> <end line> <end column> <new name> [<recvLine> <recvColumn>]"
 const inlineMethodUsage string = "usage: goref inm <filename> <line> <column> <end line> <end column>"
@@ -31,6 +32,27 @@ const sortUsage string = `usage: goref sort [-t|-v] [-i] <filename> [<order>]
 <order>: defines custom order of groups of declarations. Default order string is 'cvtmf' which means 'constants, variables, types, methods, functions'
 Custom order string must contain at least one character from default order string. If it's length is less than the length of default order string, other entries will be added in the default order.
 Leave out order parameter to use default order.`
+
+func printUsage() {
+	println("RENAME")
+	fmt.Println(renameUsage)
+	println()
+	println("EXTRACT METHOD")
+	fmt.Println(extractMethodUsage)
+	println()
+	println("INLINE METHOD")
+	fmt.Println(inlineMethodUsage)
+	println()
+	println("IMPLEMENT INTERFACE")
+	fmt.Println(implementInterfaceUsage)
+	println()
+	println("EXTRACT INTERFACE")
+	fmt.Println(extractInterfaceUsage)
+	println()
+	println("SORT DECLARATIONS")
+	fmt.Println(sortUsage)
+	println()
+}
 
 func getRenameArgs() (filename string, line int, column int, entityName string, ok bool) {
 	var err os.Error
@@ -189,67 +211,20 @@ func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisi
 	return
 }
 
-func getExternSources(pa string) ([]string, bool) {
-	f, err := os.Open(pa, os.O_RDONLY, 0)
-	if err != nil {
-		panic("couldn't open goref.cfg")
-	}
-	d, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic("couldn't read from goref.cfg")
-	}
-	data := string(d)
-	i := strings.Index(data, ".externSources")
-	if i == -1 {
-		return nil, true
-	}
-	sources := []string{}
-	st := i + len(".externSources") + 1
-	for st < len(data) && data[st] != '.' {
-		s := ""
-		for data[st] != '\n' {
-			s += string(data[st])
-			st++
-		}
-		sources = append(sources, s)
-		println(s)
-		st++
-	}
-	return sources, true
+func parseProgram(filename string) *program.Program{
+	projectDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
+	return program.ParseProgram(projectDir, sources, specialPackages)
 }
 
-func getProjectInfo(filename string) (srcDir string, externSources []string, ok bool) {
-	srcDir, _ = path.Split(filename)
-	srcDir = srcDir[:len(srcDir)-1]
-	srcDir, _ = path.Split(srcDir)
-	for {
-		srcDir = srcDir[:len(srcDir)-1]
-		if srcDir == "" {
-			return "", nil, false
-		}
-		//fmt.Println(srcDir)
-		fd, _ := os.Open(srcDir, os.O_RDONLY, 0)
-
-		list, _ := fd.Readdir(-1)
-
-		for i := 0; i < len(list); i++ {
-			d := &list[i]
-			if d.Name == "goref.cfg" {
-				if sources, ok := getExternSources(path.Join(srcDir, d.Name)); ok {
-					return srcDir, sources, true
-				}
-			}
-		}
-		srcDir, _ = path.Split(srcDir)
-		fd.Close()
-	}
-	return "", nil, false
-}
-
-//TODO: add extern sources support
 func main() {
+	if len(os.Args) <= 1 {
+		fmt.Printf("%s\n", usage)
+		return
+	}
 	action := os.Args[1]
 	switch action {
+	case HELP:
+		printUsage()
 	case INIT:
 		fd, err := os.Open("goref.cfg", os.O_CREATE, 0666)
 		if err != nil {
@@ -270,8 +245,7 @@ func main() {
 			return
 		}
 		fmt.Println("renaming symbol to ", entityName+"...")
-		srcDir, sources, _ := getProjectInfo(filename)
-		p := program.ParseProgram(srcDir, sources)
+		p := parseProgram(filename)
 		if ok, count, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
 		} else {
@@ -289,8 +263,7 @@ func main() {
 			return
 		}
 		fmt.Println("extracting code to method ", entityName+"...")
-		srcDir, sources, _ := getProjectInfo(filename)
-		p := program.ParseProgram(srcDir, sources)
+		p := parseProgram(filename)
 		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -307,8 +280,7 @@ func main() {
 			return
 		}
 		fmt.Println("inlining call...")
-		srcDir, sources, _ := getProjectInfo(filename)
-		p := program.ParseProgram(srcDir, sources)
+		p := parseProgram(filename)
 		if ok, err := refactoring.InlineMethod(p, filename, line, column, endLine, endColumn); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -326,8 +298,7 @@ func main() {
 			return
 		}
 		fmt.Println("extracting interface " + interfaceName + "...")
-		srcDir, sources, _ := getProjectInfo(filename)
-		p := program.ParseProgram(srcDir, sources)
+		p := parseProgram(filename)
 		if ok, err := refactoring.ExtractInterface(p, filename, line, column, interfaceName); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -344,8 +315,7 @@ func main() {
 			return
 		}
 		fmt.Println("implementing interface...")
-		srcDir, sources, _ := getProjectInfo(filename)
-		p := program.ParseProgram(srcDir, sources)
+		p := parseProgram(filename)
 		if ok, err := refactoring.ImplementInterface(p, filename, line, column, typeFile, typeLine, typeColumn, asPointer); !ok {
 			fmt.Println("error:", err.Message)
 			return
@@ -363,13 +333,14 @@ func main() {
 			return
 		}
 		fmt.Println("sorting file " + filename + "...")
-		srcDir, sources, _ := getProjectInfo(filename)
-		p := program.ParseProgram(srcDir, sources)
+		p := parseProgram(filename)
 		if ok, err := refactoring.Sort(p, filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order); !ok {
 			fmt.Println("error:", err.Message)
 			return
 		}
 		p.SaveFile(filename)
+	default:
+		fmt.Printf("%s\n", usage)
 	}
 	//fmt.Printf("%s %s %d %d %s\n", action, filename, line, column, entityName)
 }

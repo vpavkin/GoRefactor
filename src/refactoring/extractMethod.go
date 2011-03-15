@@ -3,12 +3,12 @@ package refactoring
 import (
 	"go/ast"
 	"container/vector"
-	"st"
+	"refactoring/st"
 	"go/token"
-	"utils"
-	"errors"
-	"program"
-	"packageParser"
+	"refactoring/utils"
+	"refactoring/errors"
+	"refactoring/program"
+	"refactoring/packageParser"
 )
 
 type extractedSetVisitor struct {

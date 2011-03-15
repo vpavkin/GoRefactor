@@ -1,9 +1,9 @@
 package refactoring
 
 import (
-	"utils"
-	"errors"
-	"program"
+	"refactoring/utils"
+	"refactoring/errors"
+	"refactoring/program"
 	"sort"
 	"go/token"
 	"go/ast"

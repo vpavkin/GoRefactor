@@ -5,4 +5,5 @@ gofmt -w -tabindent -tabwidth=8 ../src/program/*.go
 gofmt -w -tabindent -tabwidth=8 ../src/utils/*.go
 gofmt -w -tabindent -tabwidth=8 ../src/refactoring/*.go
 gofmt -w -tabindent -tabwidth=8 ../src/main/*.go
+gofmt -w -tabindent -tabwidth=8 ../src/printerUtil/*.go
 gofmt -w -tabindent -tabwidth=8 ../testSrc/*/*.go
