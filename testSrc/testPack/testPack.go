@@ -18,12 +18,10 @@ func f1(b int) {
 	*a = 20
 	f2(a)
 	fmt.Printf("%d", *a+b)
-	
-	exi1(1,true,3,3,3,3,3,4)
+
+	exi1(1, true, 3, 3, 3, 3, 3, 4)
 }
 
-func exi1(aa int, bb bool, a, b, c, d, e TestExtrInterfaceType,cc int) {
+func exi1(aa int, bb bool, a, b, c, d, e TestExtrInterfaceType, cc int) {
 	c.adsda()
 }
-
-

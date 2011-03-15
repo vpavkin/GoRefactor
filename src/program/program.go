@@ -318,16 +318,8 @@ func (p *Program) Save() {
 			continue
 		}
 		fmt.Printf("saving package: %s\n", pack.AstPackage.Name)
-		for fName, file := range pack.AstPackage.Files {
-			fd, err := os.Open(fName, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
-			if err != nil {
-				panic("couldn't open file " + fName + "for writing")
-			}
-			err = printer.Fprint(fd, pack.FileSet, file)
-			if err != nil {
-				panic("couldn't write to file " + fName)
-			}
-			fd.Close()
+		for filename, _ := range pack.AstPackage.Files {
+			p.SaveFile(filename)
 		}
 	}
 }
@@ -338,7 +330,8 @@ func (p *Program) SaveFile(filename string) {
 	if err != nil {
 		panic("couldn't open file " + filename + "for writing")
 	}
-	err = printer.Fprint(fd, pack.FileSet, file)
+	cfg := &printer.Config{printer.TabIndent, 8}
+	_, err = cfg.Fprint(fd, pack.FileSet, file)
 	if err != nil {
 		panic("couldn't write to file " + filename)
 	}
