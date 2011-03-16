@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"os"
 	"go/printer"
-
-	"sort"
 )
 
 //given start and end positions visitor finds call expression 
@@ -228,13 +226,13 @@ func (slc *statementListConverter) source() {
 		ast.Walk(sv, stmt)
 	}
 }
-func (slc *statementListConverter) destination(allCovered chan int, sourceLines []int) {
-	dv := &destinationVisitor{slc, nil, 0, sourceLines, 0}
+func (slc *statementListConverter) destination(allCovered chan int) {
+	dv := &destinationVisitor{slc, nil}
 	for _, stmt := range slc.destList {
 		dv.rootNode = stmt
 		ast.Walk(dv, stmt)
 	}
-	allCovered <- dv.posModifier
+	allCovered <- 0
 }
 
 type sourceVisitor struct {
@@ -275,21 +273,14 @@ func (vis *sourceVisitor) Visit(node ast.Node) ast.Visitor {
 
 type destinationVisitor struct {
 	*statementListConverter
-	rootNode    ast.Node
-	posModifier int
-	lines       []int
-	curLine     int
+	rootNode ast.Node
 }
 
 func (vis *destinationVisitor) Visit(node ast.Node) ast.Visitor {
 	if node == nil {
 		return nil
 	}
-	if int(node.Pos()) > vis.lines[vis.curLine] {
-		fmt.Printf("line #%d + %d (from %d to %d)\n", vis.curLine, vis.posModifier, vis.lines[vis.curLine], vis.lines[vis.curLine]+vis.posModifier)
-		vis.lines[vis.curLine] += vis.posModifier
-		vis.curLine++
-	}
+
 	switch t := node.(type) {
 	case *ast.SelectorExpr:
 		ast.Walk(vis, t.X)
@@ -298,176 +289,20 @@ func (vis *destinationVisitor) Visit(node ast.Node) ast.Visitor {
 		newExpr := <-vis.Chan
 		if newExpr != nil {
 			replaceExpr(vis.Package.FileSet.Position(t.Pos()), vis.Package.FileSet.Position(t.End()), newExpr, vis.Package, vis.rootNode)
-			fixPositions(token.NoPos, int(t.NamePos)-int(newExpr.Pos())+vis.posModifier, newExpr, false)
-			mod := (int(newExpr.End()) - int(newExpr.Pos())) - (int(t.End()) - int(t.Pos()))
-			fmt.Printf("MOOOD += %d\n", mod)
-			vis.posModifier += mod
 		}
 		return nil
 	}
 	return vis
 }
 
-func getResultStmtList(IdentMap st.IdentifierMap, pack *st.Package, funSym *st.FunctionSymbol, newNames map[st.Symbol]ast.Expr, sourceFile string, destFile string, sourceList []ast.Stmt, sourceLines []int) ([]ast.Stmt, int) {
+func getResultStmtList(IdentMap st.IdentifierMap, pack *st.Package, funSym *st.FunctionSymbol, newNames map[st.Symbol]ast.Expr, sourceFile string, destFile string, sourceList []ast.Stmt) []ast.Stmt {
 	listCopy := utils.CopyStmtList(sourceList)
 	converter := &statementListConverter{IdentMap, pack, newNames, make(map[*st.PackageSymbol]bool), sourceFile, destFile, sourceList, listCopy, make(chan ast.Expr)}
 	allCovered := make(chan int)
 	go converter.source()
-	go converter.destination(allCovered, sourceLines)
-	posMod := <-allCovered
-	return converter.destList, posMod
-}
-
-type fixPositionsVisitor struct {
-	sourceOrigin token.Pos
-	inc          int
-	commentMode  bool
-}
-
-func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos {
-	if pos <= vis.sourceOrigin {
-		//println(pos)
-		return pos
-	}
-	print(pos)
-	print(" -> ")
-	println(token.Pos(int(pos) + vis.inc))
-	return token.Pos(int(pos) + vis.inc)
-}
-func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
-
-	fmt.Printf("%T\n", node)
-	if vis.commentMode {
-		switch t := node.(type) {
-		case *ast.Comment:
-			t.Slash = vis.newPos(t.Slash)
-		}
-		return vis
-	}
-	switch t := node.(type) {
-	case *ast.ArrayType:
-		t.Lbrack = vis.newPos(t.Lbrack)
-	case *ast.AssignStmt:
-		t.TokPos = vis.newPos(t.TokPos)
-	case *ast.BasicLit:
-		t.ValuePos = vis.newPos(t.ValuePos)
-	case *ast.BinaryExpr:
-		t.OpPos = vis.newPos(t.OpPos)
-	case *ast.BlockStmt:
-		t.Lbrace = vis.newPos(t.Lbrace)
-		t.Rbrace = vis.newPos(t.Rbrace)
-		//case *ast.BranchStmt:
-	case *ast.CallExpr:
-		t.Rparen = vis.newPos(t.Rparen)
-		t.Lparen = vis.newPos(t.Lparen)
-		t.Ellipsis = vis.newPos(t.Ellipsis)
-	case *ast.CaseClause:
-		t.Case = vis.newPos(t.Case)
-		t.Colon = vis.newPos(t.Colon)
-	case *ast.ChanType:
-		t.Begin = vis.newPos(t.Begin)
-	case *ast.CommClause:
-		t.Case = vis.newPos(t.Case)
-		t.Colon = vis.newPos(t.Colon)
-	case *ast.CompositeLit:
-		t.Lbrace = vis.newPos(t.Lbrace)
-		t.Rbrace = vis.newPos(t.Rbrace)
-	case *ast.DeclStmt:
-	case *ast.DeferStmt:
-		t.Defer = vis.newPos(t.Defer)
-	case *ast.Ellipsis:
-		t.Ellipsis = vis.newPos(t.Ellipsis)
-	case *ast.EmptyStmt:
-		t.Semicolon = vis.newPos(t.Semicolon)
-	case *ast.ExprStmt:
-	case *ast.Field:
-	case *ast.FieldList:
-		t.Opening = vis.newPos(t.Opening)
-		t.Closing = vis.newPos(t.Closing)
-	case *ast.File:
-		t.Package = vis.newPos(t.Package)
-	case *ast.ForStmt:
-		t.For = vis.newPos(t.For)
-	case *ast.FuncDecl:
-	case *ast.FuncLit:
-	case *ast.FuncType:
-		t.Func = vis.newPos(t.Func)
-	case *ast.GenDecl:
-		t.TokPos = vis.newPos(t.TokPos)
-		t.Lparen = vis.newPos(t.Lparen)
-		t.Rparen = vis.newPos(t.Rparen)
-	case *ast.GoStmt:
-		t.Go = vis.newPos(t.Go)
-	case *ast.Ident:
-		t.NamePos = vis.newPos(t.NamePos)
-	case *ast.IfStmt:
-		t.If = vis.newPos(t.If)
-	case *ast.ImportSpec:
-	case *ast.IncDecStmt:
-		t.TokPos = vis.newPos(t.TokPos)
-	case *ast.IndexExpr:
-		t.Lbrack = vis.newPos(t.Lbrack)
-		t.Rbrack = vis.newPos(t.Rbrack)
-	case *ast.InterfaceType:
-		t.Interface = vis.newPos(t.Interface)
-	case *ast.KeyValueExpr:
-		t.Colon = vis.newPos(t.Colon)
-		//case *ast.LabeledStmt:
-	case *ast.MapType:
-		t.Map = vis.newPos(t.Map)
-		//case *ast.Package:
-	case *ast.ParenExpr:
-		t.Lparen = vis.newPos(t.Lparen)
-		t.Rparen = vis.newPos(t.Rparen)
-	case *ast.RangeStmt:
-		t.For = vis.newPos(t.For)
-		t.TokPos = vis.newPos(t.TokPos)
-	case *ast.ReturnStmt:
-		t.Return = vis.newPos(t.Return)
-	case *ast.SelectStmt:
-		t.Select = vis.newPos(t.Select)
-	case *ast.SelectorExpr:
-	case *ast.SendStmt:
-		t.Arrow = vis.newPos(t.Arrow)
-	case *ast.SliceExpr:
-		t.Lbrack = vis.newPos(t.Lbrack)
-		t.Rbrack = vis.newPos(t.Rbrack)
-	case *ast.StarExpr:
-		t.Star = vis.newPos(t.Star)
-	case *ast.StructType:
-		t.Struct = vis.newPos(t.Struct)
-	case *ast.SwitchStmt:
-		t.Switch = vis.newPos(t.Switch)
-	case *ast.TypeAssertExpr:
-	case *ast.TypeCaseClause:
-		t.Case = vis.newPos(t.Case)
-		t.Colon = vis.newPos(t.Colon)
-	case *ast.TypeSpec:
-	case *ast.TypeSwitchStmt:
-		t.Switch = vis.newPos(t.Switch)
-	case *ast.UnaryExpr:
-		t.OpPos = vis.newPos(t.OpPos)
-	case *ast.ValueSpec:
-	}
-	return vis
-}
-func fixPositions(sourceOrigin token.Pos, inc int, node ast.Node, commentMode bool) {
-
-	vis := &fixPositionsVisitor{sourceOrigin, inc, commentMode}
-	ast.Walk(vis, node)
-}
-
-func getLines(f *token.File, start token.Pos, end token.Pos) []int {
-	res := make([]int, 0, 20)
-	fmt.Printf("start = %d\n", start)
-	curLine := f.Line(start)
-	for i := start + 1; i <= end; i++ {
-		if f.Line(i) != curLine {
-			res = append(res, int(i)-1)
-			curLine = f.Line(i)
-		}
-	}
-	return res
+	go converter.destination(allCovered)
+	<-allCovered
+	return converter.destList
 }
 
 func CheckInlineMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int) (bool, *errors.GoRefactorError) {
@@ -525,64 +360,7 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 		print("; ")
 	}
 
-	var ffSource, ffDest *token.File
-	for f := range pack.FileSet.Files() {
-		if f.Name() == sourceFile {
-			println("source file " + sourceFile + " found")
-			ffSource = f
-		}
-		if f.Name() == filename {
-			println("dest file " + filename + " found")
-			ffDest = f
-		}
-	}
-
-	sourceSt := decl.Body.List[0].Pos()
-	sourceEnd := decl.Body.List[len(decl.Body.List)-1].End()
-
-	sourceLines := getLines(ffSource, sourceSt, sourceEnd)
-	sourceLines = append(sourceLines, int(sourceEnd))
-
-	resList, posMod := getResultStmtList(programTree.IdentMap, pack, funSym, newNames, sourceFile, filename, decl.Body.List, sourceLines)
-
-	sourceEnd = token.Pos(int(sourceEnd) + posMod)
-	sourceLen := sourceEnd - sourceSt
-
-	replSt := callNode.Pos()
-	replEnd := callNode.End()
-	replLen := replEnd - replSt
-
-	destLines := getLines(ffDest, replSt, token.Pos(file.End()-1))
-	destLines = destLines[1:]
-	fmt.Printf("source : %v\n", sourceLines)
-	for i, _ := range sourceLines {
-		sourceLines[i] -= int(sourceSt)
-		sourceLines[i] += int(replSt)
-	}
-	fmt.Printf("replSt : %v\nsourceSt : %v\nreplEnd : %v\nsourceEnd : %v\nsourceLen - replLen : %v\n", replSt, sourceSt, replEnd, sourceEnd, sourceLen-replLen)
-	fmt.Printf("source : %v\n", sourceLines)
-	fmt.Printf("dest : %v\n", destLines)
-	for i, _ := range destLines {
-		if destLines[i] > int(replSt) {
-			destLines[i] += int(sourceLen) - int(replLen)
-		}
-	}
-	destLines = append(destLines, sourceLines...)
-	sort.SortInts(destLines)
-	fmt.Printf("resultDest : %v\n", destLines)
-	ffDest.SetLines(destLines)
-
-	// 	sourceInc := int(replSt) - int(sourceSt)
-	// 	for _, stmt := range resList {
-	// 		fixPositions(token.NoPos, sourceInc, stmt, false)
-	// 	}
-	// 	destInc := int(sourceLen) - int(replLen)
-	// 	for _, stmt := range file.Decls {
-	// 		fixPositions(replSt, destInc, stmt, false)
-	// 	}
-	// 	for _, stmt := range file.Comments {
-	// 		fixPositions(replSt, destInc, stmt, true)
-	// 	}
+	resList := getResultStmtList(programTree.IdentMap, pack, funSym, newNames, sourceFile, filename, decl.Body.List)
 
 	if CallAsExpression {
 		rs, ok := resList[0].(*ast.ReturnStmt)
@@ -592,9 +370,6 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 		switch len(rs.Results) {
 		case 0:
 			panic("methos, inlined as expression, doesn't return anything")
-			// 		case 1:
-			// 			newExpr := rs.Results[0]
-			// 			replaceExpr(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), newExpr, pack, nodeFrom)
 		default:
 			errs := replaceExprList(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), rs.Results, pack, file)
 			if err, ok := errs[INLINE_METHOD]; ok {

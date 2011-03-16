@@ -439,6 +439,16 @@ func (vis *replaceExprVisitor) visitExpr(node ast.Node) ast.Visitor {
 			vis.errors[EXTRACT_METHOD] = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract a part of selector expression"}
 			return nil
 		}
+	case *ast.SendStmt:
+		if vis.find(t.Chan) {
+			t.Chan = vis.newExpr
+			return nil
+		}
+		if vis.find(t.Value) {
+			t.Value = vis.newExpr
+			vis.errors[EXTRACT_METHOD] = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract a value in send statement"}
+			return nil
+		}
 	case *ast.SliceExpr:
 		if vis.find(t.X) {
 			t.X = vis.newExpr
@@ -492,6 +502,14 @@ func (vis *replaceExprVisitor) visitExpr(node ast.Node) ast.Visitor {
 		if vis.find(t.Type) {
 			t.Type = vis.newExpr
 			vis.errors[EXTRACT_METHOD] = &errors.GoRefactorError{ErrorType: "extract method error", Message: "calls not allowed in type definitions"}
+			return nil
+		}
+	case *ast.UnaryExpr:
+		if vis.find(t.X) {
+			t.X = vis.newExpr
+			if t.Op == token.AND {
+				vis.errors[EXTRACT_METHOD] = &errors.GoRefactorError{ErrorType: "extract method error", Message: "can't extract code, that is under unary '&' operator"}
+			}
 			return nil
 		}
 	case *ast.ValueSpec:

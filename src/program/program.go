@@ -60,11 +60,11 @@ func isPackageDir(fileInIt *os.FileInfo) bool {
 func getFullNameFiles(files []string, srcDir string) []string {
 	res := []string{}
 	for _, fName := range files {
-		res = append(res,path.Join(srcDir, fName))
+		res = append(res, path.Join(srcDir, fName))
 	}
 	return res
 }
-func getAstTree(srcDir string,specialFiles []string) (*token.FileSet, map[string]*ast.Package, os.Error) {
+func getAstTree(srcDir string, specialFiles []string) (*token.FileSet, map[string]*ast.Package, os.Error) {
 	fileSet := token.NewFileSet()
 	if specialFiles != nil {
 		pckgs, err := parser.ParseFiles(fileSet, getFullNameFiles(specialFiles, srcDir), parser.ParseComments)
@@ -74,9 +74,9 @@ func getAstTree(srcDir string,specialFiles []string) (*token.FileSet, map[string
 	return fileSet, pckgs, err
 
 }
-func parsePack(srcDir string,specialFiles []string) {
+func parsePack(srcDir string, specialFiles []string) {
 
-	fileSet, packs, err := getAstTree(srcDir,specialFiles)
+	fileSet, packs, err := getAstTree(srcDir, specialFiles)
 	if err != nil {
 		fmt.Printf("Warning: some errors occured during parsing package %s:\n %v\n", srcDir, err)
 	}
@@ -90,7 +90,7 @@ func parsePack(srcDir string,specialFiles []string) {
 	}
 }
 
-func locatePackage(dir string,specialFiles []string) {
+func locatePackage(dir string, specialFiles []string) {
 
 	fd, err := os.Open(dir, os.O_RDONLY, 0)
 	if err != nil {
@@ -106,7 +106,7 @@ func locatePackage(dir string,specialFiles []string) {
 	for i := 0; i < len(list); i++ {
 		d := &list[i]
 		if isPackageDir(d) { //current dir describes a package
-			parsePack(dir,specialFiles)
+			parsePack(dir, specialFiles)
 			return
 		}
 	}
@@ -123,7 +123,7 @@ func ParseProgram(projectDir string, sources map[string]string, specialPackages 
 	}
 
 	for fldr, goPath := range sources {
-		locatePackage(fldr,specialPackages[goPath])
+		locatePackage(fldr, specialPackages[goPath])
 	}
 
 	packs := new(vector.Vector)
@@ -134,7 +134,7 @@ func ParseProgram(projectDir string, sources map[string]string, specialPackages 
 	// Recursively fills program.Packages map.
 	for _, ppack := range *packs {
 		pack := ppack.(*st.Package)
-		parseImports(pack,specialPackages)
+		parseImports(pack, specialPackages)
 	}
 
 	for _, pack := range program.Packages {

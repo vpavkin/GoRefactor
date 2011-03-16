@@ -3,13 +3,14 @@ package testPack
 import (
 	"fmt"
 )
-
+// asdasd
 type TestExtrInterfaceType int
 
 func (a TestExtrInterfaceType) adsda() {
 
 }
 
+// aAAAAAAA
 func f2(a *int) {
 	*a = 10
 }
@@ -19,6 +20,7 @@ func f1(b int) {
 	f2(a)
 	fmt.Printf("%d", *a+b)
 
+	//BBBBBBB
 	exi1(1, true, 3, 3, 3, 3, 3, 4)
 }
 

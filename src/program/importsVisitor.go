@@ -12,9 +12,9 @@ import (
 
 //Represents an ast.Visitor, walking along ast.tree and registering all the imports met
 type importsVisitor struct {
-	Package  *st.Package
-	FileName string
-	specialPackages  map[string][]string
+	Package         *st.Package
+	FileName        string
+	specialPackages map[string][]string
 }
 
 func (iv *importsVisitor) Visit(node ast.Node) (w ast.Visitor) {
@@ -49,24 +49,24 @@ func (iv *importsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 
 		if !found {
 			_, f := path.Split(Path)
-			fileSet, dirTree, _ := getAstTree(path.Join(goSrcDir, Path),iv.specialPackages[Path])
+			fileSet, dirTree, _ := getAstTree(path.Join(goSrcDir, Path), iv.specialPackages[Path])
 			if dirTree != nil {
 				if packTree, found = dirTree[f]; found {
 					pack = st.NewPackage(path.Join(goSrcDir, Path), Path, fileSet, packTree)
 					program.Packages[pack.QualifiedPath] = pack
-					parseImports(pack,iv.specialPackages)
+					parseImports(pack, iv.specialPackages)
 				} else {
 					panic("package not found where expected: " + path.Join(goSrcDir, Path))
 				}
 			}
 			for dir, goPath := range packages {
 				if goPath == Path {
-					fileSet, dirTree, _ := getAstTree(dir,iv.specialPackages[Path])
+					fileSet, dirTree, _ := getAstTree(dir, iv.specialPackages[Path])
 					if dirTree != nil {
 						if packTree, found = dirTree[f]; found {
 							pack = st.NewPackage(dir, Path, fileSet, packTree)
 							program.Packages[pack.QualifiedPath] = pack
-							parseImports(pack,iv.specialPackages)
+							parseImports(pack, iv.specialPackages)
 							break
 						} else {
 							panic("package not found where expected: " + dir)
@@ -104,9 +104,9 @@ func (iv *importsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	return
 }
 
-func parseImports(pack *st.Package,specialPackages map[string][]string) {
+func parseImports(pack *st.Package, specialPackages map[string][]string) {
 	for fName, f := range pack.AstPackage.Files {
-		iv := &importsVisitor{pack, fName,specialPackages}
+		iv := &importsVisitor{pack, fName, specialPackages}
 		ast.Walk(iv, f)
 	}
 }

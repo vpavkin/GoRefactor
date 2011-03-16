@@ -200,21 +200,21 @@ func loadConfig(configPath string) []string {
 		panic("Couldn't open config \"" + configPath + "\": " + err.String())
 	}
 	defer fd.Close()
-	
+
 	res := []string{}
-	
+
 	reader := bufio.NewReader(fd)
 	for {
-		
+
 		str, err := reader.ReadString('\n')
 		if err != nil {
 			break
 		}
-		res = append(res,(str[:len(str)-1]))
-		
+		res = append(res, (str[:len(str)-1]))
+
 	}
 	//fmt.Printf("%s:\n%v\n", configPath, res)
-	
+
 	return res
 }
 
@@ -260,29 +260,29 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 		}
 		sources[path.Join(projectDir, realpath)] = goPath
 	}
-	
+
 	//specialPackages
 	specialPackages = make(map[string][]string)
 	i = strings.Index(data, ".specialPackages")
 	if i != -1 {
-		
+
 		st := i + len(".specialPackages") + 1
-		
+
 		end := strings.Index(data[st:], ".")
 		if end == -1 {
 			end = len(data)
 		}
 		end--
 		packages := strings.Split(data[st:end], "\n", -1)
-		for _,pack := range packages{
-			specialPackages[pack] = loadConfig(path.Join(projectDir,pack) + ".cfg")
+		for _, pack := range packages {
+			specialPackages[pack] = loadConfig(path.Join(projectDir, pack) + ".cfg")
 		}
 	}
-	
-	return sources,specialPackages, true
+
+	return sources, specialPackages, true
 }
 
-func getProjectInfo(filename string) (projectDir string, sources map[string]string,specialPackages map[string][]string, ok bool) {
+func getProjectInfo(filename string) (projectDir string, sources map[string]string, specialPackages map[string][]string, ok bool) {
 	projectDir, _ = path.Split(filename)
 	projectDir = projectDir[:len(projectDir)-1]
 	projectDir, _ = path.Split(projectDir)
@@ -299,12 +299,12 @@ func getProjectInfo(filename string) (projectDir string, sources map[string]stri
 		for i := 0; i < len(list); i++ {
 			d := &list[i]
 			if d.Name == "goref.cfg" {
-				srcs,specialPacks, ok := getInfo(projectDir, path.Join(projectDir, d.Name))
+				srcs, specialPacks, ok := getInfo(projectDir, path.Join(projectDir, d.Name))
 				if !ok {
 					return "", nil, nil, false
 				}
-				
-				return projectDir, srcs,specialPacks, true
+
+				return projectDir, srcs, specialPacks, true
 			}
 		}
 		projectDir, _ = path.Split(projectDir)
@@ -313,6 +313,6 @@ func getProjectInfo(filename string) (projectDir string, sources map[string]stri
 	return "", nil, nil, false
 }
 
-func GetProjectInfo(filename string) (projectDir string, sources map[string]string,specialPackages map[string][]string, ok bool) {
+func GetProjectInfo(filename string) (projectDir string, sources map[string]string, specialPackages map[string][]string, ok bool) {
 	return getProjectInfo(filename)
 }

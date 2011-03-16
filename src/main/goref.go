@@ -211,7 +211,7 @@ func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisi
 	return
 }
 
-func parseProgram(filename string) *program.Program{
+func parseProgram(filename string) *program.Program {
 	projectDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
 	return program.ParseProgram(projectDir, sources, specialPackages)
 }
