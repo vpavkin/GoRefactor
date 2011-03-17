@@ -36,6 +36,9 @@ func ComparePosWithinFile(pos1 token.Position, pos2 token.Position) int {
 }
 
 func CopyExprList(list []ast.Expr) []ast.Expr {
+	if list == nil {
+		return nil
+	}
 	res := make([]ast.Expr, len(list))
 	for i, stmt := range list {
 		res[i] = CopyAstNode(stmt).(ast.Expr)
@@ -43,6 +46,9 @@ func CopyExprList(list []ast.Expr) []ast.Expr {
 	return res
 }
 func CopyStmtList(list []ast.Stmt) []ast.Stmt {
+	if list == nil {
+		return nil
+	}
 	res := make([]ast.Stmt, len(list))
 	for i, stmt := range list {
 		res[i] = CopyAstNode(stmt).(ast.Stmt)
@@ -50,6 +56,9 @@ func CopyStmtList(list []ast.Stmt) []ast.Stmt {
 	return res
 }
 func CopyIdentList(list []*ast.Ident) []*ast.Ident {
+	if list == nil {
+		return nil
+	}
 	res := make([]*ast.Ident, len(list))
 	for i, stmt := range list {
 		res[i] = CopyAstNode(stmt).(*ast.Ident)
@@ -57,6 +66,9 @@ func CopyIdentList(list []*ast.Ident) []*ast.Ident {
 	return res
 }
 func CopyFieldList(list []*ast.Field) []*ast.Field {
+	if list == nil {
+		return nil
+	}
 	res := make([]*ast.Field, len(list))
 	for i, stmt := range list {
 		res[i] = CopyAstNode(stmt).(*ast.Field)
@@ -64,6 +76,9 @@ func CopyFieldList(list []*ast.Field) []*ast.Field {
 	return res
 }
 func CopySpecList(list []ast.Spec) []ast.Spec {
+	if list == nil {
+		return nil
+	}
 	res := make([]ast.Spec, len(list))
 	for i, stmt := range list {
 		res[i] = CopyAstNode(stmt).(ast.Spec)
@@ -71,7 +86,7 @@ func CopySpecList(list []ast.Spec) []ast.Spec {
 	return res
 }
 func CopyAstNode(node ast.Node) ast.Node {
-	if node == nil {
+	if node == nil || IsNullReally(node) {
 		return nil
 	}
 	switch t := node.(type) {
@@ -89,7 +104,9 @@ func CopyAstNode(node ast.Node) ast.Node {
 		return &ast.BinaryExpr{CopyAstNode(t.X).(ast.Expr), t.OpPos, t.Op, CopyAstNode(t.Y).(ast.Expr)}
 	case *ast.BlockStmt:
 		return &ast.BlockStmt{t.Lbrace, CopyStmtList(t.List), t.Rbrace}
-	//case *ast.BranchStmt:
+	case *ast.BranchStmt:
+		Label, _ := CopyAstNode(t.Label).(*ast.Ident)
+		return &ast.BranchStmt{t.TokPos, t.Tok, Label}
 	case *ast.CallExpr:
 		return &ast.CallExpr{CopyAstNode(t.Fun).(ast.Expr), t.Lparen, CopyExprList(t.Args), t.Ellipsis, t.Rparen}
 	case *ast.CaseClause:
@@ -97,53 +114,72 @@ func CopyAstNode(node ast.Node) ast.Node {
 	case *ast.ChanType:
 		return &ast.ChanType{t.Begin, t.Dir, CopyAstNode(t.Value).(ast.Expr)}
 	case *ast.CommClause:
-		return &ast.CommClause{t.Case, CopyAstNode(t.Comm).(ast.Stmt), t.Colon, CopyStmtList(t.Body)}
+		Comm, _ := CopyAstNode(t.Comm).(ast.Stmt)
+		return &ast.CommClause{t.Case, Comm, t.Colon, CopyStmtList(t.Body)}
 	case *ast.Comment:
 		text := make([]byte, len(t.Text))
 		copy(text, t.Text)
 		return &ast.Comment{t.Slash, text}
 	case *ast.CommentGroup:
 		if t == nil {
-			return nil
+			return t
 		}
 		text := make([]*ast.Comment, len(t.List))
 		copy(text, t.List)
 		return &ast.CommentGroup{text}
 	case *ast.CompositeLit:
-		return &ast.CompositeLit{CopyAstNode(t.Type).(ast.Expr), t.Lbrace, CopyExprList(t.Elts), t.Rbrace}
+		Type, _ := CopyAstNode(t.Type).(ast.Expr)
+		return &ast.CompositeLit{Type, t.Lbrace, CopyExprList(t.Elts), t.Rbrace}
 	case *ast.DeclStmt:
 		return &ast.DeclStmt{CopyAstNode(t.Decl).(ast.Decl)}
 	case *ast.DeferStmt:
 		return &ast.DeferStmt{t.Defer, CopyAstNode(t.Call).(*ast.CallExpr)}
 	case *ast.Ellipsis:
-		return &ast.Ellipsis{t.Ellipsis, CopyAstNode(t.Elt).(ast.Expr)}
+		Elt, _ := CopyAstNode(t.Elt).(ast.Expr)
+		return &ast.Ellipsis{t.Ellipsis, Elt}
 	case *ast.EmptyStmt:
 		return &ast.EmptyStmt{t.Semicolon}
 	case *ast.ExprStmt:
 		return &ast.ExprStmt{CopyAstNode(t.X).(ast.Expr)}
 	case *ast.Field:
-		return &ast.Field{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyIdentList(t.Names), CopyAstNode(t.Type).(ast.Expr), CopyAstNode(t.Tag).(*ast.BasicLit), CopyAstNode(t.Comment).(*ast.CommentGroup)}
+		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
+		Tag, _ := CopyAstNode(t.Tag).(*ast.BasicLit)
+		Comment, _ := CopyAstNode(t.Comment).(*ast.CommentGroup)
+		return &ast.Field{Doc, CopyIdentList(t.Names), CopyAstNode(t.Type).(ast.Expr), Tag, Comment}
 	case *ast.FieldList:
 		return &ast.FieldList{t.Opening, CopyFieldList(t.List), t.Closing}
 	//case *ast.File:
 	case *ast.ForStmt:
-		return &ast.ForStmt{t.For, CopyAstNode(t.Init).(ast.Stmt), CopyAstNode(t.Cond).(ast.Expr), CopyAstNode(t.Post).(ast.Stmt), CopyAstNode(t.Body).(*ast.BlockStmt)}
+		Init, _ := CopyAstNode(t.Init).(ast.Stmt)
+		Cond, _ := CopyAstNode(t.Cond).(ast.Expr)
+		Post, _ := CopyAstNode(t.Post).(ast.Stmt)
+		return &ast.ForStmt{t.For, Init, Cond, Post, CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.FuncDecl:
-		return &ast.FuncDecl{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyAstNode(t.Recv).(*ast.FieldList), CopyAstNode(t.Name).(*ast.Ident), CopyAstNode(t.Type).(*ast.FuncType), CopyAstNode(t.Body).(*ast.BlockStmt)}
+		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
+		Recv, _ := CopyAstNode(t.Recv).(*ast.FieldList)
+		Body, _ := CopyAstNode(t.Body).(*ast.BlockStmt)
+		return &ast.FuncDecl{Doc, Recv, CopyAstNode(t.Name).(*ast.Ident), CopyAstNode(t.Type).(*ast.FuncType), Body}
 	case *ast.FuncLit:
 		return &ast.FuncLit{CopyAstNode(t.Type).(*ast.FuncType), CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.FuncType:
-		return &ast.FuncType{t.Func, CopyAstNode(t.Params).(*ast.FieldList), CopyAstNode(t.Results).(*ast.FieldList)}
+		Results, _ := CopyAstNode(t.Results).(*ast.FieldList)
+		return &ast.FuncType{t.Func, CopyAstNode(t.Params).(*ast.FieldList), Results}
 	case *ast.GenDecl:
-		return &ast.GenDecl{CopyAstNode(t.Doc).(*ast.CommentGroup), t.TokPos, t.Tok, t.Lparen, CopySpecList(t.Specs), t.Rparen}
+		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
+		return &ast.GenDecl{Doc, t.TokPos, t.Tok, t.Lparen, CopySpecList(t.Specs), t.Rparen}
 	case *ast.GoStmt:
 		return &ast.GoStmt{t.Go, CopyAstNode(t.Call).(*ast.CallExpr)}
 	case *ast.Ident:
 		return &ast.Ident{t.NamePos, t.Name + "", nil}
 	case *ast.IfStmt:
-		return &ast.IfStmt{t.If, CopyAstNode(t.Init).(ast.Stmt), CopyAstNode(t.Cond).(ast.Expr), CopyAstNode(t.Body).(*ast.BlockStmt), CopyAstNode(t.Else).(*ast.BlockStmt)}
+		Init, _ := CopyAstNode(t.Init).(ast.Stmt)
+		Else, _ := CopyAstNode(t.Else).(*ast.BlockStmt)
+		return &ast.IfStmt{t.If, Init, CopyAstNode(t.Cond).(ast.Expr), CopyAstNode(t.Body).(*ast.BlockStmt), Else}
 	case *ast.ImportSpec:
-		return &ast.ImportSpec{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyAstNode(t.Name).(*ast.Ident), CopyAstNode(t.Path).(*ast.BasicLit), CopyAstNode(t.Comment).(*ast.CommentGroup)}
+		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
+		Name, _ := CopyAstNode(t.Name).(*ast.Ident)
+		Comment, _ := CopyAstNode(t.Comment).(*ast.CommentGroup)
+		return &ast.ImportSpec{Doc, Name, CopyAstNode(t.Path).(*ast.BasicLit), Comment}
 	case *ast.IncDecStmt:
 		return &ast.IncDecStmt{CopyAstNode(t.X).(ast.Expr), t.TokPos, t.Tok}
 	case *ast.IndexExpr:
@@ -152,14 +188,16 @@ func CopyAstNode(node ast.Node) ast.Node {
 		return &ast.InterfaceType{t.Interface, CopyAstNode(t.Methods).(*ast.FieldList), t.Incomplete}
 	case *ast.KeyValueExpr:
 		return &ast.KeyValueExpr{CopyAstNode(t.Key).(ast.Expr), t.Colon, CopyAstNode(t.Value).(ast.Expr)}
-	//case *ast.LabeledStmt:
+	case *ast.LabeledStmt:
+		return &ast.LabeledStmt{CopyAstNode(t.Label).(*ast.Ident), t.Colon, CopyAstNode(t.Stmt).(ast.Stmt)}
 	case *ast.MapType:
 		return &ast.MapType{t.Map, CopyAstNode(t.Key).(ast.Expr), CopyAstNode(t.Value).(ast.Expr)}
 	//case *ast.Package:
 	case *ast.ParenExpr:
 		return &ast.ParenExpr{t.Lparen, CopyAstNode(t.X).(ast.Expr), t.Rparen}
 	case *ast.RangeStmt:
-		return &ast.RangeStmt{t.For, CopyAstNode(t.Key).(ast.Expr), CopyAstNode(t.Value).(ast.Expr), t.TokPos, t.Tok, CopyAstNode(t.X).(ast.Expr), CopyAstNode(t.Body).(*ast.BlockStmt)}
+		Value, _ := CopyAstNode(t.Value).(ast.Expr)
+		return &ast.RangeStmt{t.For, CopyAstNode(t.Key).(ast.Expr), Value, t.TokPos, t.Tok, CopyAstNode(t.X).(ast.Expr), CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.ReturnStmt:
 		return &ast.ReturnStmt{t.Return, CopyExprList(t.Results)}
 	case *ast.SelectStmt:
@@ -169,27 +207,236 @@ func CopyAstNode(node ast.Node) ast.Node {
 	case *ast.SendStmt:
 		return &ast.SendStmt{CopyAstNode(t.Chan).(ast.Expr), t.Arrow, CopyAstNode(t.Value).(ast.Expr)}
 	case *ast.SliceExpr:
-		return &ast.SliceExpr{CopyAstNode(t.X).(ast.Expr), t.Lbrack, CopyAstNode(t.Low).(ast.Expr), CopyAstNode(t.High).(ast.Expr), t.Rbrack}
+		High, _ := CopyAstNode(t.High).(ast.Expr)
+		Low, _ := CopyAstNode(t.Low).(ast.Expr)
+		return &ast.SliceExpr{CopyAstNode(t.X).(ast.Expr), t.Lbrack, Low, High, t.Rbrack}
 	case *ast.StarExpr:
 		return &ast.StarExpr{t.Star, CopyAstNode(t.X).(ast.Expr)}
 	case *ast.StructType:
 		return &ast.StructType{t.Struct, CopyAstNode(t.Fields).(*ast.FieldList), t.Incomplete}
 	case *ast.SwitchStmt:
-		return &ast.SwitchStmt{t.Switch, CopyAstNode(t.Init).(ast.Stmt), CopyAstNode(t.Tag).(ast.Expr), CopyAstNode(t.Body).(*ast.BlockStmt)}
+		Init, _ := CopyAstNode(t.Init).(ast.Stmt)
+		Tag, _ := CopyAstNode(t.Tag).(ast.Expr)
+		return &ast.SwitchStmt{t.Switch, Init, Tag, CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.TypeAssertExpr:
-		return &ast.TypeAssertExpr{CopyAstNode(t.X).(ast.Expr), CopyAstNode(t.Type).(ast.Expr)}
+		Type, _ := CopyAstNode(t.Type).(ast.Expr)
+		return &ast.TypeAssertExpr{CopyAstNode(t.X).(ast.Expr), Type}
 	case *ast.TypeCaseClause:
 		return &ast.TypeCaseClause{t.Case, CopyExprList(t.Types), t.Colon, CopyStmtList(t.Body)}
 	case *ast.TypeSpec:
-		return &ast.TypeSpec{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyAstNode(t.Name).(*ast.Ident), CopyAstNode(t.Type).(ast.Expr), CopyAstNode(t.Comment).(*ast.CommentGroup)}
+		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
+		Comment, _ := CopyAstNode(t.Comment).(*ast.CommentGroup)
+		return &ast.TypeSpec{Doc, CopyAstNode(t.Name).(*ast.Ident), CopyAstNode(t.Type).(ast.Expr), Comment}
 	case *ast.TypeSwitchStmt:
-		return &ast.TypeSwitchStmt{t.Switch, CopyAstNode(t.Init).(ast.Stmt), CopyAstNode(t.Assign).(ast.Stmt), CopyAstNode(t.Body).(*ast.BlockStmt)}
+		Init, _ := CopyAstNode(t.Init).(ast.Stmt)
+		return &ast.TypeSwitchStmt{t.Switch, Init, CopyAstNode(t.Assign).(ast.Stmt), CopyAstNode(t.Body).(*ast.BlockStmt)}
 	case *ast.UnaryExpr:
 		return &ast.UnaryExpr{t.OpPos, t.Op, CopyAstNode(t.X).(ast.Expr)}
 	case *ast.ValueSpec:
-		return &ast.ValueSpec{CopyAstNode(t.Doc).(*ast.CommentGroup), CopyIdentList(t.Names), CopyAstNode(t.Type).(ast.Expr), CopyExprList(t.Values), CopyAstNode(t.Comment).(*ast.CommentGroup)}
+		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
+		Type, _ := CopyAstNode(t.Type).(ast.Expr)
+		Comment, _ := CopyAstNode(t.Comment).(*ast.CommentGroup)
+		return &ast.ValueSpec{Doc, CopyIdentList(t.Names), Type, CopyExprList(t.Values), Comment}
 	}
 	panic("can't copy node")
+}
+
+func IsNullReally(node ast.Node) bool {
+	switch t := node.(type) {
+	case *ast.ArrayType:
+		if t == nil {
+			return true
+		}
+	case *ast.AssignStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.BasicLit:
+		if t == nil {
+			return true
+		}
+	case *ast.BinaryExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.BlockStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.BranchStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.CallExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.CaseClause:
+		if t == nil {
+			return true
+		}
+	case *ast.ChanType:
+		if t == nil {
+			return true
+		}
+	case *ast.CommClause:
+		if t == nil {
+			return true
+		}
+	case *ast.Comment:
+		if t == nil {
+			return true
+		}
+	case *ast.CommentGroup:
+		if t == nil {
+			return true
+		}
+	case *ast.CompositeLit:
+		if t == nil {
+			return true
+		}
+	case *ast.DeferStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.Ellipsis:
+		if t == nil {
+			return true
+		}
+	case *ast.ExprStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.Field:
+		if t == nil {
+			return true
+		}
+	case *ast.FieldList:
+		if t == nil {
+			return true
+		}
+	case *ast.ForStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.FuncDecl:
+		if t == nil {
+			return true
+		}
+	case *ast.FuncLit:
+		if t == nil {
+			return true
+		}
+	case *ast.FuncType:
+		if t == nil {
+			return true
+		}
+	case *ast.GenDecl:
+		if t == nil {
+			return true
+		}
+	case *ast.GoStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.Ident:
+		if t == nil {
+			return true
+		}
+	case *ast.IfStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.ImportSpec:
+		if t == nil {
+			return true
+		}
+	case *ast.IncDecStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.IndexExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.InterfaceType:
+		if t == nil {
+			return true
+		}
+	case *ast.KeyValueExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.LabeledStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.MapType:
+		if t == nil {
+			return true
+		}
+	case *ast.ParenExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.RangeStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.ReturnStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.SelectStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.SelectorExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.SendStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.SliceExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.StarExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.StructType:
+		if t == nil {
+			return true
+		}
+	case *ast.SwitchStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.TypeAssertExpr:
+		if t == nil {
+			return true
+		}
+	case *ast.TypeCaseClause:
+		if t == nil {
+			return true
+		}
+	case *ast.TypeSpec:
+		if t == nil {
+			return true
+		}
+	case *ast.TypeSwitchStmt:
+		if t == nil {
+			return true
+		}
+	case *ast.ValueSpec:
+		if t == nil {
+			return true
+		}
+	}
+	return false
 }
 
 // refactoring project functions
