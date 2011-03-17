@@ -173,7 +173,7 @@ func CopyAstNode(node ast.Node) ast.Node {
 		return &ast.Ident{t.NamePos, t.Name + "", nil}
 	case *ast.IfStmt:
 		Init, _ := CopyAstNode(t.Init).(ast.Stmt)
-		Else, _ := CopyAstNode(t.Else).(*ast.BlockStmt)
+		Else, _ := CopyAstNode(t.Else).(ast.Stmt)
 		return &ast.IfStmt{t.If, Init, CopyAstNode(t.Cond).(ast.Expr), CopyAstNode(t.Body).(*ast.BlockStmt), Else}
 	case *ast.ImportSpec:
 		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)

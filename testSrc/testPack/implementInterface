@@ -1,0 +1,3 @@
+goref imi /home/rulerr/goRefactor/testSrc/testPack/implementInterface.go 6 19 /home/rulerr/goRefactor/testSrc/testPack/implementInterface.go 13 6
+
+goref imi -p /home/rulerr/goRefactor/testSrc/testPack/implementInterface.go 8 6 /home/rulerr/goRefactor/testSrc/testPack/implementInterface.go 15 6
