@@ -9,7 +9,7 @@ type fixPositionsVisitor struct {
 	sourceOrigin   token.Pos
 	inc            int
 	affectComments bool
-	visitedNodes map[ast.Node]bool
+	visitedNodes   map[ast.Node]bool
 }
 
 func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos {
@@ -20,11 +20,11 @@ func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos {
 }
 func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 
-	if _,ok := vis.visitedNodes[node];ok{
+	if _, ok := vis.visitedNodes[node]; ok {
 		return nil
 	}
 	vis.visitedNodes[node] = true
-	
+
 	if vis.affectComments {
 		switch t := node.(type) {
 		case *ast.Comment:
@@ -144,6 +144,12 @@ func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 }
 func fixPositions(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool) {
 
-	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments,make(map[ast.Node]bool)}
+	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments, make(map[ast.Node]bool)}
+	ast.Walk(vis, node)
+}
+
+func fixPositionsExcept(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool, except map[ast.Node]bool) {
+
+	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments, except}
 	ast.Walk(vis, node)
 }
