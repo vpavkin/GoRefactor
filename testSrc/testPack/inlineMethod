@@ -1,3 +1,5 @@
 goref inm /home/rulerr/goRefactor/testSrc/testPack/inlineMethod.go 34 2 34 16
 
 goref inm /home/rulerr/goRefactor/testSrc/testPack/inlineMethod.go 36 2 36 16
+
+goref inm /home/rulerr/goRefactor/testSrc/testPack/inlineMethod.go 40 7 40 13

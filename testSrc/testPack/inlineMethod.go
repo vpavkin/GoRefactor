@@ -36,4 +36,13 @@ func inm_test() {
 	inm2(aaa, ttt)
 
 	println(b)
+
+	inm4(inm3())
+}
+
+func inm3() (string, string, string) {
+	return "444", "555", "666"
+}
+
+func inm4(string, string, string) {
 }
