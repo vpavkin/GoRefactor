@@ -265,7 +265,7 @@ func Sort(programTree *program.Program, filename string, _groupMethodsByType boo
 	sortImports = _sortImports
 	fullOrder = getFullOrder(order)
 	decls := DeclCollection(file.Decls)
-	if sortImports{
+	if sortImports {
 		for _, d := range decls {
 			if gd, ok := d.(*ast.GenDecl); ok {
 				if gd.Tok == token.IMPORT {

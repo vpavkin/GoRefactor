@@ -1,1 +1,3 @@
 goref exm /home/rulerr/goRefactor/testSrc/testPack/extractMethod.go 12 2 18 3 new1
+goref exm /home/rulerr/goRefactor/testSrc/testPack/extractMethod.go 23 10 23 22 new2
+goref exm /home/rulerr/goRefactor/testSrc/testPack/extractMethod.go 27 5 27 28 new3

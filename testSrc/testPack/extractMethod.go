@@ -18,3 +18,14 @@ func exm1() {
 	}
 
 }
+
+func exm2() {
+	println("666", "555")
+}
+
+func exm3(a, b, c bool) int {
+	if (!a && !b) || (!c && a) {
+		return 3
+	}
+	return 666
+}
