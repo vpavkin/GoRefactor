@@ -90,10 +90,6 @@ func (s *StructTypeSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
 	return res
 }
 
-func (ps *PackageSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
-	panic("mustn't call ITypeSymbol methods on PackageSymbol")
-}
-
 //VariableSymbol & FunctionSymbol
 
 func (s *VariableSymbol) ToAstField(pack *Package, filename string) *ast.Field {
@@ -123,6 +119,31 @@ func (s *FunctionSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
 	}
 	panic("can't make an expr out of unnamed variable/function")
 }
+
+func (s *TypeSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
+	panic("can't make an expr out of TypeSymbol")
+}
+
+func (s *LabelSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
+	panic("can't make an expr out of LabelSymbol")
+}
+
+func (ps *PackageSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
+	panic("mustn't call ITypeSymbol methods on PackageSymbol")
+}
+
+func (s *TypeSymbol) ToAstField(pack *Package, filename string) *ast.Field {
+	panic("can't make an expr out of TypeSymbol")
+}
+
+func (s *LabelSymbol) ToAstField(pack *Package, filename string) *ast.Field {
+	panic("can't make an expr out of LabelSymbol")
+}
+
+func (ps *PackageSymbol) ToAstField(pack *Package, filename string) *ast.Field {
+	panic("mustn't call ITypeSymbol methods on PackageSymbol")
+}
+
 
 // Symbol Table
 
@@ -157,7 +178,7 @@ func (s *SymbolTable) ToAstExprSlice(pack *Package, filename string) []ast.Expr 
 		case *FunctionSymbol:
 			vect.Push(t.ToAstExpr(pack, filename))
 		default:
-			panic("can't convert symbol table with non-variable symbols to ast.FieldList")
+			panic("can't convert symbol table with non-variable symbols to ast.ExprList")
 		}
 
 	})

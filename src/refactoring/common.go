@@ -561,9 +561,21 @@ func (vis *replaceExprVisitor) visitExprList(node ast.Node) ast.Visitor {
 
 // make *ast.FuncDecl
 
-func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, results *st.SymbolTable, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
+func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, pointerSymbols map[st.Symbol]int, results *st.SymbolTable, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.FuncDecl {
 
-	flist := params.ToAstFieldList(pack, filename)
+	flist, i := &ast.FieldList{token.NoPos, make([]*ast.Field, params.Count()), token.NoPos}, 0
+	params.ForEachNoLock(func(sym st.Symbol) {
+		flist.List[i] = sym.ToAstField(pack, filename)
+		if pointerSymbols != nil {
+			if depth, ok := pointerSymbols[sym]; ok {
+				for depth > 0 {
+					flist.List[i].Type = &ast.StarExpr{token.NoPos, flist.List[i].Type}
+					depth--
+				}
+			}
+		}
+		i++
+	})
 	ftype := &ast.FuncType{token.NoPos, flist, nil}
 	if results.Count() > 0 {
 		ftype.Results = results.ToAstFieldList(pack, filename)

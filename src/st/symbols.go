@@ -104,6 +104,8 @@ type Symbol interface {
 	HasPosition(token.Position) bool
 	PackageFrom() *Package
 	Scope() *SymbolTable
+	ToAstExpr(pack *Package, filename string) ast.Expr
+	ToAstField(pack *Package, filename string) *ast.Field
 }
 
 type IdentifierMap map[*ast.Ident]Symbol
@@ -142,7 +144,6 @@ type ITypeSymbol interface {
 	SetMethods(*SymbolTable)
 	Methods() *SymbolTable //Returns type's methods
 	AddMethod(meth Symbol) //Adds a method to the type symbol
-	ToAstExpr(pack *Package, filename string) ast.Expr
 }
 
 /***TypeSymbols. Implement ITypeSymbol***/

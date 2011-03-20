@@ -36,5 +36,5 @@ func exm4_pointer() {
 
 	a = false
 	println(a)
-	println(*b)
+	println(&b)
 }

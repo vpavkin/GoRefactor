@@ -457,7 +457,7 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 	return stmtList
 }
 
-func makeCallExpr(name string, params *st.SymbolTable, pos token.Pos, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.CallExpr {
+func makeCallExpr(name string, params *st.SymbolTable, pointerSymbols map[st.Symbol]int, pos token.Pos, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.CallExpr {
 	var Fun ast.Expr
 	if recvSym != nil {
 		x := ast.NewIdent(recvSym.Name())
@@ -467,11 +467,20 @@ func makeCallExpr(name string, params *st.SymbolTable, pos token.Pos, recvSym *s
 		x := ast.NewIdent(name)
 		x.NamePos = pos
 		Fun = x
-
 	}
 	//Fun.NamePos = pos
-	Args := params.ToAstExprSlice(pack, filename)
-	return &ast.CallExpr{Fun, token.NoPos, Args, token.NoPos, token.NoPos}
+	args, i := make([]ast.Expr, params.Count()), 0
+	params.ForEachNoLock(func(sym st.Symbol) {
+		args[i] = sym.ToAstExpr(pack, filename)
+		if depth, ok := pointerSymbols[sym]; ok {
+			for depth > 0 {
+				args[i] = &ast.UnaryExpr{token.NoPos, token.AND, args[i]}
+				depth--
+			}
+		}
+		i++
+	})
+	return &ast.CallExpr{Fun, token.NoPos, args, token.NoPos, token.NoPos}
 }
 
 func getIndexOfStmt(entry ast.Stmt, in []ast.Stmt) (int, bool) {
@@ -598,6 +607,12 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		params.RemoveSymbol(recvSym.Name())
 	}
 
+	resultList := getResultList(programTree, pack, filename, stmtList)
+	results := st.NewSymbolTable(pack)
+	for _, r := range resultList {
+		results.AddSymbol(st.MakeVariable(st.NO_NAME, results, r))
+	}
+
 	pointerSymbols := getPointerPassedSymbols(stmtList, params, programTree.IdentMap)
 	for s, depth := range pointerSymbols {
 		println(s.Name(), depth)
@@ -605,14 +620,8 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 
 	applyPointerTransform(pack, file, stmtList, pointerSymbols, programTree.IdentMap)
 
-	resultList := getResultList(programTree, pack, filename, stmtList)
-	results := st.NewSymbolTable(pack)
-	for _, r := range resultList {
-		results.AddSymbol(st.MakeVariable(st.NO_NAME, results, r))
-	}
-
-	fdecl := makeFuncDecl(methodName, stmtList, params, results, recvSym, pack, filename)
-	callExpr := makeCallExpr(methodName, params, stmtList[0].Pos(), recvSym, pack, filename)
+	fdecl := makeFuncDecl(methodName, stmtList, params, pointerSymbols, results, recvSym, pack, filename)
+	callExpr := makeCallExpr(methodName, params, pointerSymbols, stmtList[0].Pos(), recvSym, pack, filename)
 
 	if nodeFrom != nil {
 		if ok, errs := checkScoping(nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
