@@ -29,3 +29,12 @@ func exm3(a, b, c bool) int {
 	}
 	return 666
 }
+
+func exm4_pointer() {
+	a := true
+	b := 3
+
+	a = false
+	println(a)
+	println(*b)
+}

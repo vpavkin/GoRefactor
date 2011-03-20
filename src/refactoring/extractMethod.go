@@ -9,6 +9,8 @@ import (
 	"refactoring/errors"
 	"refactoring/program"
 	"refactoring/packageParser"
+
+	"fmt"
 )
 
 type extractedSetVisitor struct {
@@ -188,6 +190,114 @@ func (vis *checkScopingVisitor) Visit(node ast.Node) ast.Visitor {
 	return vis
 }
 
+type pointerCandidatesVisitor struct {
+	params   *st.SymbolTable
+	result   map[st.Symbol]int
+	identMap st.IdentifierMap
+}
+
+func (vis *pointerCandidatesVisitor) checkAddrOperators(startNode ast.Node) {
+	depth := 0
+	var ee ast.Expr
+	switch t := startNode.(type) {
+	case *ast.UnaryExpr:
+		depth++
+		ee = t.X
+	case *ast.StarExpr:
+		depth--
+		ee = t.X
+	default:
+		panic("invalid argument")
+	}
+	stop := false
+	for !stop {
+		switch e := ee.(type) {
+		case *ast.Ident:
+			s := vis.identMap.GetSymbol(e)
+			if vis.params.Contains(s) && depth > 0 {
+				if i, ok := vis.result[s]; !ok || i < depth {
+					vis.result[s] = depth
+				}
+			}
+			stop = true
+		case *ast.UnaryExpr:
+			if e.Op == token.AND {
+				depth++
+			}
+			ee = e.X
+		case *ast.StarExpr:
+			depth--
+			ee = e.X
+		default:
+			stop = true
+		}
+	}
+}
+
+func (vis *pointerCandidatesVisitor) Visit(node ast.Node) ast.Visitor {
+	switch t := node.(type) {
+	case *ast.AssignStmt:
+		for _, expr := range t.Rhs {
+			ast.Walk(vis, expr)
+		}
+		if t.Tok == token.DEFINE {
+			return nil
+		}
+		for _, ee := range t.Lhs {
+			depth := 1
+			stop := false
+			for !stop {
+				fmt.Printf("%T\n", ee)
+				switch e := ee.(type) {
+				case *ast.Ident:
+					s := vis.identMap.GetSymbol(e)
+					if vis.params.Contains(s) && depth > 0 {
+						if i, ok := vis.result[s]; !ok || i < depth {
+							vis.result[s] = depth
+						}
+					}
+					stop = true
+				case *ast.StarExpr:
+					depth--
+					ee = e.X
+				case *ast.UnaryExpr:
+					if e.Op == token.AND {
+						depth++
+					}
+					ee = e.X
+				case *ast.IndexExpr:
+					ast.Walk(vis, e.Index)
+					stop = true
+				case *ast.SelectorExpr:
+					ast.Walk(vis, e.X)
+					stop = true
+				default:
+					stop = true
+				}
+			}
+		}
+		return nil
+	case *ast.UnaryExpr:
+		if t.Op != token.AND {
+			return vis
+		}
+		vis.checkAddrOperators(t)
+		return nil
+	case *ast.StarExpr:
+		vis.checkAddrOperators(t)
+		return nil
+	}
+	return vis
+}
+
+func getPointerPassedSymbols(stmtList []ast.Stmt, params *st.SymbolTable, identMap st.IdentifierMap) map[st.Symbol]int {
+	vis := &pointerCandidatesVisitor{params, make(map[st.Symbol]int), identMap}
+	for _, stmt := range stmtList {
+		ast.Walk(vis, stmt)
+	}
+	return vis.result
+}
+
 func CheckExtractMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
 	switch {
 	case filename == "" || !utils.IsGoFile(filename):
@@ -362,6 +472,10 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		params.RemoveSymbol(recvSym.Name())
 	}
 
+	pointerSymbols := getPointerPassedSymbols(stmtList, params, programTree.IdentMap)
+	for s, depth := range pointerSymbols {
+		println(s.Name(), depth)
+	}
 	resultList := getResultList(programTree, pack, filename, stmtList)
 	results := st.NewSymbolTable(pack)
 	for _, r := range resultList {

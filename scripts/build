@@ -1,4 +1,5 @@
 #!/bin/bash
+./formatAll
 cd ../src/st
 gomake nuke
 gomake install
