@@ -11,6 +11,8 @@ import (
 	"refactoring/packageParser"
 
 	"fmt"
+	"go/printer"
+	"os"
 )
 
 type extractedSetVisitor struct {
@@ -228,6 +230,8 @@ func (vis *pointerCandidatesVisitor) checkAddrOperators(startNode ast.Node) {
 		case *ast.StarExpr:
 			depth--
 			ee = e.X
+		case *ast.ParenExpr:
+			ee = e.X
 		default:
 			stop = true
 		}
@@ -265,6 +269,8 @@ func (vis *pointerCandidatesVisitor) Visit(node ast.Node) ast.Visitor {
 						depth++
 					}
 					ee = e.X
+				case *ast.ParenExpr:
+					ee = e.X
 				case *ast.IndexExpr:
 					ast.Walk(vis, e.Index)
 					stop = true
@@ -296,6 +302,126 @@ func getPointerPassedSymbols(stmtList []ast.Stmt, params *st.SymbolTable, identM
 		ast.Walk(vis, stmt)
 	}
 	return vis.result
+}
+
+type pointerTransformVisitor struct {
+	Package        *st.Package
+	file           *ast.File
+	pointerSymbols map[st.Symbol]int
+	identMap       st.IdentifierMap
+	visitedNodes   map[ast.Node]bool
+}
+
+func (vis *pointerTransformVisitor) getPointerDepth(startNode ast.Expr) (*ast.Ident, int, bool) {
+	depth := 0
+	var ee ast.Expr
+	switch t := startNode.(type) {
+	case *ast.UnaryExpr:
+		depth++
+		ee = t.X
+	case *ast.StarExpr:
+		depth--
+		ee = t.X
+	case *ast.Ident:
+		s := vis.identMap.GetSymbol(t)
+		if sd, ok := vis.pointerSymbols[s]; ok {
+			return t, -sd, true
+		}
+		return nil, 0, false
+	default:
+		panic("invalid argument")
+	}
+	for {
+		switch e := ee.(type) {
+		case *ast.Ident:
+			s := vis.identMap.GetSymbol(e)
+			if sd, ok := vis.pointerSymbols[s]; ok {
+				return e, depth - sd, true
+			}
+			return nil, 0, false
+		case *ast.UnaryExpr:
+			if e.Op == token.AND {
+				depth++
+			}
+			ee = e.X
+		case *ast.StarExpr:
+			depth--
+			ee = e.X
+		case *ast.ParenExpr:
+			ee = e.X
+		default:
+			return nil, 0, false
+		}
+	}
+	return nil, 0, false
+}
+
+func (vis *pointerTransformVisitor) makeNewNode(i *ast.Ident, depth int) ast.Expr {
+	switch {
+	case depth > 0:
+		res := &ast.UnaryExpr{token.NoPos, token.AND, nil}
+		e := res
+		for depth > 1 {
+			e.X = &ast.UnaryExpr{token.NoPos, token.AND, nil}
+			e = e.X.(*ast.UnaryExpr)
+			depth--
+		}
+		e.X = i
+		return res
+	case depth < 0:
+		res := &ast.StarExpr{token.NoPos, nil}
+		e := res
+		for depth < -1 {
+			e.X = &ast.StarExpr{token.NoPos, nil}
+			e = e.X.(*ast.StarExpr)
+			depth++
+		}
+		e.X = i
+		return res
+	}
+	return i
+}
+
+func (vis *pointerTransformVisitor) transformNode(expr ast.Expr) (ast.Expr, bool) {
+	switch t := expr.(type) {
+	case *ast.UnaryExpr:
+		if t.Op == token.AND {
+			if i, d, ok := vis.getPointerDepth(t); ok {
+				return vis.makeNewNode(i, d), true
+			}
+		}
+	case *ast.StarExpr, *ast.Ident:
+		if i, d, ok := vis.getPointerDepth(t.(ast.Expr)); ok {
+			return vis.makeNewNode(i, d), true
+		}
+	}
+	return expr, false
+}
+
+func (vis *pointerTransformVisitor) Visit(node ast.Node) ast.Visitor {
+	if _, ok := vis.visitedNodes[node]; ok {
+		return nil
+	}
+	vis.visitedNodes[node] = true
+	if exp, ok := node.(ast.Expr); ok {
+		if ne, ok := vis.transformNode(exp); ok {
+			if found, _ := replaceExpr(vis.Package.FileSet.Position(exp.Pos()), vis.Package.FileSet.Position(exp.End()), ne, vis.Package, vis.file); !found {
+				printer.Fprint(os.Stdout, vis.Package.FileSet, exp)
+				panic("didn't replace where expected")
+			}
+			vis.visitedNodes[ne] = true
+			return nil
+		}
+	}
+
+	return vis
+}
+
+func applyPointerTransform(pack *st.Package, file *ast.File, stmtList []ast.Stmt, pointerSymbols map[st.Symbol]int, identMap st.IdentifierMap) {
+	vis := &pointerTransformVisitor{pack, file, pointerSymbols, identMap, make(map[ast.Node]bool)}
+	for _, stmt := range stmtList {
+		ast.Walk(vis, stmt)
+	}
 }
 
 func CheckExtractMethodParameters(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
@@ -476,6 +602,9 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	for s, depth := range pointerSymbols {
 		println(s.Name(), depth)
 	}
+
+	applyPointerTransform(pack, file, stmtList, pointerSymbols, programTree.IdentMap)
+
 	resultList := getResultList(programTree, pack, filename, stmtList)
 	results := st.NewSymbolTable(pack)
 	for _, r := range resultList {

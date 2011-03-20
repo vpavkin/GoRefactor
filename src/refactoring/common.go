@@ -189,10 +189,10 @@ type replaceExprVisitor struct {
 	listMode    bool
 }
 
-func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Expr, Package *st.Package, node ast.Node) map[string]*errors.GoRefactorError {
+func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Expr, Package *st.Package, node ast.Node) (bool, map[string]*errors.GoRefactorError) {
 	vis := &replaceExprVisitor{Package, newExpr, nil, exprPos, exprEnd, false, make(map[string]*errors.GoRefactorError), false}
 	ast.Walk(vis, node)
-	return vis.errors
+	return vis.found, vis.errors
 }
 
 func replaceExprList(listStart token.Position, listEnd token.Position, newList []ast.Expr, Package *st.Package, node ast.Node) map[string]*errors.GoRefactorError {
