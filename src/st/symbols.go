@@ -120,6 +120,10 @@ func (im IdentifierMap) GetSymbol(ident *ast.Ident) Symbol {
 	}
 	return s
 }
+func (im IdentifierMap) GetSymbolSafe(ident *ast.Ident) (s Symbol, ok bool) {
+	s, ok = im[ident]
+	return
+}
 
 type IdentSet map[*ast.Ident]bool
 

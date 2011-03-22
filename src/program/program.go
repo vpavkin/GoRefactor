@@ -285,3 +285,17 @@ func (p *Program) SaveFile(filename string) {
 	}
 	fd.Close()
 }
+
+func (p *Program) SaveFileExplicit(filename string, fset *token.FileSet, file *ast.File) {
+	fmt.Printf("saving file: %s\n", filename)
+	fd, err := os.Open(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+	if err != nil {
+		panic("couldn't open file " + filename + "for writing")
+	}
+	cfg := &printer.Config{printer.TabIndent, 8}
+	_, err = cfg.Fprint(fd, fset, file)
+	if err != nil {
+		panic("couldn't write to file " + filename)
+	}
+	fd.Close()
+}

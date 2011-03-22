@@ -8,5 +8,6 @@ GOFILES=\
 	fixPositionsVisitor.go\
 	findNodeVisitor.go\
 	deleteNodeVisitor.go\
+	reparseFile.go\
 
 include $(GOROOT)/src/Make.pkg
