@@ -47,7 +47,7 @@ func test_reparseFile(t *testing.T) {
 	}
 }
 
-func Test_ReplaceNode(t *testing.T) {
+func test_ReplaceNode(t *testing.T) {
 	// filename := "/home/rulerr/goRefactor/testSrc/testPack/testPack.go"
 	filename := "/home/rulerr/goRefactor/testSrc/testPack/printer.go"
 	srcDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
@@ -66,6 +66,21 @@ func Test_ReplaceNode(t *testing.T) {
 	// 	}
 	if ok, fset, newF, err := ReplaceNode(pack.FileSet, filename, file, token.Position{filename, 0, 15, 1}, token.Position{filename, 0, 15, 18},
 		pack.FileSet, filename, file, token.Position{filename, 0, 5, 1}, token.Position{filename, 0, 13, 2}, p.IdentMap); !ok {
+		t.Fatalf(err.String())
+	} else {
+		p.SaveFileExplicit(filename, fset, newF)
+	}
+}
+
+func Test_AddDecl(t *testing.T) {
+	filename := "/home/rulerr/goRefactor/testSrc/testPack/printer.go"
+	srcDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
+	p := program.ParseProgram(srcDir, sources, specialPackages)
+	pack, file := p.FindPackageAndFileByFilename(filename)
+	if pack == nil || file == nil {
+		t.Fatalf(errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'").String())
+	}
+	if ok, fset, newF, err := AddDecl(pack.FileSet, filename, file, pack.FileSet, filename, file, token.Position{filename, 0, 5, 1}, token.Position{filename, 0, 13, 2}, p.IdentMap); !ok {
 		t.Fatalf(err.String())
 	} else {
 		p.SaveFileExplicit(filename, fset, newF)
