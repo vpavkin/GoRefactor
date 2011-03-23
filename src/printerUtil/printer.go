@@ -287,3 +287,26 @@ func AddDecl(fset *token.FileSet, filename string, file *ast.File, withFileSet *
 
 	return true, fset, file, nil
 }
+
+func RenameIdents(fset *token.FileSet, identMap st.IdentifierMap, filename string, file *ast.File, positions []token.Position, name string) (bool, *token.FileSet, *ast.File, *errors.GoRefactorError) {
+	l := len(positions)
+	id, ok := FindIdentByPos(fset, file, positions[0])
+	if !ok {
+		return false, nil, nil, errors.PrinterError("couldn't find ident at " + positions[0].String())
+	}
+	delta := len(name) - len(id.Name)
+	if delta > 0 {
+		fset, file = reparseFile(file, filename, delta*l, identMap)
+	}
+	for _, p := range positions {
+		if p.Filename != filename {
+			return false, nil, nil, errors.PrinterError("positions array contain position with wrong filename")
+		}
+		if id, ok := FindIdentByPos(fset, file, p); ok {
+			id.Name = name
+		} else {
+			return false, nil, nil, errors.PrinterError("couldn't find ident at " + p.String())
+		}
+	}
+	return true, fset, file, nil
+}

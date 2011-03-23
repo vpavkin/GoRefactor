@@ -13,6 +13,7 @@ import (
 	"go/ast"
 	"strings"
 	"refactoring/errors"
+	"refactoring/printerUtil"
 )
 import "fmt"
 
@@ -237,7 +238,7 @@ func (p *Program) FindSymbolByPosition(filename string, line int, column int) (s
 		return nil, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
 
-	ident, found := findIdentByPos(packageIn, fileIn, token.Position{Filename: filename, Line: line, Column: column})
+	ident, found := printerUtil.FindIdentByPos(packageIn.FileSet, fileIn, token.Position{Filename: filename, Line: line, Column: column})
 	if !found {
 		return nil, errors.IdentifierNotFoundError(filename, line, column)
 	}

@@ -4,7 +4,6 @@ include $(GOROOT)/src/Make.inc
 
 TARG=refactoring/program
 GOFILES=\
-	findIdentVisitor.go\
 	importsVisitor.go\
 	program.go 
 

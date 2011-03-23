@@ -7,6 +7,7 @@ GOFILES=\
 	printer.go\
 	fixPositionsVisitor.go\
 	findNodeVisitor.go\
+	findIdentVisitor.go\
 	deleteNodeVisitor.go\
 	reparseFile.go\
 

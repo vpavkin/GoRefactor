@@ -9,13 +9,13 @@ gomake install
 cd ../errors
 gomake nuke
 gomake install
+cd ../printerUtil
+gomake nuke
+gomake install
 cd ../packageParser
 gomake nuke
 gomake install
 cd ../program
-gomake nuke
-gomake install
-cd ../printerUtil
 gomake nuke
 gomake install
 cd ../refactoring

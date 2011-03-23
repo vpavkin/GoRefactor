@@ -246,11 +246,12 @@ func main() {
 		}
 		fmt.Println("renaming symbol to ", entityName+"...")
 		p := parseProgram(filename)
-		if ok, count, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
+		if ok, fnames, fsets, files, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
 		} else {
-			fmt.Println(count, "occurences renamed")
-			p.Save()
+			for i, f := range fnames {
+				p.SaveFileExplicit(f, fsets[i], files[i])
+			}
 		}
 	case refactoring.EXTRACT_METHOD:
 		filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn, ok := getExtractMethodArgs()
