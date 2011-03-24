@@ -142,13 +142,13 @@ func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 	}
 	return vis
 }
-func fixPositions(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool) {
+func FixPositions(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool) {
 
 	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments, make(map[ast.Node]bool)}
 	ast.Walk(vis, node)
 }
 
-func fixPositionsExcept(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool, except map[ast.Node]bool) {
+func FixPositionsExcept(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool, except map[ast.Node]bool) {
 
 	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments, except}
 	ast.Walk(vis, node)

@@ -15,7 +15,7 @@ import "fmt"
 //import "path"
 
 const (
-	INITIAL_STATE = iota
+	INITIAL_STATE	= iota
 	IMPORTS_MODE
 	TYPES_MODE
 	TYPES_FIXING_MODE
@@ -29,26 +29,26 @@ const (
 
 //Represents a builder object, which provides a st in a few passes
 type packageParser struct {
-	Package *st.Package
+	Package	*st.Package
 
-	IdentMap           st.IdentifierMap
-	RootSymbolTable    *st.SymbolTable // fast link to Package.Symbols	
-	CurrentSymbolTable *st.SymbolTable // A symbol table which is currently being filled
+	IdentMap		st.IdentifierMap
+	RootSymbolTable		*st.SymbolTable	// fast link to Package.Symbols	
+	CurrentSymbolTable	*st.SymbolTable	// A symbol table which is currently being filled
 
-	TypesParser   *typesVisitor      // An ast.Visitor to register all global types
-	GlobalsParser *globalsVisitor    // An ast.Visitor to register all global variables
-	GlobalsFixer  *globalsFixVisitor // An ast.Visitor to register all global variables
-	MethodsParser *methodsVisitor    // An ast.Visitor to register all methods
-	LocalsParser  *localsVisitor     // An ast.Visitor to register inner scopes of methods
+	TypesParser	*typesVisitor		// An ast.Visitor to register all global types
+	GlobalsParser	*globalsVisitor		// An ast.Visitor to register all global variables
+	GlobalsFixer	*globalsFixVisitor	// An ast.Visitor to register all global variables
+	MethodsParser	*methodsVisitor		// An ast.Visitor to register all methods
+	LocalsParser	*localsVisitor		// An ast.Visitor to register inner scopes of methods
 
-	ExprParser *exprParser
+	ExprParser	*exprParser
 
-	Mode int // Current builder mode (TYPE_MODE, GLOBALS_MODE, FUNCTIONS_MODE or LOCALS_MODE)
+	Mode	int	// Current builder mode (TYPE_MODE, GLOBALS_MODE, FUNCTIONS_MODE or LOCALS_MODE)
 	//	RegisterPositions bool // If true, information about positions is gathered
 
-	CurrentFileName string //Used for resolving packages local names
+	CurrentFileName	string	//Used for resolving packages local names
 
-	visited map[st.Symbol]bool
+	visited	map[st.Symbol]bool
 }
 
 func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTable, *vector.Vector) {
@@ -150,9 +150,7 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 	// 			}
 	// 		})
 	// 	}
-	pp.Package.Communication <- 0
-	//Locals
-	<-pp.Package.Communication
+	pp.SomeMeth5()
 
 	if !pp.Package.IsGoPackage {
 		// 		fmt.Printf("@@@@@@@@ parsing locals at pack %s\n", rootPack.AstPackage.Name)
@@ -228,7 +226,7 @@ func (pp *packageParser) parseTypeSymbol(typ ast.Expr) (result st.ITypeSymbol) {
 		result = pp.tParseStructType(t)
 	case *ast.SelectorExpr:
 		result = pp.tParseSelector(t)
-	case *ast.Ellipsis: //parameters
+	case *ast.Ellipsis:	//parameters
 		result = pp.tParseEllipsis(t)
 	}
 	if pp.Mode == TYPES_MODE {
@@ -324,7 +322,7 @@ func (pp *packageParser) tParseInterfaceType(t *ast.InterfaceType) (result *st.I
 	result = st.MakeInterfaceType(st.NO_NAME, pp.CurrentSymbolTable)
 	if len(t.Methods.List) > 0 {
 		for _, method := range t.Methods.List {
-			if len(method.Names) == 0 { //Embeded interface
+			if len(method.Names) == 0 {	//Embeded interface
 				ft := pp.parseTypeSymbol(method.Type)
 				result.AddMethod(ft)
 			}
@@ -366,7 +364,7 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 		e_count := 0
 		for _, field := range t.Params.List {
 			ftype := pp.parseTypeSymbol(field.Type)
-			if len(field.Names) == 0 { // unnamed parameter. separate names are given to distinct parameters in symbolTable
+			if len(field.Names) == 0 {	// unnamed parameter. separate names are given to distinct parameters in symbolTable
 				res.Parameters.AddSymbol(st.MakeVariable("$unnamed"+strconv.Itoa(e_count), pp.CurrentSymbolTable, ftype))
 				e_count += 1
 			}
@@ -382,7 +380,7 @@ func (pp *packageParser) tParseFuncType(t *ast.FuncType) (result *st.FunctionTyp
 		e_count := 0
 		for _, field := range t.Results.List {
 			ftype := pp.parseTypeSymbol(field.Type)
-			if len(field.Names) == 0 { //unnamed result
+			if len(field.Names) == 0 {	//unnamed result
 				res.Results.AddSymbol(st.MakeVariable("$unnamed"+strconv.Itoa(e_count), pp.CurrentSymbolTable, ftype))
 				e_count += 1
 			}
@@ -402,7 +400,7 @@ func (pp *packageParser) tParseStructType(t *ast.StructType) (result *st.StructT
 	res := st.MakeStructType(st.NO_NAME, pp.CurrentSymbolTable)
 	for _, field := range t.Fields.List {
 		ftype := pp.parseTypeSymbol(field.Type)
-		if len(field.Names) == 0 { //Embedded field
+		if len(field.Names) == 0 {	//Embedded field
 			res.Fields.AddSymbol(ftype)
 		}
 		for _, name := range field.Names {
@@ -461,4 +459,8 @@ func (pp *packageParser) tParseEllipsis(t *ast.Ellipsis) (result *st.ArrayTypeSy
 	elt := pp.parseTypeSymbol(t.Elt)
 	result = st.MakeArrayType(st.NO_NAME, pp.CurrentSymbolTable, elt, st.SLICE)
 	return
+}
+func (pp *packageParser) SomeMeth5() {
+	pp.Package.Communication <- 0
+	<-pp.Package.Communication
 }

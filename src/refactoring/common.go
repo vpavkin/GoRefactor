@@ -580,7 +580,11 @@ func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, poin
 	if results.Count() > 0 {
 		ftype.Results = results.ToAstFieldList(pack, filename)
 	}
-	fbody := &ast.BlockStmt{token.NoPos, stmtList, token.NoPos}
+	l, _ := utils.GetNodeLength(ftype)
+	lfirst := 5 + len(name) + l + 1 + 1 + 1 + 1
+	ftype.Func = stmtList[0].Pos() - token.Pos(lfirst)
+
+	fbody := &ast.BlockStmt{stmtList[0].Pos() - 3, stmtList, stmtList[len(stmtList)-1].End() + 1}
 
 	var recvList *ast.FieldList
 	if recvSym != nil {

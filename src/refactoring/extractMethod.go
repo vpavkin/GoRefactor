@@ -9,6 +9,7 @@ import (
 	"refactoring/errors"
 	"refactoring/program"
 	"refactoring/packageParser"
+	"refactoring/printerUtil"
 
 	"fmt"
 	"go/printer"
@@ -457,7 +458,7 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 	return stmtList
 }
 
-func makeCallExpr(name string, params *st.SymbolTable, pointerSymbols map[st.Symbol]int, pos token.Pos, recvSym *st.VariableSymbol, pack *st.Package, filename string) *ast.CallExpr {
+func makeCallExpr(name string, params *st.SymbolTable, pointerSymbols map[st.Symbol]int, pos token.Pos, recvSym *st.VariableSymbol, pack *st.Package, filename string) (*ast.CallExpr, int) {
 	var Fun ast.Expr
 	if recvSym != nil {
 		x := ast.NewIdent(recvSym.Name())
@@ -468,7 +469,9 @@ func makeCallExpr(name string, params *st.SymbolTable, pointerSymbols map[st.Sym
 		x.NamePos = pos
 		Fun = x
 	}
-	//Fun.NamePos = pos
+	l, _ := utils.GetNodeLength(Fun)
+	l += 2
+
 	args, i := make([]ast.Expr, params.Count()), 0
 	params.ForEachNoLock(func(sym st.Symbol) {
 		args[i] = sym.ToAstExpr(pack, filename)
@@ -478,9 +481,12 @@ func makeCallExpr(name string, params *st.SymbolTable, pointerSymbols map[st.Sym
 				depth--
 			}
 		}
+		ll, _ := utils.GetNodeLength(args[i])
+		l += ll + 2
 		i++
 	})
-	return &ast.CallExpr{Fun, token.NoPos, args, token.NoPos, token.NoPos}
+	l -= 2
+	return &ast.CallExpr{Fun, token.NoPos, args, token.NoPos, pos + token.Pos(l-1)}, l
 }
 
 func getIndexOfStmt(entry ast.Stmt, in []ast.Stmt) (int, bool) {
@@ -621,7 +627,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	applyPointerTransform(pack, file, stmtList, pointerSymbols, programTree.IdentMap)
 
 	fdecl := makeFuncDecl(methodName, stmtList, params, pointerSymbols, results, recvSym, pack, filename)
-	callExpr := makeCallExpr(methodName, params, pointerSymbols, stmtList[0].Pos(), recvSym, pack, filename)
+	callExpr, callExprLen := makeCallExpr(methodName, params, pointerSymbols, stmtList[0].Pos(), recvSym, pack, filename)
 
 	if nodeFrom != nil {
 		if ok, errs := checkScoping(nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
@@ -631,9 +637,37 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 			})
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
 		}
+
 		list := getStmtList(nodeFrom)
-		newList := replaceStmtsWithCall(list, stmtList, callExpr)
+
+		ind, found := getIndexOfStmt(stmtList[0], list)
+		if !found {
+			panic("didn't find replace origin")
+		}
+
+		if ok, err := printerUtil.DeleteNodeList(pack.FileSet, filename, file, stmtList); !ok {
+			return false, err
+		}
+		list = getStmtList(nodeFrom)
+		newList := make([]ast.Stmt, len(list)+1)
+		copy(newList, list[0:ind])
+		newList[ind] = &ast.ExprStmt{callExpr}
+		for i := ind; i < len(list); i++ {
+			newList[i+1] = list[i]
+		}
+		printerUtil.AddLineForRange(pack.FileSet, filename, callExpr.Pos(), callExpr.End())
 		setStmtList(nodeFrom, newList)
+
+		printerUtil.FixPositionsExcept(callExpr.Pos(), callExprLen, file, true, map[ast.Node]bool{callExpr: true})
+
+		programTree.SaveFile(filename)
+		print("AAAAAA")
+		if ok, fset, newF, err := printerUtil.AddDeclExplicit(pack.FileSet, filename, file, pack.FileSet, filename, file, fdecl, programTree.IdentMap); !ok {
+			return false, err
+		} else {
+			print("BBBBBB")
+			programTree.SaveFileExplicit(filename, fset, newF)
+		}
 	} else {
 		stmtList[0] = utils.CopyAstNode(stmtList[0]).(ast.Stmt)
 		rs := stmtList[0].(*ast.ReturnStmt)
@@ -642,7 +676,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 			return false, err
 		}
 	}
-	file.Decls = append(file.Decls, fdecl)
+	//file.Decls = append(file.Decls, fdecl)
 	return true, nil
 
 }

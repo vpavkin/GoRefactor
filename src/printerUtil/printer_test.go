@@ -8,7 +8,7 @@ import (
 	"refactoring/errors"
 )
 
-func test_DeleteNode(t *testing.T) {
+func Test_Delete(t *testing.T) {
 	filename := "/home/rulerr/goRefactor/testSrc/testPack/testPack.go"
 	srcDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
 	p := program.ParseProgram(srcDir, sources, specialPackages)
@@ -16,7 +16,7 @@ func test_DeleteNode(t *testing.T) {
 	if pack == nil || file == nil {
 		t.Fatalf(errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'").String())
 	}
-	if ok, err := DeleteNode(pack.FileSet, filename, file, token.Position{filename, 0, 9, 1}, token.Position{filename, 0, 11, 2}); !ok {
+	if ok, err := DeleteNode(pack.FileSet, filename, file, token.Position{filename, 0, 19, 1}, token.Position{filename, 0, 20, 7}); !ok {
 		t.Fatalf(err.String())
 	}
 	p.SaveFile(filename)
@@ -72,7 +72,7 @@ func test_ReplaceNode(t *testing.T) {
 	}
 }
 
-func Test_AddDecl(t *testing.T) {
+func test_AddDecl(t *testing.T) {
 	filename := "/home/rulerr/goRefactor/testSrc/testPack/printer.go"
 	srcDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
 	p := program.ParseProgram(srcDir, sources, specialPackages)

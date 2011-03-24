@@ -9,13 +9,7 @@ func exm1() {
 	var t os.Error
 	a := true
 
-	if a {
-		println()
-		exm_global = 0
-	}
-	if t == os.EOF {
-		println(t.String())
-	}
+	new1(t, a)
 
 }
 
@@ -37,4 +31,14 @@ func exm4_pointer() {
 	a = false
 	println(a)
 	println(&b)
+}
+func new1(t os.Error, a bool) {
+
+	if a {
+		println()
+		exm_global = 0
+	}
+	if t == os.EOF {
+		println(t.String())
+	}
 }

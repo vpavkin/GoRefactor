@@ -31,12 +31,12 @@ func getLines(f *token.File) []int {
 	return lines
 }
 
-func getNodeLines(f *token.File, node ast.Node, fileSize int) (lines []int, firstLineNum int) {
+func getRangeLines(f *token.File, Pos, End token.Pos, fileSize int) (lines []int, firstLineNum int) {
 	lines = []int{}
 	firstLineNum = -1
 
-	l := f.Line(node.Pos())
-	for p := node.Pos(); p <= node.End(); p++ {
+	l := f.Line(Pos)
+	for p := Pos; p <= End; p++ {
 		if f.Line(p) > l {
 			l = f.Line(p)
 			if firstLineNum == -1 {
@@ -45,13 +45,13 @@ func getNodeLines(f *token.File, node ast.Node, fileSize int) (lines []int, firs
 			lines = append(lines, f.Offset(p))
 		}
 	}
-	print(node.End())
+	print(End)
 	print(" -> ")
 	println(fileSize + f.Base() - 1)
-	if (int(node.End()) == fileSize+f.Base()-1) || f.Line(node.End()+1) > l {
-		lines = append(lines, f.Offset(node.End()+1))
+	if (int(End) == fileSize+f.Base()-1) || f.Line(End+1) > l {
+		lines = append(lines, f.Offset(End+1))
 		if firstLineNum == -1 {
-			firstLineNum = f.Line(node.End() + 1)
+			firstLineNum = f.Line(End + 1)
 		}
 	}
 	return
@@ -78,16 +78,16 @@ func deleteCommentsInRange(file *ast.File, posStart, posEnd token.Pos) {
 	}
 }
 
-func removeLinesOfNode(node ast.Node, lines, nodeLines []int, firstLine int) []int {
-	fmt.Printf("nodeLines %v\n", nodeLines)
+func removeLinesOfRange(Pos, End token.Pos, lines, rangeLines []int, firstLine int) []int {
+	fmt.Printf("nodeLines %v\n", rangeLines)
 	fmt.Printf("firstline %d\n", firstLine)
 	fmt.Printf("Before: %v\n", lines)
-	inc := -int(node.End() - node.Pos())
-	if len(nodeLines) > 0 {
+	inc := -int(End - Pos)
+	if len(rangeLines) > 0 {
 		inc--
-		newLines := make([]int, 0, len(lines)-len(nodeLines))
+		newLines := make([]int, 0, len(lines)-len(rangeLines))
 		newLines = append(newLines, lines[:firstLine-1]...)
-		newLines = append(newLines, lines[firstLine+len(nodeLines)-1:]...)
+		newLines = append(newLines, lines[firstLine+len(rangeLines)-1:]...)
 		for i := firstLine - 1; i < len(newLines); i++ {
 			newLines[i] += inc
 		}
@@ -101,22 +101,22 @@ func removeLinesOfNode(node ast.Node, lines, nodeLines []int, firstLine int) []i
 	return lines
 }
 
-func addLinesOfNode(node ast.Node, lines, nodeLines []int, firstLine int) []int {
+func addLinesOfRange(Pos, End token.Pos, lines, rangeLines []int, firstLine int) []int {
 	fmt.Printf("Before: %v\n", lines)
-	inc := int(node.End() - node.Pos())
-	if len(nodeLines) > 0 {
+	inc := int(End - Pos)
+	if len(rangeLines) > 0 {
 		inc++
-		newLines := make([]int, 0, len(lines)+len(nodeLines))
+		newLines := make([]int, 0, len(lines)+len(rangeLines))
 		if firstLine >= 0 {
 			newLines = append(newLines, lines[:firstLine-1]...)
-			newLines = append(newLines, nodeLines...)
+			newLines = append(newLines, rangeLines...)
 			newLines = append(newLines, lines[firstLine-1:]...)
-			for i := firstLine - 1 + len(nodeLines); i < len(newLines); i++ {
+			for i := firstLine - 1 + len(rangeLines); i < len(newLines); i++ {
 				newLines[i] += inc
 			}
 		} else {
 			newLines = append(newLines, lines...)
-			newLines = append(newLines, nodeLines...)
+			newLines = append(newLines, rangeLines...)
 			for i := len(lines); i < len(newLines); i++ {
 				newLines[i] += inc
 			}
@@ -144,7 +144,7 @@ func DeleteNode(fset *token.FileSet, filename string, file *ast.File, posStart, 
 	for i, offset := range lines {
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
-	nodeLines, firstLine := getNodeLines(tokFile, node, tokFile.Size())
+	nodeLines, firstLine := getRangeLines(tokFile, node.Pos(), node.End(), tokFile.Size())
 	if _, ok := deleteNode(fset, posStart, posEnd, file); !ok {
 		return false, errors.PrinterError("didn't find node to delete")
 	}
@@ -153,12 +153,51 @@ func DeleteNode(fset *token.FileSet, filename string, file *ast.File, posStart, 
 
 	inc := -int(node.End() - node.Pos())
 	fmt.Printf("\n%v, %v, mod = %v\n", nodeLines, firstLine, inc)
-	fixPositions(node.Pos(), inc, file, true)
+	FixPositions(node.Pos(), inc, file, true)
 
-	tokFile.SetLines(removeLinesOfNode(node, lines, nodeLines, firstLine))
+	tokFile.SetLines(removeLinesOfRange(node.Pos(), node.End(), lines, nodeLines, firstLine))
 
 	return true, nil
 }
+
+func DeleteNodeList(fset *token.FileSet, filename string, file *ast.File, list interface{}) (bool, *errors.GoRefactorError) {
+	tokFile := getFileFromFileSet(fset, filename)
+	if tokFile == nil {
+		return false, errors.PrinterError("couldn't find file " + filename + " in fileset")
+	}
+	lines := getLines(tokFile)
+	for i, offset := range lines {
+		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
+	}
+	var pos, end token.Pos
+
+	switch t := list.(type) {
+	case []ast.Stmt:
+		pos, end = t[0].Pos(), t[len(t)-1].End()
+	}
+
+	rangeLines, firstLine := getRangeLines(tokFile, pos, end, tokFile.Size())
+	switch t := list.(type) {
+	case []ast.Stmt:
+		for _, n := range t {
+			if _, ok := deleteNode(fset, fset.Position(n.Pos()), fset.Position(n.End()), file); !ok {
+				return false, errors.PrinterError("didn't find node to delete")
+			}
+		}
+	}
+
+	deleteCommentsInRange(file, pos, end)
+
+	inc := -int(end - pos)
+
+	fmt.Printf("\n%v, %v, mod = %v\n", rangeLines, firstLine, inc)
+	FixPositions(pos, inc, file, true)
+
+	tokFile.SetLines(removeLinesOfRange(pos, end, lines, rangeLines, firstLine))
+
+	return true, nil
+}
+
 
 func printDecls(tf *token.File, f *ast.File) {
 	for _, d := range f.Decls {
@@ -206,8 +245,8 @@ func ReplaceNode(fset *token.FileSet, filename string, file *ast.File, posStart,
 	for i, offset := range lines {
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
-	nodeLines, firstLine := getNodeLines(tokFile, node, oldSize)
-	withNodeLines, _ := getNodeLines(withTokFile, withNode, withOldSize)
+	nodeLines, firstLine := getRangeLines(tokFile, node.Pos(), node.End(), oldSize)
+	withNodeLines, _ := getRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
 
 	fmt.Printf("withnodeLines: %v\n", withNodeLines)
 	mod := wl - l
@@ -218,14 +257,14 @@ func ReplaceNode(fset *token.FileSet, filename string, file *ast.File, posStart,
 		withNodeLines[i] += withMod
 	}
 
-	newLines := removeLinesOfNode(node, lines, nodeLines, firstLine)
-	tokFile.SetLines(addLinesOfNode(withNode, newLines, withNodeLines, firstLine))
+	newLines := removeLinesOfRange(node.Pos(), node.End(), lines, nodeLines, firstLine)
+	tokFile.SetLines(addLinesOfRange(withNode.Pos(), withNode.End(), newLines, withNodeLines, firstLine))
 
 	printDecls(tokFile, file)
 
 	fmt.Printf("node -------- %d %d --------- %d %d\n", node.Pos(), node.End(), tokFile.Offset(node.Pos()), tokFile.Offset(node.End()))
 	fmt.Printf("with -------- %d %d --------- %d %d\n", withNode.Pos(), withNode.End(), withTokFile.Offset(withNode.Pos()), withTokFile.Offset(withNode.End()))
-	fixPositions(0, withMod, withNode, true)
+	FixPositions(0, withMod, withNode, true)
 	fmt.Printf("node -------- %d %d --------- %d %d\n", node.Pos(), node.End(), tokFile.Offset(node.Pos()), tokFile.Offset(node.End()))
 	fmt.Printf("with -------- %d %d --------- %d %d\n", withNode.Pos(), withNode.End(), withTokFile.Offset(withNode.Pos()), withTokFile.Offset(withNode.End()))
 	printDecls(tokFile, file)
@@ -235,7 +274,7 @@ func ReplaceNode(fset *token.FileSet, filename string, file *ast.File, posStart,
 
 	except := map[ast.Node]bool{withNode: true}
 
-	fixPositionsExcept(withNode.Pos(), mod, file, true, except)
+	FixPositionsExcept(withNode.Pos(), mod, file, true, except)
 	printDecls(tokFile, file)
 	return true, fset, file, nil
 }
@@ -275,19 +314,63 @@ func AddDecl(fset *token.FileSet, filename string, file *ast.File, withFileSet *
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
 
-	withNodeLines, _ := getNodeLines(withTokFile, withNode, withOldSize)
+	withNodeLines, _ := getRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
 	withMod := int(tokFile.Offset(file.Decls[len(file.Decls)-1].End()) + 1 - withTokFile.Offset(withNode.Pos()))
 	fmt.Printf("withMod: %v\n", withMod)
 	for i, _ := range withNodeLines {
 		withNodeLines[i] += withMod
 	}
 
-	tokFile.SetLines(addLinesOfNode(withNode, lines, withNodeLines, -1)) //to the end
+	tokFile.SetLines(addLinesOfRange(withNode.Pos(), withNode.End(), lines, withNodeLines, -1)) //to the end
 	file.Decls = append(file.Decls, withNode.(ast.Decl))
 
 	return true, fset, file, nil
 }
 
+func AddDeclExplicit(fset *token.FileSet, filename string, file *ast.File, withFileSet *token.FileSet, withFileName string, withFile *ast.File, withNode ast.Node, identMap st.IdentifierMap) (bool, *token.FileSet, *ast.File, *errors.GoRefactorError) {
+
+	if _, ok := withNode.(ast.Decl); !ok {
+		return false, nil, nil, errors.PrinterError("node is not a declaration")
+	}
+
+	withTokFile := getFileFromFileSet(withFileSet, withFileName)
+	withOldSize := withTokFile.Size()
+
+	l := int(withNode.End() - withNode.Pos())
+	println("111")
+	fset, file = reparseFile(file, filename, l, identMap)
+	if filename == withFileName {
+		FixPositions(0, -withTokFile.Base(), withNode, true)
+		withFileSet, withFile = fset, file
+	}
+
+	tokFile := getFileFromFileSet(fset, filename)
+	withTokFile = getFileFromFileSet(withFileSet, withFileName)
+	if tokFile == nil || withTokFile == nil {
+		return false, nil, nil, errors.PrinterError("couldn't find file " + filename + " in fileset")
+	}
+
+	lines := getLines(tokFile)
+	fmt.Printf("linesCount = %d\n", len(lines))
+	tokFile.SetLines(lines[:len(lines)-(l)])
+
+	lines = getLines(tokFile)
+	for i, offset := range lines {
+		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
+	}
+
+	withNodeLines, _ := getRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
+	withMod := int(tokFile.Offset(file.Decls[len(file.Decls)-1].End()) + 1 - withTokFile.Offset(withNode.Pos()))
+	fmt.Printf("withMod: %v\n", withMod)
+	for i, _ := range withNodeLines {
+		withNodeLines[i] += withMod
+	}
+
+	tokFile.SetLines(addLinesOfRange(withNode.Pos(), withNode.End(), lines, withNodeLines, -1)) //to the end
+	file.Decls = append(file.Decls, withNode.(ast.Decl))
+
+	return true, fset, file, nil
+}
 func RenameIdents(fset *token.FileSet, identMap st.IdentifierMap, filename string, file *ast.File, positions []token.Position, name string) (bool, *token.FileSet, *ast.File, *errors.GoRefactorError) {
 	l := len(positions)
 	id, ok := FindIdentByPos(fset, file, positions[0])
@@ -309,4 +392,34 @@ func RenameIdents(fset *token.FileSet, identMap st.IdentifierMap, filename strin
 		}
 	}
 	return true, fset, file, nil
+}
+
+func AddLineForRange(fset *token.FileSet, filename string, Pos, End token.Pos) {
+	tokFile := getFileFromFileSet(fset, filename)
+	lines := getLines(tokFile)
+	for i, offset := range lines {
+		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
+	}
+	var li int
+	for i, l := range lines {
+		if l > tokFile.Offset(Pos) {
+			li = i
+			break
+		}
+	}
+	mod := int(End-Pos) + tokFile.Offset(Pos) - lines[li-1]
+	fmt.Printf("node --------- %d %d\n", tokFile.Offset(Pos), tokFile.Offset(End))
+	//mod := int(End - Pos)
+	fmt.Printf("mod = %d\n", mod)
+	newLines := make([]int, len(lines)+1)
+	copy(newLines, lines[0:li-1])
+	newLines[li-1] = tokFile.Offset(Pos) - (tokFile.Offset(Pos) - lines[li-1])
+	//newLines[li-1] = tokFile.Offset(Pos)
+	for i := li - 1; i < len(lines); i++ {
+		newLines[i+1] = lines[i] + mod
+	}
+	tokFile.SetLines(newLines)
+	for i, offset := range newLines {
+		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
+	}
 }

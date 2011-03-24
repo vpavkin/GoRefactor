@@ -269,7 +269,7 @@ func main() {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		p.SaveFile(filename)
+		//p.SaveFile(filename)
 	case refactoring.INLINE_METHOD:
 		filename, line, column, endLine, endColumn, ok := getInlineMethodArgs()
 		if !ok {

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"go/token"
 	"go/ast"
+	"go/printer"
+	"bytes"
 	"io/ioutil"
 	"unicode"
 	"bufio"
@@ -562,4 +564,23 @@ func getProjectInfo(filename string) (projectDir string, sources map[string]stri
 
 func GetProjectInfo(filename string) (projectDir string, sources map[string]string, specialPackages map[string][]string, ok bool) {
 	return getProjectInfo(filename)
+}
+
+func getLineOffsets(s string) []int {
+	res := []int{}
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\n' {
+			res = append(res, i)
+		}
+	}
+	return res
+}
+
+func GetNodeLength(node ast.Node) (length int, lineOffsets []int) {
+	b := bytes.NewBuffer([]byte{})
+	printer.Fprint(b, token.NewFileSet(), node)
+	s := b.String()
+	lineOffsets = getLineOffsets(s)
+	length = len(s)
+	return
 }
