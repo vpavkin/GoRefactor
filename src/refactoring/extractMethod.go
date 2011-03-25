@@ -450,9 +450,9 @@ func makeStmtList(block *vector.Vector) []ast.Stmt {
 		case ast.Stmt:
 			stmtList[i] = el
 		case []ast.Expr: // i == 0
-			stmtList[i] = &ast.ReturnStmt{token.NoPos, el}
+			stmtList[i] = &ast.ReturnStmt{el[0].Pos() - token.Pos(7), el}
 		case ast.Expr: // i == 0
-			stmtList[i] = &ast.ReturnStmt{token.NoPos, []ast.Expr{el}}
+			stmtList[i] = &ast.ReturnStmt{el.Pos() - token.Pos(7), []ast.Expr{el}}
 		}
 	}
 	return stmtList
@@ -627,9 +627,11 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	applyPointerTransform(pack, file, stmtList, pointerSymbols, programTree.IdentMap)
 
 	fdecl := makeFuncDecl(methodName, stmtList, params, pointerSymbols, results, recvSym, pack, filename)
-	callExpr, callExprLen := makeCallExpr(methodName, params, pointerSymbols, stmtList[0].Pos(), recvSym, pack, filename)
 
 	if nodeFrom != nil {
+
+		callExpr, callExprLen := makeCallExpr(methodName, params, pointerSymbols, stmtList[0].Pos(), recvSym, pack, filename)
+
 		if ok, errs := checkScoping(nodeFrom, stmtList, declared, programTree.IdentMap); !ok {
 			s := ""
 			errs.ForEach(func(sym st.Symbol) {
@@ -660,23 +662,30 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 
 		printerUtil.FixPositionsExcept(callExpr.Pos(), callExprLen, file, true, map[ast.Node]bool{callExpr: true})
 
-		programTree.SaveFile(filename)
-		print("AAAAAA")
-		if ok, fset, newF, err := printerUtil.AddDeclExplicit(pack.FileSet, filename, file, pack.FileSet, filename, file, fdecl, programTree.IdentMap); !ok {
-			return false, err
-		} else {
-			print("BBBBBB")
-			programTree.SaveFileExplicit(filename, fset, newF)
-		}
 	} else {
+
 		stmtList[0] = utils.CopyAstNode(stmtList[0]).(ast.Stmt)
 		rs := stmtList[0].(*ast.ReturnStmt)
+
+		callExpr, callExprLen := makeCallExpr(methodName, params, pointerSymbols, rs.Results[0].Pos(), recvSym, pack, filename)
+
 		errs := replaceExprList(pack.FileSet.Position(rs.Results[0].Pos()), pack.FileSet.Position(rs.Results[len(rs.Results)-1].End()), []ast.Expr{callExpr}, pack, file)
 		if err, ok := errs[EXTRACT_METHOD]; ok {
 			return false, err
 		}
+		mod := callExprLen - int(rs.Results[len(rs.Results)-1].End()-rs.Results[0].Pos())
+		fmt.Printf("mod = %d\n", mod)
+		printerUtil.ModifyLine(pack.FileSet, filename, callExpr.Pos(), mod)
+		printerUtil.FixPositionsExcept(callExpr.Pos(), mod, file, true, map[ast.Node]bool{callExpr: true})
 	}
-	//file.Decls = append(file.Decls, fdecl)
+	programTree.SaveFile(filename)
+	print("AAAAAA")
+	if ok, fset, newF, err := printerUtil.AddDeclExplicit(pack.FileSet, filename, file, pack.FileSet, filename, file, fdecl, programTree.IdentMap); !ok {
+		return false, err
+	} else {
+		print("BBBBBB")
+		programTree.SaveFileExplicit(filename, fset, newF)
+	}
 	return true, nil
 
 }

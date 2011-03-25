@@ -423,3 +423,25 @@ func AddLineForRange(fset *token.FileSet, filename string, Pos, End token.Pos) {
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
 }
+
+func ModifyLine(fset *token.FileSet, filename string, Pos token.Pos, mod int) {
+	tokFile := getFileFromFileSet(fset, filename)
+	lines := getLines(tokFile)
+	for i, offset := range lines {
+		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
+	}
+	var li int
+	for i, l := range lines {
+		if l > tokFile.Offset(Pos) {
+			li = i
+			break
+		}
+	}
+	for i := li; i < len(lines); i++ {
+		lines[i] += mod
+	}
+	tokFile.SetLines(lines)
+	for i, offset := range lines {
+		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
+	}
+}
