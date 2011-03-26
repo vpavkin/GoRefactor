@@ -288,7 +288,7 @@ func (vis *destinationVisitor) Visit(node ast.Node) ast.Visitor {
 	case *ast.Ident:
 		newExpr := <-vis.Chan
 		if newExpr != nil {
-			replaceExpr(vis.Package.FileSet.Position(t.Pos()), vis.Package.FileSet.Position(t.End()), newExpr, vis.Package, vis.rootNode)
+			replaceExpr(vis.Package.FileSet.Position(t.Pos()), vis.Package.FileSet.Position(t.End()), newExpr, vis.Package.FileSet, vis.rootNode)
 		}
 		return nil
 	}
@@ -371,7 +371,7 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 		case 0:
 			panic("methos, inlined as expression, doesn't return anything")
 		default:
-			errs := replaceExprList(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), rs.Results, pack, file)
+			errs := replaceExprList(pack.FileSet.Position(callExpr.Pos()), pack.FileSet.Position(callExpr.End()), rs.Results, pack.FileSet, file)
 			if err, ok := errs[INLINE_METHOD]; ok {
 				return false, err
 			}

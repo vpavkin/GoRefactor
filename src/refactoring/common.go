@@ -8,6 +8,8 @@ import (
 	"refactoring/errors"
 	"unicode"
 	"refactoring/program"
+
+	"fmt"
 )
 
 const (
@@ -179,7 +181,7 @@ func getParametersAndDeclaredIn(pack *st.Package, stmtList []ast.Stmt, programTr
 // replace expr
 
 type replaceExprVisitor struct {
-	Package     *st.Package
+	fileSet     *token.FileSet
 	newExpr     ast.Expr
 	newExprList []ast.Expr
 	exprPos     token.Position
@@ -189,14 +191,14 @@ type replaceExprVisitor struct {
 	listMode    bool
 }
 
-func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Expr, Package *st.Package, node ast.Node) (bool, map[string]*errors.GoRefactorError) {
-	vis := &replaceExprVisitor{Package, newExpr, nil, exprPos, exprEnd, false, make(map[string]*errors.GoRefactorError), false}
+func replaceExpr(exprPos token.Position, exprEnd token.Position, newExpr ast.Expr, fileSet *token.FileSet, node ast.Node) (bool, map[string]*errors.GoRefactorError) {
+	vis := &replaceExprVisitor{fileSet, newExpr, nil, exprPos, exprEnd, false, make(map[string]*errors.GoRefactorError), false}
 	ast.Walk(vis, node)
 	return vis.found, vis.errors
 }
 
-func replaceExprList(listStart token.Position, listEnd token.Position, newList []ast.Expr, Package *st.Package, node ast.Node) map[string]*errors.GoRefactorError {
-	vis := &replaceExprVisitor{Package, newList[0], newList, listStart, listEnd, false, make(map[string]*errors.GoRefactorError), true}
+func replaceExprList(listStart token.Position, listEnd token.Position, newList []ast.Expr, fileSet *token.FileSet, node ast.Node) map[string]*errors.GoRefactorError {
+	vis := &replaceExprVisitor{fileSet, newList[0], newList, listStart, listEnd, false, make(map[string]*errors.GoRefactorError), true}
 	ast.Walk(vis, node)
 	return vis.errors
 }
@@ -205,8 +207,8 @@ func (vis *replaceExprVisitor) find(expr ast.Expr) bool {
 	if expr == nil {
 		return false
 	}
-	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(expr.Pos())) == 0) &&
-		(utils.ComparePosWithinFile(vis.exprEnd, vis.Package.FileSet.Position(expr.End())) == 0)
+	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.fileSet.Position(expr.Pos())) == 0) &&
+		(utils.ComparePosWithinFile(vis.exprEnd, vis.fileSet.Position(expr.End())) == 0)
 	return vis.found
 }
 
@@ -214,13 +216,14 @@ func (vis *replaceExprVisitor) findList(list []ast.Expr) bool {
 	if len(list) == 0 {
 		return false
 	}
-	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.Package.FileSet.Position(list[0].Pos())) == 0) &&
-		(utils.ComparePosWithinFile(vis.exprEnd, vis.Package.FileSet.Position(list[len(list)-1].End())) == 0)
+	vis.found = (utils.ComparePosWithinFile(vis.exprPos, vis.fileSet.Position(list[0].Pos())) == 0) &&
+		(utils.ComparePosWithinFile(vis.exprEnd, vis.fileSet.Position(list[len(list)-1].End())) == 0)
 	return vis.found
 }
 
 func (vis *replaceExprVisitor) replaceInSlice(exprs []ast.Expr) bool {
 	for i, e := range exprs {
+		fmt.Printf("visitor (%d,%d) finding (%d,%d) \n", vis.exprPos.Line, vis.exprPos.Column, vis.fileSet.Position(e.Pos()).Line, vis.fileSet.Position(e.Pos()).Column)
 		if vis.find(e) {
 			exprs[i] = vis.newExpr
 			return true
@@ -584,7 +587,7 @@ func makeFuncDecl(name string, stmtList []ast.Stmt, params *st.SymbolTable, poin
 	lfirst := 5 + len(name) + l + 1 + 1 + 1 + 1
 	ftype.Func = stmtList[0].Pos() - token.Pos(lfirst)
 
-	fbody := &ast.BlockStmt{stmtList[0].Pos() - 3, stmtList, stmtList[len(stmtList)-1].End() + 1}
+	fbody := &ast.BlockStmt{stmtList[0].Pos() - 3, utils.CopyStmtList(stmtList), stmtList[len(stmtList)-1].End() + 1}
 
 	var recvList *ast.FieldList
 	if recvSym != nil {

@@ -16,6 +16,9 @@ func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos {
 	if pos <= vis.sourceOrigin {
 		return pos
 	}
+	// 	print(pos)
+	// 	print(" -> ")
+	// 	println(token.Pos(int(pos) + vis.inc))
 	return token.Pos(int(pos) + vis.inc)
 }
 func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {

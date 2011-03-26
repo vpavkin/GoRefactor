@@ -306,7 +306,7 @@ func getPointerPassedSymbols(stmtList []ast.Stmt, params *st.SymbolTable, identM
 }
 
 type pointerTransformVisitor struct {
-	Package        *st.Package
+	fileSet        *token.FileSet
 	file           *ast.File
 	pointerSymbols map[st.Symbol]int
 	identMap       st.IdentifierMap
@@ -324,9 +324,11 @@ func (vis *pointerTransformVisitor) getPointerDepth(startNode ast.Expr) (*ast.Id
 		depth--
 		ee = t.X
 	case *ast.Ident:
-		s := vis.identMap.GetSymbol(t)
-		if sd, ok := vis.pointerSymbols[s]; ok {
-			return t, -sd, true
+		if t.Name != "_" {
+			s := vis.identMap.GetSymbol(t)
+			if sd, ok := vis.pointerSymbols[s]; ok {
+				return t, -sd, true
+			}
 		}
 		return nil, 0, false
 	default:
@@ -358,22 +360,24 @@ func (vis *pointerTransformVisitor) getPointerDepth(startNode ast.Expr) (*ast.Id
 }
 
 func (vis *pointerTransformVisitor) makeNewNode(i *ast.Ident, depth int) ast.Expr {
+	d := depth
+	i.NamePos += token.Pos(d)
 	switch {
 	case depth > 0:
-		res := &ast.UnaryExpr{token.NoPos, token.AND, nil}
+		res := &ast.UnaryExpr{i.NamePos - token.Pos(depth), token.AND, nil}
 		e := res
 		for depth > 1 {
-			e.X = &ast.UnaryExpr{token.NoPos, token.AND, nil}
+			e.X = &ast.UnaryExpr{i.NamePos - token.Pos(depth), token.AND, nil}
 			e = e.X.(*ast.UnaryExpr)
 			depth--
 		}
 		e.X = i
 		return res
 	case depth < 0:
-		res := &ast.StarExpr{token.NoPos, nil}
+		res := &ast.StarExpr{i.NamePos - token.Pos(depth), nil}
 		e := res
 		for depth < -1 {
-			e.X = &ast.StarExpr{token.NoPos, nil}
+			e.X = &ast.StarExpr{i.NamePos - token.Pos(depth), nil}
 			e = e.X.(*ast.StarExpr)
 			depth++
 		}
@@ -406,8 +410,8 @@ func (vis *pointerTransformVisitor) Visit(node ast.Node) ast.Visitor {
 	vis.visitedNodes[node] = true
 	if exp, ok := node.(ast.Expr); ok {
 		if ne, ok := vis.transformNode(exp); ok {
-			if found, _ := replaceExpr(vis.Package.FileSet.Position(exp.Pos()), vis.Package.FileSet.Position(exp.End()), ne, vis.Package, vis.file); !found {
-				printer.Fprint(os.Stdout, vis.Package.FileSet, exp)
+			if found, _ := replaceExpr(vis.fileSet.Position(exp.Pos()), vis.fileSet.Position(exp.End()), ne, vis.fileSet, vis.file); !found {
+				printer.Fprint(os.Stdout, vis.fileSet, exp)
 				panic("didn't replace where expected")
 			}
 			vis.visitedNodes[ne] = true
@@ -418,8 +422,8 @@ func (vis *pointerTransformVisitor) Visit(node ast.Node) ast.Visitor {
 	return vis
 }
 
-func applyPointerTransform(pack *st.Package, file *ast.File, stmtList []ast.Stmt, pointerSymbols map[st.Symbol]int, identMap st.IdentifierMap) {
-	vis := &pointerTransformVisitor{pack, file, pointerSymbols, identMap, make(map[ast.Node]bool)}
+func applyPointerTransform(fileSet *token.FileSet, file *ast.File, stmtList []ast.Stmt, pointerSymbols map[st.Symbol]int, identMap st.IdentifierMap) {
+	vis := &pointerTransformVisitor{fileSet, file, pointerSymbols, identMap, make(map[ast.Node]bool)}
 	for _, stmt := range stmtList {
 		ast.Walk(vis, stmt)
 	}
@@ -571,6 +575,7 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	if pack == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
+	fset := pack.FileSet
 
 	recvSym, err := getRecieverSymbol(programTree, pack, filename, recieverVarLine, recieverVarCol)
 	if err != nil {
@@ -600,12 +605,13 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	}
 
 	stmtList, nodeFrom, err := getExtractedStatementList(pack, file, filename, lineStart, colStart, lineEnd, colEnd)
+	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 	if err != nil {
 		return false, err
 	}
 
 	params, declared := getParametersAndDeclaredIn(pack, stmtList, programTree)
-
+	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 	if recvSym != nil {
 		if _, found := params.LookUp(recvSym.Name(), ""); !found {
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "symbol, desired to be reciever, is not a parameter to extracted code"}
@@ -618,14 +624,15 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 	for _, r := range resultList {
 		results.AddSymbol(st.MakeVariable(st.NO_NAME, results, r))
 	}
-
+	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 	pointerSymbols := getPointerPassedSymbols(stmtList, params, programTree.IdentMap)
+	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 	for s, depth := range pointerSymbols {
 		println(s.Name(), depth)
 	}
 
-	applyPointerTransform(pack, file, stmtList, pointerSymbols, programTree.IdentMap)
-
+	applyPointerTransform(fset, file, stmtList, pointerSymbols, programTree.IdentMap)
+	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 	fdecl := makeFuncDecl(methodName, stmtList, params, pointerSymbols, results, recvSym, pack, filename)
 
 	if nodeFrom != nil {
@@ -640,14 +647,45 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 			return false, &errors.GoRefactorError{ErrorType: "extract method error", Message: "extracted code declares symbols that are used in not-extracted code: " + s}
 		}
 
+		app := callExprLen - int(stmtList[len(stmtList)-1].End()-stmtList[0].Pos())
+		if app > 0 {
+
+			S, E := fset.Position(nodeFrom.Pos()), fset.Position(nodeFrom.End())
+			poses, ends := make([]token.Position, len(stmtList)), make([]token.Position, len(stmtList))
+			for i, stmt := range stmtList {
+				poses[i], ends[i] = fset.Position(stmt.Pos()), fset.Position(stmt.End())
+			}
+
+			tfile := printerUtil.GetFileFromFileSet(fset, filename)
+			baseMod := tfile.Base()
+			fmt.Printf("app = %d,baseMod = %d\n", app, baseMod)
+			fset, file = printerUtil.ReparseFile(file, filename, app, programTree.IdentMap)
+			tfile = printerUtil.GetFileFromFileSet(fset, filename)
+			lines := printerUtil.GetLines(tfile)
+			tfile.SetLines(lines[:len(lines)-(app)])
+
+			nodeFrom = printerUtil.FindNode(fset, file, S, E)
+			if baseMod != 1 {
+				for _, stmt := range stmtList {
+					printerUtil.FixPositions(0, 1-baseMod, stmt, true)
+				}
+				printerUtil.FixPositions(0, 1-baseMod, callExpr, true)
+				printerUtil.FixPositions(0, 1-baseMod, fdecl, true)
+			}
+			stmtList = make([]ast.Stmt, len(stmtList))
+			for i, _ := range stmtList {
+				stmtList[i] = printerUtil.FindNode(fset, file, poses[i], ends[i]).(ast.Stmt)
+			}
+		}
+
 		list := getStmtList(nodeFrom)
 
 		ind, found := getIndexOfStmt(stmtList[0], list)
 		if !found {
 			panic("didn't find replace origin")
 		}
-
-		if ok, err := printerUtil.DeleteNodeList(pack.FileSet, filename, file, stmtList); !ok {
+		fmt.Printf("stmtList length = %d\n", len(stmtList))
+		if ok, err := printerUtil.DeleteNodeList(fset, filename, file, stmtList); !ok {
 			return false, err
 		}
 		list = getStmtList(nodeFrom)
@@ -657,30 +695,37 @@ func ExtractMethod(programTree *program.Program, filename string, lineStart int,
 		for i := ind; i < len(list); i++ {
 			newList[i+1] = list[i]
 		}
-		printerUtil.AddLineForRange(pack.FileSet, filename, callExpr.Pos(), callExpr.End())
+		printerUtil.AddLineForRange(fset, filename, callExpr.Pos(), callExpr.End())
 		setStmtList(nodeFrom, newList)
-
 		printerUtil.FixPositionsExcept(callExpr.Pos(), callExprLen, file, true, map[ast.Node]bool{callExpr: true})
 
 	} else {
 
-		stmtList[0] = utils.CopyAstNode(stmtList[0]).(ast.Stmt)
+		//stmtList[0] = utils.CopyAstNode(stmtList[0]).(ast.Stmt)
 		rs := stmtList[0].(*ast.ReturnStmt)
 
 		callExpr, callExprLen := makeCallExpr(methodName, params, pointerSymbols, rs.Results[0].Pos(), recvSym, pack, filename)
+		mod, baseMod := callExprLen-int(rs.Results[len(rs.Results)-1].End()-rs.Results[0].Pos()), 0
+		fset, file, baseMod = printerUtil.ModifyLine(pack.FileSet, file, filename, programTree.IdentMap, callExpr.Pos(), mod)
 
-		errs := replaceExprList(pack.FileSet.Position(rs.Results[0].Pos()), pack.FileSet.Position(rs.Results[len(rs.Results)-1].End()), []ast.Expr{callExpr}, pack, file)
+		if baseMod != 1 {
+			fmt.Printf("baseMod = %d\n", baseMod)
+			printerUtil.FixPositions(0, 1-baseMod, callExpr, true)
+			printerUtil.FixPositions(0, 1-baseMod, rs, true)
+			printerUtil.FixPositions(0, 1-baseMod, fdecl, true)
+		}
+		fmt.Printf("results st,end = %d,%d, callExpr pos,end = %d,%d\n", rs.Results[0].Pos(), rs.Results[len(rs.Results)-1].End(), callExpr.Pos(), callExpr.End())
+		errs := replaceExprList(fset.Position(rs.Results[0].Pos()), fset.Position(rs.Results[len(rs.Results)-1].End()), []ast.Expr{callExpr}, fset, file)
 		if err, ok := errs[EXTRACT_METHOD]; ok {
 			return false, err
 		}
-		mod := callExprLen - int(rs.Results[len(rs.Results)-1].End()-rs.Results[0].Pos())
+
 		fmt.Printf("mod = %d\n", mod)
-		printerUtil.ModifyLine(pack.FileSet, filename, callExpr.Pos(), mod)
 		printerUtil.FixPositionsExcept(callExpr.Pos(), mod, file, true, map[ast.Node]bool{callExpr: true})
 	}
-	programTree.SaveFile(filename)
+	programTree.SaveFileExplicit(filename, fset, file)
 	print("AAAAAA")
-	if ok, fset, newF, err := printerUtil.AddDeclExplicit(pack.FileSet, filename, file, pack.FileSet, filename, file, fdecl, programTree.IdentMap); !ok {
+	if ok, fset, newF, err := printerUtil.AddDeclExplicit(fset, filename, file, fset, filename, file, fdecl, programTree.IdentMap); !ok {
 		return false, err
 	} else {
 		print("BBBBBB")

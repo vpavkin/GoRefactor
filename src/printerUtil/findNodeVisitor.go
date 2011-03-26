@@ -25,7 +25,7 @@ func (vis *findNodeVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	return vis
 }
 
-func findNode(fset *token.FileSet, file *ast.File, posStart, posEnd token.Position) ast.Node {
+func FindNode(fset *token.FileSet, file *ast.File, posStart, posEnd token.Position) ast.Node {
 	vis := &findNodeVisitor{fset, posStart, posEnd, nil}
 	ast.Walk(vis, file)
 	return vis.result

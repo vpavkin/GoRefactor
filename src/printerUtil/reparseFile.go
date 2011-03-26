@@ -77,7 +77,7 @@ func appendFile(filename string, add int) {
 	}
 }
 
-func reparseFile(oldFile *ast.File, filename string, add int, identMap st.IdentifierMap) (fset *token.FileSet, file *ast.File) {
+func ReparseFile(oldFile *ast.File, filename string, add int, identMap st.IdentifierMap) (fset *token.FileSet, file *ast.File) {
 	appendFile(filename, add)
 
 	var err os.Error
