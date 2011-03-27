@@ -7,11 +7,14 @@ import (
 	"refactoring/utils"
 	"refactoring/errors"
 	"refactoring/program"
+	"refactoring/printerUtil"
 	"strconv"
+
+	"fmt"
 )
 
 type getSelectedArgumentVisitor struct {
-	Package    *st.Package
+	FileSet    *token.FileSet
 	argPos     token.Position
 	result     *ast.Field
 	nameNumber int
@@ -29,13 +32,13 @@ func (vis *getSelectedArgumentVisitor) Visit(node ast.Node) (w ast.Visitor) {
 		}
 		for _, f := range t.Type.Params.List {
 			for i, n := range f.Names {
-				if utils.ComparePosWithinFile(vis.Package.FileSet.Position(n.Pos()), vis.argPos) == 0 {
+				if utils.ComparePosWithinFile(vis.FileSet.Position(n.Pos()), vis.argPos) == 0 {
 					vis.result = f
 					vis.nameNumber = i
 					return nil
 				}
 			}
-			if utils.ComparePosWithinFile(vis.Package.FileSet.Position(f.Pos()), vis.argPos) == 0 {
+			if utils.ComparePosWithinFile(vis.FileSet.Position(f.Pos()), vis.argPos) == 0 {
 				vis.result = f
 				vis.nameNumber = -1
 				return nil
@@ -45,8 +48,8 @@ func (vis *getSelectedArgumentVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	return nil
 }
 
-func getSelectedArgument(file *ast.File, argPos token.Position, pack *st.Package) (*ast.Field, int, *ast.FuncDecl, bool) {
-	vis := &getSelectedArgumentVisitor{pack, argPos, nil, -1}
+func getSelectedArgument(file *ast.File, argPos token.Position, fileSet *token.FileSet) (*ast.Field, int, *ast.FuncDecl, bool) {
+	vis := &getSelectedArgumentVisitor{fileSet, argPos, nil, -1}
 	for _, d := range file.Decls {
 		ast.Walk(vis, d)
 		if vis.result != nil {
@@ -57,7 +60,7 @@ func getSelectedArgument(file *ast.File, argPos token.Position, pack *st.Package
 }
 
 type getUsedMethodsVisitor struct {
-	Package  *st.Package
+	FileSet  *token.FileSet
 	identMap st.IdentifierMap
 	varS     *st.VariableSymbol
 	errs     map[*errors.GoRefactorError]bool
@@ -109,7 +112,7 @@ func (vis *getUsedMethodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	if node == nil {
 		return nil
 	}
-	pos := vis.Package.FileSet.Position(node.Pos())
+	pos := vis.FileSet.Position(node.Pos())
 	switch tt := node.(type) {
 	case *ast.CallExpr:
 
@@ -188,8 +191,8 @@ func (vis *getUsedMethodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	}
 	return vis
 }
-func getUsedMethods(programTree *program.Program, pack *st.Package, fdecl *ast.FuncDecl, varS *st.VariableSymbol) (map[*st.FunctionSymbol]bool, map[*errors.GoRefactorError]bool) {
-	vis := &getUsedMethodsVisitor{pack, programTree.IdentMap, varS, make(map[*errors.GoRefactorError]bool), make(map[*st.FunctionSymbol]bool)}
+func getUsedMethods(programTree *program.Program, fset *token.FileSet, fdecl *ast.FuncDecl, varS *st.VariableSymbol) (map[*st.FunctionSymbol]bool, map[*errors.GoRefactorError]bool) {
+	vis := &getUsedMethodsVisitor{fset, programTree.IdentMap, varS, make(map[*errors.GoRefactorError]bool), make(map[*st.FunctionSymbol]bool)}
 	ast.Walk(vis, fdecl.Body)
 	return vis.result, vis.errs
 }
@@ -218,12 +221,18 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 	if pack == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
+	fset := pack.FileSet
+	mod := 20000
+	fset, file = printerUtil.ReparseFile(file, filename, mod, programTree.IdentMap)
+	tokFile := printerUtil.GetFileFromFileSet(fset, filename)
+	lines := printerUtil.GetLines(tokFile)
+	tokFile.SetLines(lines[:len(lines)-(mod)])
 
 	if _, ok := pack.Symbols.LookUp(interfaceName, filename); ok {
 		return false, errors.IdentifierAlreadyExistsError(interfaceName)
 	}
 
-	field, nameNum, fdecl, ok := getSelectedArgument(file, token.Position{filename, 0, line, column}, pack)
+	field, nameNum, fdecl, ok := getSelectedArgument(file, token.Position{filename, 0, line, column}, fset)
 	if !ok {
 		return false, &errors.GoRefactorError{ErrorType: "extract interface error", Message: "couldn't find function argument to extract interface"}
 	}
@@ -235,7 +244,7 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 	if !ok {
 		panic("symbol supposed to be a variable, but it's not")
 	}
-	meths, errs := getUsedMethods(programTree, pack, fdecl, varS)
+	meths, errs := getUsedMethods(programTree, fset, fdecl, varS)
 	if len(errs) > 0 {
 		println("some errors don't allow to extract interface:")
 		for e, _ := range errs {
@@ -253,7 +262,6 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 	interfaceType := &ast.InterfaceType{token.NoPos, interfaceMethods, false}
 	interfaceDecl := &ast.TypeSpec{nil, ast.NewIdent(interfaceName), interfaceType, nil}
 	genDecl := &ast.GenDecl{nil, token.NoPos, token.TYPE, token.NoPos, []ast.Spec{interfaceDecl}, token.NoPos}
-	file.Decls = append(file.Decls, genDecl)
 
 	fieldNum := 0
 	for i := 0; i < len(fdecl.Type.Params.List); i++ {
@@ -262,6 +270,9 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 			break
 		}
 	}
+
+	oldFTypeLen := int(fdecl.Type.End() - fdecl.Type.Pos())
+
 	var lField, mField, rField *ast.Field
 	mField = &ast.Field{nil, []*ast.Ident{field.Names[nameNum]}, ast.NewIdent(interfaceName), nil, nil}
 	if nameNum > 0 {
@@ -283,6 +294,32 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 	newList = append(newList, fdecl.Type.Params.List[(fieldNum+1):]...)
 	fdecl.Type.Params.List = newList
 
+	newFTypeLen, _ := utils.GetNodeLength(fdecl.Type)
+	newFTypeLen += len(fdecl.Name.Name) + 1
+
+	fmt.Printf("old %d new %d\n", oldFTypeLen, newFTypeLen)
+	allMod := newFTypeLen - oldFTypeLen
+	if allMod != 0 {
+		printerUtil.FixPositions(fdecl.Type.End(), allMod, file, true)
+
+		lines = printerUtil.GetLines(tokFile)
+		fmt.Printf("before last (mod = %d) : %v\n", allMod, lines)
+		for i, offset := range lines {
+			if offset > tokFile.Offset(fdecl.Type.Pos()) {
+				for j := i; j < len(lines); j++ {
+					lines[j] += allMod
+				}
+				break
+			}
+		}
+		fmt.Printf("after last (mod = %d) : %v\n", allMod, lines)
+		if !tokFile.SetLines(lines) {
+			println("FUUUUUUUUUWUWUWUWUWUWU")
+		}
+	}
+
+	file.Decls = append(file.Decls, genDecl)
+	programTree.SaveFileExplicit(filename, fset, file)
 	return true, nil
 
 }

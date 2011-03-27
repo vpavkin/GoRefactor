@@ -269,7 +269,6 @@ func main() {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		//p.SaveFile(filename)
 	case refactoring.INLINE_METHOD:
 		filename, line, column, endLine, endColumn, ok := getInlineMethodArgs()
 		if !ok {
@@ -286,7 +285,6 @@ func main() {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		//p.SaveFile(filename)
 	case refactoring.EXTRACT_INTERFACE:
 		filename, line, column, interfaceName, ok := getExtractInterfaceArgs()
 		fmt.Println(filename, line, column, interfaceName)
@@ -304,7 +302,6 @@ func main() {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		p.SaveFile(filename)
 	case refactoring.IMPLEMENT_INTERFACE:
 		filename, line, column, typeFile, typeLine, typeColumn, asPointer, ok := getImplementInterfaceArgs()
 		if !ok {
