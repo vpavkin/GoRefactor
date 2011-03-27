@@ -31,7 +31,7 @@ func GetLines(f *token.File) []int {
 	return lines
 }
 
-func getRangeLines(f *token.File, Pos, End token.Pos, fileSize int) (lines []int, firstLineNum int) {
+func GetRangeLines(f *token.File, Pos, End token.Pos, fileSize int) (lines []int, firstLineNum int) {
 	lines = []int{}
 	firstLineNum = -1
 
@@ -163,7 +163,7 @@ func DeleteNode(fset *token.FileSet, filename string, file *ast.File, posStart, 
 	for i, offset := range lines {
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
-	nodeLines, firstLine := getRangeLines(tokFile, node.Pos(), node.End(), tokFile.Size())
+	nodeLines, firstLine := GetRangeLines(tokFile, node.Pos(), node.End(), tokFile.Size())
 	if _, ok := deleteNode(fset, posStart, posEnd, file); !ok {
 		return false, errors.PrinterError("didn't find node to delete")
 	}
@@ -196,7 +196,7 @@ func DeleteNodeList(fset *token.FileSet, filename string, file *ast.File, list i
 		fmt.Printf("list pos,end = %d,%d\n", pos, end)
 	}
 
-	rangeLines, firstLine := getRangeLines(tokFile, pos, end, tokFile.Size())
+	rangeLines, firstLine := GetRangeLines(tokFile, pos, end, tokFile.Size())
 	switch t := list.(type) {
 	case []ast.Stmt:
 		for _, n := range t {
@@ -265,8 +265,8 @@ func ReplaceNode(fset *token.FileSet, filename string, file *ast.File, posStart,
 	for i, offset := range lines {
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
-	nodeLines, firstLine := getRangeLines(tokFile, node.Pos(), node.End(), oldSize)
-	withNodeLines, _ := getRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
+	nodeLines, firstLine := GetRangeLines(tokFile, node.Pos(), node.End(), oldSize)
+	withNodeLines, _ := GetRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
 
 	fmt.Printf("withnodeLines: %v\n", withNodeLines)
 	mod := wl - l
@@ -334,7 +334,7 @@ func AddDecl(fset *token.FileSet, filename string, file *ast.File, withFileSet *
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
 
-	withNodeLines, _ := getRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
+	withNodeLines, _ := GetRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
 	withMod := int(tokFile.Offset(file.Decls[len(file.Decls)-1].End()) + 1 - withTokFile.Offset(withNode.Pos()))
 	fmt.Printf("withMod: %v\n", withMod)
 	for i, _ := range withNodeLines {
@@ -378,7 +378,7 @@ func AddDeclExplicit(fset *token.FileSet, filename string, file *ast.File, withF
 		fmt.Printf("%d -> %s(%d)\n", i+1, fset.Position(tokFile.Pos(offset)), offset)
 	}
 	fmt.Printf("node -------- %d %d\n", withNode.Pos(), withNode.End())
-	withNodeLines, _ := getRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
+	withNodeLines, _ := GetRangeLines(withTokFile, withNode.Pos(), withNode.End(), withOldSize)
 	withMod := int(tokFile.Offset(file.Decls[len(file.Decls)-1].End()) + 1 - withTokFile.Offset(withNode.Pos()))
 	fmt.Printf("withMod: %v\n", withMod)
 	for i, _ := range withNodeLines {

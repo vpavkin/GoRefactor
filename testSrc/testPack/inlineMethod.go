@@ -46,3 +46,7 @@ func inm3() (string, string, string) {
 
 func inm4(string, string, string) {
 }
+
+func inm5() {
+	inm1_1("ba")
+}

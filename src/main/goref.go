@@ -286,7 +286,7 @@ func main() {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		p.SaveFile(filename)
+		//p.SaveFile(filename)
 	case refactoring.EXTRACT_INTERFACE:
 		filename, line, column, interfaceName, ok := getExtractInterfaceArgs()
 		fmt.Println(filename, line, column, interfaceName)
