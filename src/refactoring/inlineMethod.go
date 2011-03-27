@@ -566,10 +566,36 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 		case 0:
 			panic("methos, inlined as expression, doesn't return anything")
 		default:
-			errs := replaceExprList(fset.Position(callExpr.Pos()), fset.Position(callExpr.End()), rs.Results, fset, file)
+
+			elist := rs.Results
+			for _, e := range elist {
+				printerUtil.FixPositions(0, -len("return "), e, true)
+			}
+			mod := int(elist[len(elist)-1].End()-elist[0].Pos()) - callExprLen
+			lines = printerUtil.GetLines(tokFile)
+
+			fmt.Printf("before last (mod = %d) : %v\n", mod, lines)
+			for i, offset := range lines {
+				if offset > tokFile.Offset(callExpr.Pos()) {
+					for j := i; j < len(lines); j++ {
+						lines[j] += mod
+					}
+					break
+				}
+			}
+			fmt.Printf("after last (mod = %d) : %v\n", mod, lines)
+			fmt.Printf("posits: %s,%s\n", fset.Position(callExpr.Pos()), fset.Position(callExpr.End()))
+			if !tokFile.SetLines(lines) {
+				println("FUUUUUUUUUWUWUWUWUWUWU")
+			}
+
+			printerUtil.FixPositionsExcept(callExpr.Pos(), mod, file, true, map[ast.Node]bool{callExpr: true})
+
+			errs := replaceExprList(fset.Position(callExpr.Pos()), fset.Position(callExpr.End()), elist, fset, file)
 			if err, ok := errs[INLINE_METHOD]; ok {
 				return false, err
 			}
+			programTree.SaveFileExplicit(filename, fset, file)
 		}
 
 	} else {
