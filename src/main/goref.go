@@ -248,6 +248,7 @@ func main() {
 		p := parseProgram(filename)
 		if ok, fnames, fsets, files, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
+			p.Save()
 		} else {
 			for i, f := range fnames {
 				p.SaveFileExplicit(f, fsets[i], files[i])
@@ -267,6 +268,7 @@ func main() {
 		p := parseProgram(filename)
 		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn); !ok {
 			fmt.Println("error:", err.Message)
+			p.SaveFile(filename)
 			return
 		}
 	case refactoring.INLINE_METHOD:
@@ -283,6 +285,7 @@ func main() {
 		p := parseProgram(filename)
 		if ok, err := refactoring.InlineMethod(p, filename, line, column, endLine, endColumn); !ok {
 			fmt.Println("error:", err.Message)
+			p.SaveFile(filename)
 			return
 		}
 	case refactoring.EXTRACT_INTERFACE:
@@ -300,6 +303,7 @@ func main() {
 		p := parseProgram(filename)
 		if ok, err := refactoring.ExtractInterface(p, filename, line, column, interfaceName); !ok {
 			fmt.Println("error:", err.Message)
+			p.SaveFile(filename)
 			return
 		}
 	case refactoring.IMPLEMENT_INTERFACE:

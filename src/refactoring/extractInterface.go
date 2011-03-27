@@ -156,7 +156,7 @@ func (vis *getUsedMethodsVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				}
 			}
 		}
-		return nil
+		return vis
 	case *ast.SelectorExpr:
 
 		switch x := tt.X.(type) {
