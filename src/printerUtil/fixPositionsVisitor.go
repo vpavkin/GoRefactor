@@ -6,15 +6,22 @@ import (
 )
 
 type fixPositionsVisitor struct {
-	sourceOrigin   token.Pos
+	from           token.Pos
+	to             token.Pos
 	inc            int
 	affectComments bool
 	visitedNodes   map[ast.Node]bool
 }
 
 func (vis *fixPositionsVisitor) newPos(pos token.Pos) token.Pos {
-	if pos <= vis.sourceOrigin {
-		return pos
+	if vis.to != token.NoPos {
+		if pos < vis.from || vis.to < pos {
+			return pos
+		}
+	} else {
+		if pos <= vis.from {
+			return pos
+		}
 	}
 	// 	print(pos)
 	// 	print(" -> ")
@@ -28,11 +35,19 @@ func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 	}
 	vis.visitedNodes[node] = true
 
+	if node != nil && vis.to != token.NoPos {
+		if node.Pos() >= vis.to {
+			return nil
+		}
+	}
 	if vis.affectComments {
 		switch t := node.(type) {
 		case *ast.Comment:
+			print("changed \"")
+			print(t.Text)
+			print("\" pos from ", t.Slash)
 			t.Slash = vis.newPos(t.Slash)
-			println("changed comment pos " + string(t.Text))
+			print(" to ", t.Slash, "\n")
 			return vis
 		}
 	}
@@ -145,14 +160,21 @@ func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 	}
 	return vis
 }
-func FixPositions(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool) {
+func FixPositions(from token.Pos, inc int, node ast.Node, affectComments bool) {
 
-	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments, make(map[ast.Node]bool)}
+	vis := &fixPositionsVisitor{from, token.NoPos, inc, affectComments, make(map[ast.Node]bool)}
 	ast.Walk(vis, node)
 }
 
-func FixPositionsExcept(sourceOrigin token.Pos, inc int, node ast.Node, affectComments bool, except map[ast.Node]bool) {
+func FixPositionsExcept(from token.Pos, inc int, node ast.Node, affectComments bool, except map[ast.Node]bool) {
 
-	vis := &fixPositionsVisitor{sourceOrigin, inc, affectComments, except}
+	vis := &fixPositionsVisitor{from, token.NoPos, inc, affectComments, except}
 	ast.Walk(vis, node)
+}
+
+func FixPositionsInRange(from token.Pos, to token.Pos, inc int, node ast.Node, affectComments bool, except map[ast.Node]bool) (visited map[ast.Node]bool) {
+
+	vis := &fixPositionsVisitor{from, to, inc, affectComments, except}
+	ast.Walk(vis, node)
+	return vis.visitedNodes
 }

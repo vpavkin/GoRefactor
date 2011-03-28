@@ -4,13 +4,16 @@ import (
 	"refactoring/utils"
 	"refactoring/errors"
 	"refactoring/program"
+	"refactoring/printerUtil"
 	"sort"
 	"go/token"
 	"go/ast"
-	"os"
+	//"os"
 	"go/printer"
 	"bytes"
 	"unicode"
+
+	"fmt"
 )
 
 const DEFAULT_ORDER string = "cvtmf"
@@ -29,14 +32,19 @@ var (
 )
 
 // uses variables fullOrder,groupMethodsByType,groupMethodsByVisibility to work
-type DeclCollection []ast.Decl
-
-func (dc DeclCollection) Len() int {
-	return len(dc)
+type DeclCollection struct {
+	Arr     []ast.Decl
+	file    *ast.File
+	fset    *token.FileSet
+	tokFile *token.File
 }
 
-func (dc DeclCollection) Less(i, j int) bool {
-	di, dj := dc[i], dc[j]
+func (dc *DeclCollection) Len() int {
+	return len(dc.Arr)
+}
+
+func (dc *DeclCollection) Less(i, j int) bool {
+	di, dj := dc.Arr[i], dc.Arr[j]
 	ti, tj := getDeclOrderEntry(di), getDeclOrderEntry(dj)
 	if compareOrder(ti, tj) == -1 {
 		return true
@@ -68,10 +76,117 @@ func (dc DeclCollection) Less(i, j int) bool {
 	return ni < nj
 }
 
-func (dc DeclCollection) Swap(i, j int) {
-	temp := dc[i]
-	dc[i] = dc[j]
-	dc[j] = temp
+func (dc *DeclCollection) Swap(i, j int) {
+	switch {
+	case j == i:
+		return
+	case i > j:
+		//make i < j
+		t := i
+		i = j
+		j = t
+	}
+
+	diff := int(dc.Arr[j].End()-dc.Arr[j].Pos()) - int(dc.Arr[i].End()-dc.Arr[i].Pos())
+
+	//lines
+	lines := printerUtil.GetLines(dc.tokFile)
+	newLines := make([]int, len(lines))
+	iLines, iFline := getRangeLinesAtLeastOne(dc.tokFile, dc.Arr[i].Pos(), dc.Arr[i].End(), dc.tokFile.Size())
+	jLines, jFline := getRangeLinesAtLeastOne(dc.tokFile, dc.Arr[j].Pos(), dc.Arr[j].End(), dc.tokFile.Size())
+	iLineBefore, jLineBefore := lines[iFline-2], lines[jFline-2]
+
+	jLineMod := iLineBefore - jLineBefore
+	iLineMod := diff - jLineMod
+
+	fmt.Printf("iLines: %v\n", iLines)
+	fmt.Printf("jLines: %v\n", jLines)
+
+	fmt.Printf("before: %v\n", lines)
+	for k := 0; k < iFline-1; k++ {
+		newLines[k] = lines[k]
+	}
+	mod := iFline - 1
+	fmt.Printf("step 1: %v\n", newLines)
+
+	for k := 0; k < len(jLines); k++ {
+		newLines[k+mod] = jLines[k] + jLineMod
+	}
+	mod += len(jLines)
+	fmt.Printf("step 2: %v\n", newLines)
+
+	for k := 0; k < jFline-iFline-len(iLines); k++ {
+		newLines[k+mod] = lines[iFline-1+len(iLines)+k] + diff
+	}
+	mod += jFline - iFline - len(iLines)
+	fmt.Printf("step 3: %v\n", newLines)
+
+	for k := 0; k < len(iLines) && k+mod < len(lines); k++ {
+		newLines[k+mod] += iLines[k] + iLineMod
+	}
+	mod += len(iLines)
+	fmt.Printf("step 4: %v\n", newLines)
+
+	if mod < len(lines)-1 {
+		for k := jFline - 1 + len(jLines); k < len(lines); k++ {
+			newLines[k] = lines[k]
+		}
+	}
+
+	if !dc.tokFile.SetLines(newLines) {
+		println("FUUUUUUUUUUWUWUWUWWU")
+	}
+	fmt.Printf("after : %v\n", newLines)
+	//positions
+	jmod := int(dc.Arr[i].Pos() - dc.Arr[j].Pos())
+	imod := -jmod + diff
+
+	fmt.Printf("i,j linemods: %d,%d\n", iLineMod, jLineMod)
+	fmt.Printf("i,j mods: %d,%d\n", imod, jmod)
+	fmt.Printf("diff: %d\n", diff)
+
+	ist, iend := dc.Arr[i].Pos(), dc.Arr[i].End()
+	jst, jend := dc.Arr[j].Pos(), dc.Arr[j].End()
+	fmt.Printf("before ist,iend,jst,jend : %d,%d,%d,%d\n", ist, iend, jst, jend)
+
+	for _, cg := range dc.file.Comments {
+		switch {
+		//inside iDecl
+		case cg.Pos() >= dc.Arr[i].Pos() && cg.End() <= dc.Arr[i].End():
+			printerUtil.FixPositions(0, imod, cg, true)
+			//between decls
+		case cg.Pos() >= dc.Arr[i].End() && cg.End() <= dc.Arr[j].Pos():
+			printerUtil.FixPositions(0, diff, cg, true)
+			//inside jDecl
+		case cg.Pos() >= dc.Arr[j].Pos() && cg.End() <= dc.Arr[j].End():
+			printerUtil.FixPositions(0, jmod, cg, true)
+		case cg.End() <= dc.Arr[i].Pos() || cg.Pos() >= dc.Arr[j].End():
+			fmt.Printf("not affected \"%s\" pos,end : %d,%d\n", cg.List[0].Text, cg.Pos(), cg.End())
+		default:
+			fmt.Printf("WTF pos,end : %d,%d\n", cg.Pos(), cg.End())
+			panic("<<<<")
+		}
+	}
+
+	cc := CommentCollection(dc.file.Comments)
+	sort.Sort(cc)
+
+	printerUtil.FixPositions(0, jmod, dc.Arr[j], false)
+	for k := i + 1; k < j; k++ {
+		printerUtil.FixPositions(0, diff, dc.Arr[k], false)
+	}
+	printerUtil.FixPositions(0, imod, dc.Arr[i], false)
+
+	// 	visited := printerUtil.FixPositionsInRange(iend, jst, diff, dc.file, true, map[ast.Node]bool{})
+	// 	visited = printerUtil.FixPositionsInRange(ist, iend, imod, dc.file, true, visited)
+	// 	visited = printerUtil.FixPositionsInRange(jst, jend, jmod, dc.file, true, visited)
+
+	fmt.Printf("after ist,iend,jst,jend : %d,%d,%d,%d\n", dc.Arr[i].Pos(), dc.Arr[i].End(), dc.Arr[j].Pos(), dc.Arr[j].End())
+
+	//swap
+	temp := dc.Arr[i]
+	dc.Arr[i] = dc.Arr[j]
+	dc.Arr[j] = temp
 }
 
 type SpecCollection []ast.Spec
@@ -97,6 +212,22 @@ func (dc SpecCollection) Swap(i, j int) {
 	dc[j] = temp
 }
 
+type CommentCollection []*ast.CommentGroup
+
+func (sc CommentCollection) Len() int {
+	return len(sc)
+}
+
+func (dc CommentCollection) Less(i, j int) bool {
+	di, dj := dc[i], dc[j]
+	return di.Pos() < dj.Pos()
+}
+
+func (dc CommentCollection) Swap(i, j int) {
+	temp := dc[i]
+	dc[i] = dc[j]
+	dc[j] = temp
+}
 
 func getEntryIndex(o int) int {
 	for i, b := range fullOrder {
@@ -260,13 +391,16 @@ func Sort(programTree *program.Program, filename string, _groupMethodsByType boo
 	if pack == nil {
 		return false, errors.ArgumentError("filename", "Program packages don't contain file '"+filename+"'")
 	}
+	fset := pack.FileSet
+	tokFile := printerUtil.GetFileFromFileSet(fset, filename)
+
 	groupMethodsByType = _groupMethodsByType
 	groupMethodsByVisibility = _groupMethodsByVisibility
 	sortImports = _sortImports
 	fullOrder = getFullOrder(order)
-	decls := DeclCollection(file.Decls)
+	decls := &DeclCollection{file.Decls, file, fset, tokFile}
 	if sortImports {
-		for _, d := range decls {
+		for _, d := range decls.Arr {
 			if gd, ok := d.(*ast.GenDecl); ok {
 				if gd.Tok == token.IMPORT {
 					sort.Sort(SpecCollection(gd.Specs))
@@ -274,7 +408,12 @@ func Sort(programTree *program.Program, filename string, _groupMethodsByType boo
 			}
 		}
 	}
+
+	printDecls(tokFile, file)
+	//test
+	//decls.Swap(2, decls.Len()-1)
 	sort.Sort(decls)
-	printer.Fprint(os.Stdout, token.NewFileSet(), file)
+	printDecls(tokFile, file)
+	//printer.Fprint(os.Stdout, fset, file)
 	return true, nil
 }
