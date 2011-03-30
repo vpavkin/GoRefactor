@@ -484,7 +484,8 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 	}
 	st := i + len(".packages") + 1
 
-	end := strings.Index(data[st:], ".")
+	end := strings.Index(data[st:], ".") + st
+	println(end)
 	if end == -1 {
 		end = len(data)
 	}
@@ -492,6 +493,37 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 
 	packages := strings.Split(data[st:end], "\n", -1)
 	sources = make(map[string]string)
+	for _, pack := range packages {
+		println(st, end)
+		println(data[st:end])
+		realpath, goPath := "", ""
+		i := 0
+		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
+			realpath += string(pack[i])
+		}
+		for ; i < len(pack) && unicode.IsSpace(int(pack[i])); i++ {
+
+		}
+		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
+			goPath += string(pack[i])
+		}
+		if goPath == "" || realpath == "" || i < len(pack) {
+			panic(".package field has invalid format " + goPath + " " + realpath)
+		}
+		sources[path.Join(projectDir, realpath)] = goPath
+	}
+
+	//externSources
+	i = strings.Index(data, ".externPackages")
+	st = i + len(".externPackages") + 1
+
+	end = strings.Index(data[st:], ".") + st
+	if end == -1 {
+		end = len(data)
+	}
+	end--
+
+	packages = strings.Split(data[st:end], "\n", -1)
 	for _, pack := range packages {
 		realpath, goPath := "", ""
 		i := 0
@@ -505,9 +537,9 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 			goPath += string(pack[i])
 		}
 		if goPath == "" || realpath == "" || i < len(pack) {
-			panic(".package field has invalid format")
+			panic(".externPackages field has invalid format " + goPath + " " + realpath)
 		}
-		sources[path.Join(projectDir, realpath)] = goPath
+		sources[realpath] = goPath
 	}
 
 	//specialPackages
