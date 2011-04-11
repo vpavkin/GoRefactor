@@ -8,6 +8,7 @@ import (
 	"refactoring/printerUtil"
 	"go/ast"
 	"go/token"
+	"unicode"
 )
 
 type findImportVisitor struct {
@@ -75,7 +76,10 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 		if sym.PackageFrom().IsGoPackage {
 			return false, nil, nil, nil, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
 		}
-
+		if unicode.IsUpper(int(sym.Name()[0])) && !unicode.IsUpper(int(newName[0])) ||
+			unicode.IsLower(int(sym.Name()[0])) && !unicode.IsLower(int(newName[0])) {
+			return false, nil, nil, nil, &errors.GoRefactorError{ErrorType: "Can't rename identifier", Message: "can't change access modifier. Changing first letter's case can cause errors."}
+		}
 		if _, ok := sym.Scope().LookUp(newName, filename); ok {
 			return false, nil, nil, nil, errors.IdentifierAlreadyExistsError(newName)
 		}

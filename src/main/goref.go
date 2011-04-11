@@ -248,7 +248,7 @@ func main() {
 		p := parseProgram(filename)
 		if ok, fnames, fsets, files, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
-			p.Save()
+			//p.Save()
 		} else {
 			for i, f := range fnames {
 				p.SaveFileExplicit(f, fsets[i], files[i])
