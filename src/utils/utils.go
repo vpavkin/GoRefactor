@@ -515,33 +515,34 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 
 	//externSources
 	i = strings.Index(data, ".externPackages")
-	st = i + len(".externPackages") + 1
+	if i >= 0 {
+		st = i + len(".externPackages") + 1
 
-	end = strings.Index(data[st:], ".") + st
-	if end == -1 {
-		end = len(data)
+		end = strings.Index(data[st:], ".") + st
+		if end == -1 {
+			end = len(data)
+		}
+		end--
+
+		packages = strings.Split(data[st:end], "\n", -1)
+		for _, pack := range packages {
+			realpath, goPath := "", ""
+			i := 0
+			for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
+				realpath += string(pack[i])
+			}
+			for ; i < len(pack) && unicode.IsSpace(int(pack[i])); i++ {
+
+			}
+			for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
+				goPath += string(pack[i])
+			}
+			if goPath == "" || realpath == "" || i < len(pack) {
+				panic(".externPackages field has invalid format " + goPath + " " + realpath)
+			}
+			sources[realpath] = goPath
+		}
 	}
-	end--
-
-	packages = strings.Split(data[st:end], "\n", -1)
-	for _, pack := range packages {
-		realpath, goPath := "", ""
-		i := 0
-		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
-			realpath += string(pack[i])
-		}
-		for ; i < len(pack) && unicode.IsSpace(int(pack[i])); i++ {
-
-		}
-		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
-			goPath += string(pack[i])
-		}
-		if goPath == "" || realpath == "" || i < len(pack) {
-			panic(".externPackages field has invalid format " + goPath + " " + realpath)
-		}
-		sources[realpath] = goPath
-	}
-
 	//specialPackages
 	specialPackages = make(map[string][]string)
 	i = strings.Index(data, ".specialPackages")
