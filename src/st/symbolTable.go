@@ -272,10 +272,7 @@ func (table *SymbolTable) LookUpLabel(name string) (Symbol, bool) {
 func (table *SymbolTable) LookUp(name string, fileName string) (Symbol, bool) {
 
 	if table == nil {
-		fmt.Printf("FFFUUUUUUCCCKKKK\n")
-	}
-	if table.lookUpIn == nil {
-		fmt.Printf("FFFUUUUUUUUUUUU\n")
+		panic("Look up in nil symbol table")
 	}
 	table.lookUpIn <- struct {
 		name     string

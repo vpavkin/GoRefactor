@@ -134,7 +134,7 @@ func (dc *DeclCollection) Swap(i, j int) {
 	}
 
 	if !dc.tokFile.SetLines(newLines) {
-		println("FUUUUUUUUUUWUWUWUWWU")
+		panic("couldn't set lines for file " + tokFile.Name())
 	}
 	fmt.Printf("after : %v\n", newLines)
 	//positions

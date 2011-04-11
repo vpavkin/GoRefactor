@@ -244,6 +244,7 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 	if !ok {
 		panic("symbol supposed to be a variable, but it's not")
 	}
+
 	meths, errs := getUsedMethods(programTree, fset, fdecl, varS)
 	if len(errs) > 0 {
 		println("some errors don't allow to extract interface:")
@@ -314,7 +315,7 @@ func ExtractInterface(programTree *program.Program, filename string, line int, c
 		}
 		fmt.Printf("after last (mod = %d) : %v\n", allMod, lines)
 		if !tokFile.SetLines(lines) {
-			println("FUUUUUUUUUWUWUWUWUWUWU")
+			panic("couldn't set lines for file " + tokFile.Name())
 		}
 	}
 

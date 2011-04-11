@@ -145,10 +145,6 @@ func (pp *packageParser) eParseCallExpr(e *ast.CallExpr) (res *vector.Vector) {
 	}
 
 	tt := pp.parseExpr(e.Fun).At(0).(st.ITypeSymbol)
-	// 	if tt == nil {
-	// 		fmt.Printf("HOLY CRAP!\n")
-	// 	}
-	//fmt.Printf("HOLY CRAP! %s-\n",tt.Name())
 
 	if vect, ok := pp.eParseRegularFunctionCall(tt); ok {
 		return vect
@@ -474,7 +470,7 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 				return res, true
 			}
 		} else {
-			// 			fmt.Println("WHat the fuck????")
+			panic("couldn't find where method is from")
 		}
 	}
 	return nil, false
@@ -485,16 +481,9 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 	if cyc {
 		panic("error: cycle wasn't expected.")
 	}
-	// 	fmt.Printf("%s %T %T\n", t.Name(), x, t)
-	// 	if t.Name() == "*Package" {
-	// 		//fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()));
-	// 		fmt.Println(*(t.(*st.PointerTypeSymbol).BaseType.(*st.StructTypeSymbol).Fields.String()))
-	// 	}
+
 	var lookupST = pp.detectWhereToLookUpFieldSelector(t)
 
-	// 	if lookupST == nil {
-	// 		fmt.Printf("FUCK FUCK FUCK!!! with %s\n", e.Sel.Name)
-	// 	}
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
 

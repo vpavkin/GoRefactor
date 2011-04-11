@@ -531,7 +531,7 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 		}
 		fmt.Printf("after import %s (nextLine = %d): %v\n", ps.ShortPath, nextLineInd, newLines)
 		if !tokFile.SetLines(newLines) {
-			println("FUUUUUUUUUWUWUWUWUWUWU")
+			panic("couldn't set lines for file " + tokFile.Name())
 		}
 
 		printDecls(tokFile, file)
@@ -586,7 +586,7 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 			fmt.Printf("after last (mod = %d) : %v\n", mod, lines)
 			fmt.Printf("posits: %s,%s\n", fset.Position(callExpr.Pos()), fset.Position(callExpr.End()))
 			if !tokFile.SetLines(lines) {
-				println("FUUUUUUUUUWUWUWUWUWUWU")
+				panic("couldn't set lines for file " + tokFile.Name())
 			}
 
 			printerUtil.FixPositionsExcept(callExpr.Pos(), mod, file, true, map[ast.Node]bool{callExpr: true})
@@ -623,7 +623,7 @@ func InlineMethod(programTree *program.Program, filename string, lineStart int, 
 		}
 		fmt.Printf("after last: %v\n", newLines)
 		if !tokFile.SetLines(newLines) {
-			println("FUUUUUUUUUWUWUWUWUWUWU")
+			panic("couldn't set lines for file " + tokFile.Name())
 		}
 
 		if len(resList) == 1 {

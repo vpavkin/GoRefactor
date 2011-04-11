@@ -165,7 +165,7 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 			lv.Parser.registerIdent(ts, s.Name)
 			lv.Current.AddSymbol(ts)
 		default:
-			panic("shit, no type symbol returned")
+			panic("no type symbol returned")
 		}
 	case *ast.ExprStmt:
 		lv.Parser.parseExpr(s.X)
