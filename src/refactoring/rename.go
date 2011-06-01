@@ -59,11 +59,14 @@ func CheckRenameParameters(filename string, line int, column int, newName string
 	}
 	return true, nil
 }
-func Rename(programTree *program.Program, filename string, line int, column int, newName string) (ok bool, fnames []string, fsets []*token.FileSet, files []*ast.File, err *errors.GoRefactorError) {
+func Rename(filename string, line int, column int, newName string) (ok bool, err *errors.GoRefactorError) {
 
 	if ok, err = CheckRenameParameters(filename, line, column, newName); !ok {
 		return
 	}
+
+	programTree := parseProgram(filename)
+
 	var sym st.Symbol
 	if sym, err = programTree.FindSymbolByPosition(filename, line, column); err == nil {
 
@@ -71,22 +74,22 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 			panic("find by position returned pointer type!!!")
 		}
 		if st.IsPredeclaredIdentifier(sym.Name()) {
-			return false, nil, nil, nil, errors.UnrenamableIdentifierError(sym.Name(), " It's a basic language symbol")
+			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a basic language symbol")
 		}
 		if sym.PackageFrom().IsGoPackage {
-			return false, nil, nil, nil, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
+			return false, errors.UnrenamableIdentifierError(sym.Name(), " It's a symbol,imported from go library")
 		}
 		if unicode.IsUpper(int(sym.Name()[0])) && !unicode.IsUpper(int(newName[0])) ||
 			unicode.IsLower(int(sym.Name()[0])) && !unicode.IsLower(int(newName[0])) {
-			return false, nil, nil, nil, &errors.GoRefactorError{ErrorType: "Can't rename identifier", Message: "can't change access modifier. Changing first letter's case can cause errors."}
+			return false, &errors.GoRefactorError{ErrorType: "Can't rename identifier", Message: "can't change access modifier. Changing first letter's case can cause errors."}
 		}
 		if _, ok := sym.Scope().LookUp(newName, filename); ok {
-			return false, nil, nil, nil, errors.IdentifierAlreadyExistsError(newName)
+			return false, errors.IdentifierAlreadyExistsError(newName)
 		}
 
 		if meth, ok := sym.(*st.FunctionSymbol); ok {
 			if meth.IsInterfaceMethod {
-				return false, nil, nil, nil, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
+				return false, errors.UnrenamableIdentifierError(sym.Name(), " It's an interface method")
 			}
 		}
 		if ps, ok := sym.(*st.PackageSymbol); ok {
@@ -99,10 +102,15 @@ func Rename(programTree *program.Program, filename string, line int, column int,
 				impDecl.Name = ast.NewIdent(newName)
 			}
 		}
-		fnames, fsets, files, err = renameSymbol(sym, newName, programTree)
-		return err == nil, fnames, fsets, files, err
+		fnames, fsets, files, err := renameSymbol(sym, newName, programTree)
+		if err == nil {
+			for i, f := range fnames {
+				programTree.SaveFileExplicit(f, fsets[i], files[i])
+			}
+		}
+		return err == nil, err
 	} else {
-		return false, nil, nil, nil, err
+		return false, err
 	}
 	panic("unreachable code")
 }

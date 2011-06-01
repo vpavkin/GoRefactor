@@ -565,7 +565,16 @@ func getResultList(programTree *program.Program, pack *st.Package, filename stri
 // Extracts a set of statements or expression to a method;
 // start position - where the first statement starts;
 // end position - where the last statement ends.
-func ExtractMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
+func ExtractMethod(filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
+	p := parseProgram(filename)
+	ok, err := extractMethod(p, filename, lineStart, colStart, lineEnd, colEnd, methodName, recieverVarLine, recieverVarCol)
+	if !ok {
+		p.SaveFile(filename)
+	}
+	return ok, err
+}
+
+func extractMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int, methodName string, recieverVarLine int, recieverVarCol int) (bool, *errors.GoRefactorError) {
 
 	if ok, err := CheckExtractMethodParameters(filename, lineStart, colStart, lineEnd, colEnd, methodName, recieverVarLine, recieverVarCol); !ok {
 		return false, err

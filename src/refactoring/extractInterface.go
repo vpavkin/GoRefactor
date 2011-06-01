@@ -211,7 +211,16 @@ func CheckExtractInterfaceParameters(filename string, line int, column int, inte
 	return true, nil
 }
 
-func ExtractInterface(programTree *program.Program, filename string, line int, column int, interfaceName string) (bool, *errors.GoRefactorError) {
+func ExtractInterface(filename string, line int, column int, interfaceName string) (bool, *errors.GoRefactorError) {
+	p := parseProgram(filename)
+	ok, err := extractInterface(p, filename, line, column, interfaceName)
+	if !ok {
+		p.SaveFile(filename)
+	}
+	return ok, err
+}
+
+func extractInterface(programTree *program.Program, filename string, line int, column int, interfaceName string) (bool, *errors.GoRefactorError) {
 
 	if ok, err := CheckExtractInterfaceParameters(filename, line, column, interfaceName); !ok {
 		return false, err

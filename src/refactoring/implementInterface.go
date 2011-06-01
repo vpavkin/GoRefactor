@@ -44,7 +44,15 @@ func containsMethod(m *st.FunctionSymbol, sym st.ITypeSymbol) (bool, *errors.GoR
 
 	return true, nil
 }
-func ImplementInterface(programTree *program.Program, filename string, line int, column int, varFile string, varLine int, varColumn int, asPointer bool) (bool, *errors.GoRefactorError) {
+
+func ImplementInterface(filename string, line int, column int, varFile string, varLine int, varColumn int, asPointer bool) (bool, *errors.GoRefactorError) {
+	p := parseProgram(filename)
+	ok, err := implementInterface(p, filename, line, column, varFile, varLine, varColumn, asPointer)
+	p.SaveFile(varFile)
+	return ok, err
+}
+
+func implementInterface(programTree *program.Program, filename string, line int, column int, varFile string, varLine int, varColumn int, asPointer bool) (bool, *errors.GoRefactorError) {
 	if ok, err := CheckImplementInterfaceParameters(filename, line, column, varFile, varLine, varColumn); !ok {
 		return false, err
 	}

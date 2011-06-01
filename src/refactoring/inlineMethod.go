@@ -15,7 +15,7 @@ import (
 	"go/printer"
 )
 
-//given start and end positions visitor finds call expression 
+//given start and end positions visitor finds call expression
 type getCallVisitor struct {
 	FileSet *token.FileSet
 
@@ -384,7 +384,16 @@ func CheckInlineMethodParameters(filename string, lineStart int, colStart int, l
 	return true, nil
 }
 
-func InlineMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int) (bool, *errors.GoRefactorError) {
+func InlineMethod(filename string, lineStart int, colStart int, lineEnd int, colEnd int) (bool, *errors.GoRefactorError) {
+	p := parseProgram(filename)
+	ok, err := inlineMethod(p, filename, lineStart, colStart, lineEnd, colEnd)
+	if !ok {
+		p.SaveFile(filename)
+	}
+	return ok, err
+}
+
+func inlineMethod(programTree *program.Program, filename string, lineStart int, colStart int, lineEnd int, colEnd int) (bool, *errors.GoRefactorError) {
 	if ok, err := CheckInlineMethodParameters(filename, lineStart, colStart, lineEnd, colEnd); !ok {
 		return false, err
 	}

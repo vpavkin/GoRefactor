@@ -5,9 +5,6 @@ import (
 	"go/token"
 )
 
-import "fmt"
-
-
 //Represents a local SymbolTable with a number of opened scopes
 type SymbolTable struct {
 	Table        *vector.Vector //symbol table

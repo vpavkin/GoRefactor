@@ -134,7 +134,7 @@ func (dc *DeclCollection) Swap(i, j int) {
 	}
 
 	if !dc.tokFile.SetLines(newLines) {
-		panic("couldn't set lines for file " + tokFile.Name())
+		panic("couldn't set lines for file " + dc.tokFile.Name())
 	}
 	fmt.Printf("after : %v\n", newLines)
 	//positions
@@ -382,7 +382,15 @@ func CheckSortParameters(filename string, order string) (bool, *errors.GoRefacto
 	}
 	return true, nil
 }
-func Sort(programTree *program.Program, filename string, _groupMethodsByType bool, _groupMethodsByVisibility bool, _sortImports bool, order string) (bool, *errors.GoRefactorError) {
+
+func Sort(filename string, _groupMethodsByType bool, _groupMethodsByVisibility bool, _sortImports bool, order string) (bool, *errors.GoRefactorError) {
+	p := parseProgram(filename)
+	ok, err := _sort(p, filename, _groupMethodsByType, _groupMethodsByVisibility, _sortImports, order)
+	p.SaveFile(filename)
+	return ok, err
+}
+
+func _sort(programTree *program.Program, filename string, _groupMethodsByType bool, _groupMethodsByVisibility bool, _sortImports bool, order string) (bool, *errors.GoRefactorError) {
 
 	if ok, err := CheckSortParameters(filename, order); !ok {
 		return false, err

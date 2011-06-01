@@ -7,8 +7,6 @@ import (
 	//"utils"
 	"refactoring/refactoring"
 	//"errors"
-	"refactoring/program"
-	"refactoring/utils"
 )
 
 const (
@@ -211,11 +209,6 @@ func getSortArgs() (filename string, groupMethodsByType bool, groupMethodsByVisi
 	return
 }
 
-func parseProgram(filename string) *program.Program {
-	projectDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
-	return program.ParseProgram(projectDir, sources, specialPackages)
-}
-
 func main() {
 	if len(os.Args) <= 1 {
 		fmt.Printf("%s\n", usage)
@@ -226,13 +219,54 @@ func main() {
 	case HELP:
 		printUsage()
 	case INIT:
-		fd, err := os.Open("goref.cfg", os.O_CREATE, 0666)
+		//goref
+		fd, err := os.Open("goref.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
-		} else {
-			defer fd.Close()
-			fmt.Printf("inited\n", action)
+			return
 		}
+		defer fd.Close()
+		if _, err = fd.WriteString(goref_config_stub); err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+		//os
+		oss, err := os.Open("os.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+		defer oss.Close()
+		if _, err = oss.WriteString(os_config); err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+		//syscall
+		syscall, err := os.Open("syscall.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+		defer syscall.Close()
+		if _, err = syscall.WriteString(syscall_config); err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+
+		//runtime
+		runtime, err := os.Open("runtime.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+		defer runtime.Close()
+		if _, err = runtime.WriteString(runtime_config); err != nil {
+			fmt.Printf("error: %v\n", err)
+			return
+		}
+
+		fmt.Printf("Initialized goref project. Now fill goref.cfg with your packages.")
+
 	case refactoring.RENAME:
 		filename, line, column, entityName, ok := getRenameArgs()
 		if !ok {
@@ -245,14 +279,9 @@ func main() {
 			return
 		}
 		fmt.Println("renaming symbol to ", entityName+"...")
-		p := parseProgram(filename)
-		if ok, fnames, fsets, files, err := refactoring.Rename(p, filename, line, column, entityName); !ok {
+
+		if ok, err := refactoring.Rename(filename, line, column, entityName); !ok {
 			fmt.Println("error:", err.Message)
-			//p.Save()
-		} else {
-			for i, f := range fnames {
-				p.SaveFileExplicit(f, fsets[i], files[i])
-			}
 		}
 	case refactoring.EXTRACT_METHOD:
 		filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn, ok := getExtractMethodArgs()
@@ -265,10 +294,8 @@ func main() {
 			return
 		}
 		fmt.Println("extracting code to method ", entityName+"...")
-		p := parseProgram(filename)
-		if ok, err := refactoring.ExtractMethod(p, filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn); !ok {
+		if ok, err := refactoring.ExtractMethod(filename, line, column, endLine, endColumn, entityName, recvLine, recvColumn); !ok {
 			fmt.Println("error:", err.Message)
-			p.SaveFile(filename)
 			return
 		}
 	case refactoring.INLINE_METHOD:
@@ -282,10 +309,9 @@ func main() {
 			return
 		}
 		fmt.Println("inlining call...")
-		p := parseProgram(filename)
-		if ok, err := refactoring.InlineMethod(p, filename, line, column, endLine, endColumn); !ok {
+
+		if ok, err := refactoring.InlineMethod(filename, line, column, endLine, endColumn); !ok {
 			fmt.Println("error:", err.Message)
-			p.SaveFile(filename)
 			return
 		}
 	case refactoring.EXTRACT_INTERFACE:
@@ -300,10 +326,8 @@ func main() {
 			return
 		}
 		fmt.Println("extracting interface " + interfaceName + "...")
-		p := parseProgram(filename)
-		if ok, err := refactoring.ExtractInterface(p, filename, line, column, interfaceName); !ok {
+		if ok, err := refactoring.ExtractInterface(filename, line, column, interfaceName); !ok {
 			fmt.Println("error:", err.Message)
-			p.SaveFile(filename)
 			return
 		}
 	case refactoring.IMPLEMENT_INTERFACE:
@@ -317,12 +341,10 @@ func main() {
 			return
 		}
 		fmt.Println("implementing interface...")
-		p := parseProgram(filename)
-		if ok, err := refactoring.ImplementInterface(p, filename, line, column, typeFile, typeLine, typeColumn, asPointer); !ok {
+		if ok, err := refactoring.ImplementInterface(filename, line, column, typeFile, typeLine, typeColumn, asPointer); !ok {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		p.SaveFile(typeFile)
 	case refactoring.SORT:
 		filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order, ok := getSortArgs()
 		println(filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order)
@@ -335,12 +357,10 @@ func main() {
 			return
 		}
 		fmt.Println("sorting file " + filename + "...")
-		p := parseProgram(filename)
-		if ok, err := refactoring.Sort(p, filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order); !ok {
+		if ok, err := refactoring.Sort(filename, groupMethodsByType, groupMethodsByVisibility, sortImports, order); !ok {
 			fmt.Println("error:", err.Message)
 			return
 		}
-		p.SaveFile(filename)
 	default:
 		fmt.Printf("%s\n", usage)
 	}

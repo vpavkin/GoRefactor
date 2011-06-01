@@ -651,3 +651,8 @@ func IsGoIdent(name string) bool {
 	}
 	return true
 }
+
+func parseProgram(filename string) *program.Program {
+	projectDir, sources, specialPackages, _ := utils.GetProjectInfo(filename)
+	return program.ParseProgram(projectDir, sources, specialPackages)
+}
