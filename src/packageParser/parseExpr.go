@@ -4,7 +4,7 @@ import (
 	"go/token"
 	"go/ast"
 	"container/vector"
-	//"fmt"
+	"fmt"
 	"refactoring/st"
 	"strconv"
 )
@@ -286,7 +286,7 @@ func (pp *packageParser) eParseSelectorExpr(e *ast.SelectorExpr) (res *vector.Ve
 	pp.ExprParser.IsTypeNameUsed = false
 
 	t := pp.parseExpr(e.X).At(0).(st.ITypeSymbol)
-
+	// 	fmt.Printf("%T\n", t)
 	// find method
 	if vect, ok := pp.eParseMethodSelector(t, e); ok {
 		return vect
@@ -470,7 +470,8 @@ func (pp *packageParser) eParseMethodSelector(t st.ITypeSymbol, e *ast.SelectorE
 				return res, true
 			}
 		} else {
-			panic("couldn't find where method is from")
+			return nil, false
+			//panic("couldn't find where method " + e.Sel.Name + " is from")
 		}
 	}
 	return nil, false
@@ -483,7 +484,7 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 	}
 
 	var lookupST = pp.detectWhereToLookUpFieldSelector(t)
-
+	fmt.Printf("%s:%s %T\n", t.PackageFrom().AstPackage.Name, t.Name(), t)
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
 

@@ -9,7 +9,7 @@ import (
 import "strconv"
 //import "fmt"
 
-var basicTypes []string = []string{"bool", "uint", "uint8", "uint16", "uint32", "uint64", "int", "int8", "int16", "int32", "int64", "float32", "float64", "complex32", "complex64", "byte", "uintptr", "string"}
+var basicTypes []string = []string{"bool", "uint", "uint8", "uint16", "uint32", "uint64", "int", "int8", "int16", "int32", "int64", "float32", "float64", "complex64", "complex128", "byte", "uintptr", "string"}
 
 func init() {
 
@@ -318,6 +318,9 @@ func (s *PointerTypeSymbol) Name() string {
 func (s *PointerTypeSymbol) BaseName() string {
 
 	ss := s.BaseType.Name()
+	if len(ss) == 0 {
+		return ss
+	}
 	for ss[0] == '*' {
 		ss = ss[1:]
 	}

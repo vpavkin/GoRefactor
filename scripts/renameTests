@@ -1,34 +1,34 @@
 #!/bin/bash
-goref ren /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 10 10 ppppppackageParser
+goref ren /home/rulerr/diplom/GoRefactor/src/packageParser/globalsFixVisitor.go 10 10 ppppppackageParser
 ./build
-goref ren /home/rulerr/goRefactor/src/st/symbolTable.go 12 6 SSSSymbolTable
+goref ren /home/rulerr/diplom/GoRefactor/src/st/symbolTable.go 12 6 SSSSymbolTable
 ./build
-goref ren /home/rulerr/goRefactor/src/st/symbols.go 173 11 IIIITypeSymbol
+goref ren /home/rulerr/diplom/GoRefactor/src/st/symbols.go 173 11 IIIITypeSymbol
 ./build
-goref ren /home/rulerr/goRefactor/src/st/symbolTable.go 12 16 PPPPPackage
+goref ren /home/rulerr/diplom/GoRefactor/src/st/symbolTable.go 12 16 PPPPPackage
 ./build
-goref ren /home/rulerr/goRefactor/src/packageParser/parseExpr.go 91 15 pppparseExpr
+goref ren /home/rulerr/diplom/GoRefactor/src/packageParser/parseExpr.go 91 15 pppparseExpr
 ./build
-goref ren /home/rulerr/goRefactor/src/refactoring/rename.go 78 26 SSSSymbol
+goref ren /home/rulerr/diplom/GoRefactor/src/refactoring/rename.go 78 26 SSSSymbol
 ./build
-goref ren /home/rulerr/goRefactor/src/program/program.go 21 5 ppppprogram
+goref ren /home/rulerr/diplom/GoRefactor/src/program/program.go 21 5 ppppprogram
 ./build
-goref ren /home/rulerr/goRefactor/src/program/program.go 51 27 sssstring
+goref ren /home/rulerr/diplom/GoRefactor/src/program/program.go 51 27 sssstring
 ./build
 #bad input
-goref ren /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 51 12 FForStmt
+goref ren /home/rulerr/diplom/GoRefactor/src/packageParser/globalsFixVisitor.go 51 12 FForStmt
 ./build
-goref ren /home/rulerr/goRefactor/src/program/program.go 21 5 13sa
+goref ren /home/rulerr/diplom/GoRefactor/src/program/program.go 21 5 13sa
 ./build
-goref ren /home/rulerr/goRefactor/src/program/program.go 21 0 ppppprogram
+goref ren /home/rulerr/diplom/GoRefactor/src/program/program.go 21 0 ppppprogram
 ./build
-goref ren /home/rulerr/goRefactor/src/program/program.go 0 5 ppppprogram
+goref ren /home/rulerr/diplom/GoRefactor/src/program/program.go 0 5 ppppprogram
 ./build
-goref ren /home/rulerr/goRefactor/src/program/program1.go 21 5 ppppprogram
+goref ren /home/rulerr/diplom/GoRefactor/src/program/program1.go 21 5 ppppprogram
 ./build
-goref ren /home/rulerr/goRefactor/src/packageParser/parseExpr.go 177 69 FFFFieldSymbolTable
+goref ren /home/rulerr/diplom/GoRefactor/src/packageParser/parseExpr.go 177 69 FFFFieldSymbolTable
 ./build
 # already has name
-goref ren /home/rulerr/goRefactor/src/program/findIdentVisitor.go 12 2 Ident
+goref ren /home/rulerr/diplom/GoRefactor/src/program/findIdentVisitor.go 12 2 Ident
 ./build
 

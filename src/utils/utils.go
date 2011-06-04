@@ -484,8 +484,8 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 	packages := strings.Split(data[st:end], "\n", -1)
 	sources = make(map[string]string)
 	for _, pack := range packages {
-		println(st, end)
-		println(data[st:end])
+		// 		println(st, end)
+		// 		println(data[st:end])
 		realpath, goPath := "", ""
 		i := 0
 		for ; i < len(pack) && !unicode.IsSpace(int(pack[i])); i++ {
