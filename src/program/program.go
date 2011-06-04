@@ -93,7 +93,7 @@ func parsePack(srcDir string, specialFiles []string) {
 
 func locatePackage(dir string, specialFiles []string) {
 
-	fd, err := os.Open(dir, os.O_RDONLY, 0)
+	fd, err := os.Open(dir)
 	if err != nil {
 		panic("Couldn't open directory \"" + dir + "\"")
 	}
@@ -275,7 +275,7 @@ func (p *Program) Save() {
 func (p *Program) SaveFile(filename string) {
 	pack, file := p.FindPackageAndFileByFilename(filename)
 	fmt.Printf("saving file: %s\n", filename)
-	fd, err := os.Open(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+	fd, err := os.OpenFile(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		panic("couldn't open file " + filename + "for writing")
 	}
@@ -289,7 +289,7 @@ func (p *Program) SaveFile(filename string) {
 
 func (p *Program) SaveFileExplicit(filename string, fset *token.FileSet, file *ast.File) {
 	fmt.Printf("saving file: %s\n", filename)
-	fd, err := os.Open(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
+	fd, err := os.OpenFile(filename, os.O_EXCL|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		panic("couldn't open file " + filename + "for writing")
 	}

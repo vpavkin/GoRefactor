@@ -31,7 +31,7 @@ func main() {
 	if newPack != nil {
 		fmt.Printf("res : %v\n", count)
 		for fname, f := range newPack.Files {
-			if nf, err := os.Open("refgo_out_"+fname, os.O_CREAT|os.O_EXCL|os.O_RDWR, 0666); err != nil {
+			if nf, err := os.OpenFile("refgo_out_"+fname, os.O_CREATE|os.O_EXCL|os.O_RDWR, 0666); err != nil {
 				fmt.Printf("file %v already exists,cannot finish output\n", "refgo_out_"+fname)
 				return
 			} else {

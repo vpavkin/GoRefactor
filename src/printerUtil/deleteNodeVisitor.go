@@ -146,8 +146,8 @@ func (vis *replaceNodeVisitor) visitNode(node ast.Node) ast.Visitor {
 			return nil
 		}
 	case *ast.CaseClause:
-		if i := vis.findInExprSlice(t.Values); i >= 0 {
-			t.Values = vis.replaceInExprSlice(i, t.Values)
+		if i := vis.findInExprSlice(t.List); i >= 0 {
+			t.List = vis.replaceInExprSlice(i, t.List)
 			return nil
 		}
 		if i := vis.findInStmtSlice(t.Body); i >= 0 {
@@ -565,15 +565,6 @@ func (vis *replaceNodeVisitor) visitNode(node ast.Node) ast.Visitor {
 		}
 		if vis.find(t.Type) {
 			t.Type = vis.replaceWith.(ast.Expr)
-			return nil
-		}
-	case *ast.TypeCaseClause:
-		if i := vis.findInExprSlice(t.Types); i >= 0 {
-			t.Types = vis.replaceInExprSlice(i, t.Types)
-			return nil
-		}
-		if i := vis.findInStmtSlice(t.Body); i >= 0 {
-			t.Body = vis.replaceInStmtSlice(i, t.Body)
 			return nil
 		}
 	case *ast.TypeSpec:

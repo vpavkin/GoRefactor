@@ -58,7 +58,7 @@ func getNLines(n int) string {
 }
 
 func appendFile(filename string, add int) {
-	fd, err := os.Open(filename, os.O_RDWR|os.O_APPEND, 0666)
+	fd, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
 		panic("couldn't open file " + filename + ": " + err.String())
 	}

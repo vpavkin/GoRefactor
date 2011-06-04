@@ -66,7 +66,7 @@ func (vis *getCallVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 	case *ast.TypeSwitchStmt:
 		for _, cc := range t.Body.List {
-			caseClause := cc.(*ast.TypeCaseClause)
+			caseClause := cc.(*ast.CaseClause)
 			if vis.checkStmtList(caseClause.Body) {
 				vis.nodeFrom = caseClause
 				return nil
@@ -327,7 +327,7 @@ func getResultStmtList(IdentMap st.IdentifierMap, pack *st.Package, funSym *st.F
 }
 
 func makeImportDecl(impPos token.Pos, path string) *ast.GenDecl {
-	return &ast.GenDecl{nil, impPos, token.IMPORT, token.NoPos, []ast.Spec{&ast.ImportSpec{nil, nil, &ast.BasicLit{impPos + token.Pos(len("import ")), token.STRING, []byte("\"" + path + "\"")}, nil}}, token.NoPos}
+	return &ast.GenDecl{nil, impPos, token.IMPORT, token.NoPos, []ast.Spec{&ast.ImportSpec{nil, nil, &ast.BasicLit{impPos + token.Pos(len("import ")), token.STRING, "\"" + path + "\""}, nil}}, token.NoPos}
 }
 
 func printDecls(tf *token.File, f *ast.File) {

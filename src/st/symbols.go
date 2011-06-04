@@ -9,10 +9,12 @@ import (
 import "strconv"
 //import "fmt"
 
+var basicTypes []string = []string{"bool", "uint", "uint8", "uint16", "uint32", "uint64", "int", "int8", "int16", "int32", "int64", "float32", "float64", "complex32", "complex64", "byte", "uintptr", "string"}
+
 func init() {
 
 	PredeclaredTypes = make(map[string]*BasicTypeSymbol)
-	for _, s := range ast.BasicTypes {
+	for _, s := range basicTypes {
 		PredeclaredTypes[s] = MakeBasicType(s, nil)
 	}
 

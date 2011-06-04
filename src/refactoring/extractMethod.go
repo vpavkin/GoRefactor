@@ -94,7 +94,7 @@ func (vis *extractedSetVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 	case *ast.TypeSwitchStmt:
 		for _, cc := range t.Body.List {
-			caseClause := cc.(*ast.TypeCaseClause)
+			caseClause := cc.(*ast.CaseClause)
 			vis.checkStmtList(caseClause.Body)
 			if vis.isValid() {
 				vis.nodeFrom = caseClause

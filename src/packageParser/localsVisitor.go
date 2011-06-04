@@ -209,7 +209,7 @@ func (lv *innerScopeVisitor) parseStmt(node interface{}) (w ast.Visitor) {
 	case *ast.SendStmt:
 		lv.Parser.parseExpr(s.Chan)
 		lv.Parser.parseExpr(s.Value)
-	case *ast.SwitchStmt, *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.FuncLit, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.TypeCaseClause, *ast.CommClause:
+	case *ast.SwitchStmt, *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.FuncLit, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.CommClause:
 
 		w = lv.parseBlockStmt(node)
 	}
@@ -324,11 +324,35 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 		ast.Walk(ww, inNode.Body)
 		w = nil
 	case *ast.CaseClause:
-		if inNode.Values != nil {
-			for _, v := range inNode.Values {
-				ww.Parser.parseExpr(v)
+
+		if inNode.List != nil {
+			s := ww.Parser.parseExpr(inNode.List[0]).At(0)
+			_, isTypeSwitch := s.(st.ITypeSymbol)
+
+			if isTypeSwitch {
+				switch {
+				case len(inNode.List) == 1:
+					tsType := ww.Parser.parseExpr(inNode.List[0]).At(0).(st.ITypeSymbol)
+					if tsVar, ok := lv.Current.FindTypeSwitchVar(); ok {
+
+						toAdd := st.MakeVariable(tsVar.Name(), ww.Current, tsType)
+						toAdd.Idents = tsVar.Idents
+						toAdd.Posits = tsVar.Posits
+						//No position, just register symbol
+						ww.Current.AddSymbol(toAdd)
+					}
+				case len(inNode.List) > 1:
+					for _, t := range inNode.List {
+						ww.Parser.parseExpr(t)
+					}
+				}
+			} else {
+				for _, v := range inNode.List {
+					ww.Parser.parseExpr(v)
+				}
 			}
 		}
+
 		for _, stmt := range inNode.Body {
 			ast.Walk(ww, stmt)
 		}
@@ -336,29 +360,6 @@ func (lv *innerScopeVisitor) parseBlockStmt(node interface{}) (w ast.Visitor) {
 	case *ast.CommClause:
 		ww.parseStmt(inNode.Comm)
 
-		for _, stmt := range inNode.Body {
-			ast.Walk(ww, stmt)
-		}
-		w = nil
-	case *ast.TypeCaseClause:
-		switch {
-		case inNode.Types == nil:
-			//default
-		case len(inNode.Types) == 1:
-			tsType := ww.Parser.parseExpr(inNode.Types[0]).At(0).(st.ITypeSymbol)
-			if tsVar, ok := lv.Current.FindTypeSwitchVar(); ok {
-
-				toAdd := st.MakeVariable(tsVar.Name(), ww.Current, tsType)
-				toAdd.Idents = tsVar.Idents
-				toAdd.Posits = tsVar.Posits
-				//No position, just register symbol
-				ww.Current.AddSymbol(toAdd)
-			}
-		case len(inNode.Types) > 1:
-			for _, t := range inNode.Types {
-				ww.Parser.parseExpr(t)
-			}
-		}
 		for _, stmt := range inNode.Body {
 			ast.Walk(ww, stmt)
 		}

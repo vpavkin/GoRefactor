@@ -220,7 +220,7 @@ func main() {
 		printUsage()
 	case INIT:
 		//goref
-		fd, err := os.Open("goref.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		fd, err := os.OpenFile("goref.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 			return
@@ -231,7 +231,7 @@ func main() {
 			return
 		}
 		//os
-		oss, err := os.Open("os.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		oss, err := os.OpenFile("os.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 			return
@@ -242,7 +242,7 @@ func main() {
 			return
 		}
 		//syscall
-		syscall, err := os.Open("syscall.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		syscall, err := os.OpenFile("syscall.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 			return
@@ -254,7 +254,7 @@ func main() {
 		}
 
 		//runtime
-		runtime, err := os.Open("runtime.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
+		runtime, err := os.OpenFile("runtime.cfg", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0666)
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 			return

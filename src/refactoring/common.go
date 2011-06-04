@@ -146,7 +146,7 @@ func (vis *getParametersVisitor) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 		return inVis
-	case *ast.SwitchStmt, *ast.ForStmt, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause, *ast.TypeCaseClause:
+	case *ast.SwitchStmt, *ast.ForStmt, *ast.SelectStmt, *ast.TypeSwitchStmt, *ast.CaseClause:
 		return vis.getInnerVisitor()
 	case *ast.Ident:
 		if _, found := vis.declared.LookUp(t.Name, ""); !found {
@@ -288,7 +288,7 @@ func (vis *replaceExprVisitor) visitExpr(node ast.Node) ast.Visitor {
 			return nil
 		}
 	case *ast.CaseClause:
-		if vis.replaceInSlice(t.Values) {
+		if vis.replaceInSlice(t.List) {
 			return nil
 		}
 	case *ast.ChanType:
@@ -486,14 +486,6 @@ func (vis *replaceExprVisitor) visitExpr(node ast.Node) ast.Visitor {
 			vis.errors[EXTRACT_METHOD] = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
 			return nil
 		}
-	case *ast.TypeCaseClause:
-		for i, e := range t.Types {
-			if vis.find(e) {
-				t.Types[i] = vis.newExpr
-				vis.errors[EXTRACT_METHOD] = &errors.GoRefactorError{ErrorType: "extract method error", Message: "method can't return a type"}
-				return nil
-			}
-		}
 	case *ast.TypeSpec:
 		if vis.find(t.Name) {
 			if id, ok := vis.newExpr.(*ast.Ident); ok {
@@ -607,8 +599,6 @@ func getStmtList(node ast.Node) []ast.Stmt {
 		return t.List
 	case *ast.CaseClause:
 		return t.Body
-	case *ast.TypeCaseClause:
-		return t.Body
 	case *ast.CommClause:
 		return t.Body
 	}
@@ -620,8 +610,6 @@ func setStmtList(node ast.Node, stmtList []ast.Stmt) {
 	case *ast.BlockStmt:
 		t.List = stmtList
 	case *ast.CaseClause:
-		t.Body = stmtList
-	case *ast.TypeCaseClause:
 		t.Body = stmtList
 	case *ast.CommClause:
 		t.Body = stmtList

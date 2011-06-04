@@ -23,7 +23,7 @@ func ArrayLenToAstExpr(Len int) ast.Expr {
 	case ELLIPSIS:
 		return &ast.Ellipsis{token.NoPos, nil}
 	}
-	return &ast.BasicLit{token.NoPos, token.INT, []uint8(strconv.Itoa(Len))}
+	return &ast.BasicLit{token.NoPos, token.INT, strconv.Itoa(Len)}
 }
 func (s *UnresolvedTypeSymbol) ToAstExpr(pack *Package, filename string) ast.Expr {
 	panic("can't make an expression of unresolved type")

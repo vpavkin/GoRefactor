@@ -99,9 +99,7 @@ func CopyAstNode(node ast.Node) ast.Node {
 	case *ast.AssignStmt:
 		return &ast.AssignStmt{CopyExprList(t.Lhs), t.TokPos, t.Tok, CopyExprList(t.Rhs)}
 	case *ast.BasicLit:
-		value := make([]byte, len(t.Value))
-		copy(value, t.Value)
-		return &ast.BasicLit{t.ValuePos, t.Kind, value}
+		return &ast.BasicLit{t.ValuePos, t.Kind, t.Value}
 	case *ast.BinaryExpr:
 		return &ast.BinaryExpr{CopyAstNode(t.X).(ast.Expr), t.OpPos, t.Op, CopyAstNode(t.Y).(ast.Expr)}
 	case *ast.BlockStmt:
@@ -112,16 +110,14 @@ func CopyAstNode(node ast.Node) ast.Node {
 	case *ast.CallExpr:
 		return &ast.CallExpr{CopyAstNode(t.Fun).(ast.Expr), t.Lparen, CopyExprList(t.Args), t.Ellipsis, t.Rparen}
 	case *ast.CaseClause:
-		return &ast.CaseClause{t.Case, CopyExprList(t.Values), t.Colon, CopyStmtList(t.Body)}
+		return &ast.CaseClause{t.Case, CopyExprList(t.List), t.Colon, CopyStmtList(t.Body)}
 	case *ast.ChanType:
 		return &ast.ChanType{t.Begin, t.Dir, CopyAstNode(t.Value).(ast.Expr)}
 	case *ast.CommClause:
 		Comm, _ := CopyAstNode(t.Comm).(ast.Stmt)
 		return &ast.CommClause{t.Case, Comm, t.Colon, CopyStmtList(t.Body)}
 	case *ast.Comment:
-		text := make([]byte, len(t.Text))
-		copy(text, t.Text)
-		return &ast.Comment{t.Slash, text}
+		return &ast.Comment{t.Slash, t.Text}
 	case *ast.CommentGroup:
 		if t == nil {
 			return t
@@ -223,8 +219,6 @@ func CopyAstNode(node ast.Node) ast.Node {
 	case *ast.TypeAssertExpr:
 		Type, _ := CopyAstNode(t.Type).(ast.Expr)
 		return &ast.TypeAssertExpr{CopyAstNode(t.X).(ast.Expr), Type}
-	case *ast.TypeCaseClause:
-		return &ast.TypeCaseClause{t.Case, CopyExprList(t.Types), t.Colon, CopyStmtList(t.Body)}
 	case *ast.TypeSpec:
 		Doc, _ := CopyAstNode(t.Doc).(*ast.CommentGroup)
 		Comment, _ := CopyAstNode(t.Comment).(*ast.CommentGroup)
@@ -421,10 +415,6 @@ func IsNullReally(node ast.Node) bool {
 		if t == nil {
 			return true
 		}
-	case *ast.TypeCaseClause:
-		if t == nil {
-			return true
-		}
 	case *ast.TypeSpec:
 		if t == nil {
 			return true
@@ -444,7 +434,7 @@ func IsNullReally(node ast.Node) bool {
 // refactoring project functions
 
 func loadConfig(configPath string) []string {
-	fd, err := os.Open(configPath, os.O_RDONLY, 0)
+	fd, err := os.Open(configPath)
 	if err != nil {
 		panic("Couldn't open config \"" + configPath + "\": " + err.String())
 	}
@@ -468,7 +458,7 @@ func loadConfig(configPath string) []string {
 }
 
 func getInfo(projectDir string, pa string) (sources map[string]string, specialPackages map[string][]string, ok bool) {
-	f, err := os.Open(pa, os.O_RDONLY, 0)
+	f, err := os.Open(pa)
 	if err != nil {
 		panic("couldn't open goref.cfg")
 	}
@@ -574,7 +564,7 @@ func getProjectInfo(filename string) (projectDir string, sources map[string]stri
 			return "", nil, nil, false
 		}
 		//fmt.Println(projectDir)
-		fd, _ := os.Open(projectDir, os.O_RDONLY, 0)
+		fd, _ := os.Open(projectDir)
 
 		list, _ := fd.Readdir(-1)
 

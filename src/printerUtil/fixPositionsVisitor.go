@@ -148,9 +148,6 @@ func (vis *fixPositionsVisitor) Visit(node ast.Node) ast.Visitor {
 	case *ast.SwitchStmt:
 		t.Switch = vis.newPos(t.Switch)
 	case *ast.TypeAssertExpr:
-	case *ast.TypeCaseClause:
-		t.Case = vis.newPos(t.Case)
-		t.Colon = vis.newPos(t.Colon)
 	case *ast.TypeSpec:
 	case *ast.TypeSwitchStmt:
 		t.Switch = vis.newPos(t.Switch)
