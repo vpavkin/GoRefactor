@@ -4,7 +4,7 @@ import (
 	"go/token"
 	"go/ast"
 	"container/vector"
-	"fmt"
+	//"fmt"
 	"refactoring/st"
 	"strconv"
 )
@@ -484,7 +484,7 @@ func (pp *packageParser) eParseFieldSelector(t st.ITypeSymbol, e *ast.SelectorEx
 	}
 
 	var lookupST = pp.detectWhereToLookUpFieldSelector(t)
-	fmt.Printf("%s:%s %T\n", t.PackageFrom().AstPackage.Name, t.Name(), t)
+	// 	fmt.Printf("%s:%s %T\n", t.PackageFrom().AstPackage.Name, t.Name(), t)
 	if vv, ok := lookupST.LookUp(e.Sel.Name, ""); ok {
 		if va, ok := vv.(*st.VariableSymbol); ok {
 

@@ -1,50 +1,48 @@
 #!/bin/bash
 echo EXPRESSIONS
 
-goref exm /home/rulerr/goRefactor/src/program/importsVisitor.go 25 19 25 30 SomeMeth1
+goref exm /home/rulerr/diplom/GoRefactor/src/program/importsVisitor.go 25 19 25 30 SomeMeth1
 ./build
-goref exm /home/rulerr/goRefactor/src/packageParser/localsVisitor.go 235 30 235 35 SomeMeth2
+goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/localsVisitor.go 261 30 261 35 SomeMeth2
 ./build
-goref exm /home/rulerr/goRefactor/src/packageParser/methodsVisitor.go 66 12 66 49 SomeMeth3
+goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/localsVisitor.go 238 3 238 10 SomeMeth66
+./build
+goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/methodsVisitor.go 66 12 66 49 SomeMeth3
 ./build
 
 echo STATEMENT_LISTS
 
-goref exm /home/rulerr/goRefactor/src/packageParser/localsVisitor.go 164 4 165 28 SomeMeth4 164 4
+goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/packageParser.go 153 2 154 28 SomeMeth5 154 4
 ./build
-goref exm /home/rulerr/goRefactor/src/packageParser/packageParser.go 153 2 155 28 SomeMeth5 155 4
+goref exm /home/rulerr/diplom/GoRefactor/src/st/symbolTable.go 57 4 58 24 SomeMeth6 57 4
 ./build
-goref exm /home/rulerr/goRefactor/src/st/symbolTable.go 60 4 61 24 SomeMeth6 60 4
+goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/globalsFixVisitor.go 37 6 37 28 SomeMeth8
 ./build
-goref exm /home/rulerr/goRefactor/src/st/symbols.go 14 2 76 57 SomeMeth7
-./build
-goref exm /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 37 6 37 28 SomeMeth8
-./build
-goref exm /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 16 2 54 3 SomeMeth9
-./build
-goref exm /home/rulerr/goRefactor/src/packageParser/methodsVisitor.go 105 2 192 3 SomeMeth13
+goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/methodsVisitor.go 105 2 192 3 SomeMeth13
 ./build
 
 echo with_global_var
 
-goref exm /home/rulerr/goRefactor/src/program/program.go 48 2 49 35 MethodWithGlobalVar
+goref exm /home/rulerr/diplom/GoRefactor/src/program/program.go 44 2 45 36 MethodWithGlobalVar
 ./build
 
 echo multivalue
 
-goref exm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 195 10 195 82 ARRRRR
+goref exm /home/rulerr/diplom/GoRefactor/src/refactoring/extractMethod.go 175 10 175 25 ARRRRR
 ./build
 
-echo INVALID
-goref exm /home/rulerr/goRefactor/src/packageParser/typesVisitor.go 24 3 27 5 SomeMeth14
-./build
-goref exm /home/rulerr/goRefactor/src/packageParser/globalsFixVisitor.go 29 4 37 28 SomeMeth15
-./build
-
-echo INVALID_SCOPE
-goref exm /home/rulerr/goRefactor/src/packageParser/parseExpr.go 49 10 49 31 eParseIndexExpr 49 10
-./build
-goref exm /home/rulerr/goRefactor/src/st/symbolBuilder.go 32 27 32 40 MakeArrayType
-./build
-goref exm /home/rulerr/goRefactor/src/main/goref.go 57 2 58 38 SM 58 2
-./build
+# echo INVALID
+# goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/typesVisitor.go 24 3 27 5 SomeMeth14
+# ./build
+# goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/globalsFixVisitor.go 16 2 54 3 SomeMeth9
+# ./build
+# goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/globalsFixVisitor.go 29 4 37 28 SomeMeth15
+# ./build
+#
+# echo INVALID_SCOPE
+# goref exm /home/rulerr/diplom/GoRefactor/src/packageParser/parseExpr.go 49 10 49 31 eParseIndexExpr 49 10
+# ./build
+# goref exm /home/rulerr/diplom/GoRefactor/src/st/symbolBuilder.go 32 27 32 40 MakeArrayType
+# ./build
+# goref exm /home/rulerr/diplom/GoRefactor/src/main/goref.go 57 2 58 38 SM 58 2
+# ./build

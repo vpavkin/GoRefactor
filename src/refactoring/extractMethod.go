@@ -614,10 +614,10 @@ func extractMethod(programTree *program.Program, filename string, lineStart int,
 	}
 
 	stmtList, nodeFrom, err := getExtractedStatementList(pack, file, filename, lineStart, colStart, lineEnd, colEnd)
-	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 	if err != nil {
 		return false, err
 	}
+	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())
 
 	params, declared := getParametersAndDeclaredIn(pack, stmtList, programTree)
 	fmt.Printf("list pos,end = %d,%d\n", stmtList[0].Pos(), stmtList[len(stmtList)-1].End())

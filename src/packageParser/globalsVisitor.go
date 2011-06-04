@@ -5,7 +5,7 @@ import (
 	//"go/token"
 	"refactoring/st"
 )
-import "fmt"
+//import "fmt"
 
 //Represents an ast.Visitor, walking along ast.tree and registering all the global variables met
 type globalsVisitor struct {
@@ -30,7 +30,7 @@ func (gv globalsVisitor) Visit(node ast.Node) ast.Visitor {
 		for i, n := range t.Names {
 
 			// 			if gv.Parser.Package.AstPackage.Name == "unicode" {
-			fmt.Printf("%s:	Variable %s\n", gv.Parser.Package.AstPackage.Name, n.Name)
+			// 			fmt.Printf("%s:	Variable %s\n", gv.Parser.Package.AstPackage.Name, n.Name)
 			// 			}
 			var exprT st.ITypeSymbol
 

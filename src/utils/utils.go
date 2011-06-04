@@ -475,7 +475,7 @@ func getInfo(projectDir string, pa string) (sources map[string]string, specialPa
 	st := i + len(".packages") + 1
 
 	end := strings.Index(data[st:], ".") + st
-	println(end)
+	// 	println(end)
 	if end == -1 {
 		end = len(data)
 	}

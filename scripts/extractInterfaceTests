@@ -1,5 +1,5 @@
 #!/bin/bash
-goref exi /home/rulerr/goRefactor/src/packageParser/typesVisitor.go 71 48 ISYMBOL_TABLE
+goref exi /home/rulerr/diplom/GoRefactor/src/packageParser/typesVisitor.go 71 48 ISYMBOL_TABLE
 ./build
-goref exi /home/rulerr/goRefactor/testSrc/testPack/testPack.go 25 34 ITEST_EXI
-8g /home/rulerr/goRefactor/testSrc/testPack/testPack.go
+goref exi /home/rulerr/diplom/GoRefactor/testSrc/testPack/testPack.go 27 34 ITEST_EXI
+8g /home/rulerr/diplom/GoRefactor/testSrc/testPack/testPack.go

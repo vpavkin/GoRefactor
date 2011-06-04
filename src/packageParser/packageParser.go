@@ -32,7 +32,7 @@ type packageParser struct {
 	Package *st.Package
 
 	IdentMap           st.IdentifierMap
-	RootSymbolTable    *st.SymbolTable // fast link to Package.Symbols	
+	RootSymbolTable    *st.SymbolTable // fast link to Package.Symbols
 	CurrentSymbolTable *st.SymbolTable // A symbol table which is currently being filled
 
 	TypesParser   *typesVisitor      // An ast.Visitor to register all global types
@@ -150,7 +150,8 @@ func ParsePackage(rootPack *st.Package, identMap st.IdentifierMap) (*st.SymbolTa
 	// 			}
 	// 		})
 	// 	}
-	pp.SomeMeth5()
+	pp.Package.Communication <- 0
+	<-pp.Package.Communication
 
 	if !pp.Package.IsGoPackage {
 		// 		fmt.Printf("@@@@@@@@ parsing locals at pack %s\n", rootPack.AstPackage.Name)
@@ -459,8 +460,4 @@ func (pp *packageParser) tParseEllipsis(t *ast.Ellipsis) (result *st.ArrayTypeSy
 	elt := pp.parseTypeSymbol(t.Elt)
 	result = st.MakeArrayType(st.NO_NAME, pp.CurrentSymbolTable, elt, st.SLICE)
 	return
-}
-func (pp *packageParser) SomeMeth5() {
-	pp.Package.Communication <- 0
-	<-pp.Package.Communication
 }

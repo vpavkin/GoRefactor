@@ -1,10 +1,7 @@
 #!/bin/bash
-goref inm /home/rulerr/goRefactor/src/utils/utils.go 12 9 12 25
+goref inm /home/rulerr/diplom/GoRefactor/src/utils/utils.go 17 9 17 25
 ./build
 
-echo expression
-goref exm /home/rulerr/goRefactor/src/packageParser/localsVisitor.go 235 30 235 35 SomeMeth2
-goref inm /home/rulerr/goRefactor/src/packageParser/localsVisitor.go 235 30 235 41
-echo multivalue
-goref exm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 194 10 194 82 ARRRRR
-goref inm /home/rulerr/goRefactor/src/refactoring/extractMethod.go 194 10 194 18
+goref inm /home/rulerr/diplom/GoRefactor/src/packageParser/typesVisitor.go 190 2 190 28
+./build
+

@@ -573,7 +573,7 @@ func inlineMethod(programTree *program.Program, filename string, lineStart int, 
 		}
 		switch len(rs.Results) {
 		case 0:
-			panic("methos, inlined as expression, doesn't return anything")
+			panic("methods, inlined as expression, doesn't return anything")
 		default:
 
 			elist := rs.Results
@@ -637,6 +637,7 @@ func inlineMethod(programTree *program.Program, filename string, lineStart int, 
 
 		if len(resList) == 1 {
 			list[i] = resList[0]
+			programTree.SaveFileExplicit(filename, fset, file)
 			return true, nil
 		}
 		fmt.Printf("len = %d\n", len(list)-1+len(resList))

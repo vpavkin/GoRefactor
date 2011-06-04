@@ -38,7 +38,7 @@ func (gv globalsFixVisitor) Visit(node ast.Node) ast.Visitor {
 				}
 			}
 			if _, ok := exprT.(*st.UnresolvedTypeSymbol); ok {
-				fmt.Printf("%s: @!@!@!@ var %s still has unresolved type\n", gv.Parser.Package.AstPackage.Name, v.Name())
+				fmt.Printf("warning: var %s in package %s still has unresolved type\n", v.Name(), gv.Parser.Package.AstPackage.Name)
 			}
 
 			if arrT, ok := v.VariableType.(*st.ArrayTypeSymbol); ok {
