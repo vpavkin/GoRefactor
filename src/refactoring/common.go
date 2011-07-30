@@ -14,11 +14,11 @@ import (
 
 const (
 	RENAME              string = "ren"
-	EXTRACT_METHOD      = "exm"
-	INLINE_METHOD       = "inm"
-	EXTRACT_INTERFACE   = "exi"
-	IMPLEMENT_INTERFACE = "imi"
-	SORT                = "sort"
+	EXTRACT_METHOD             = "exm"
+	INLINE_METHOD              = "inm"
+	EXTRACT_INTERFACE          = "exi"
+	IMPLEMENT_INTERFACE        = "imi"
+	SORT                       = "sort"
 )
 
 // get parameters
