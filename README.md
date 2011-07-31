@@ -1,6 +1,6 @@
 # GoRefactor
 
-GoRefactor is a tool for refactoring go programs, developed at Department of Computer Science and Technologies,
+GoRefactor is a tool for refactoring Go programs, developed at Department of Computer Science and Technologies,
 Bauman Moscow State Technical University by Pavkin V.V.
 
 ## Requirements
@@ -9,7 +9,7 @@ Bauman Moscow State Technical University by Pavkin V.V.
 
 ## Installation
 
-Once you have the go compiler installed, you can proceed to installing GoRefactor. Simply run the `scripts/build` script. It installs GoRefactor via [gomake](http://golang.org/cmd/gomake/).
+Once you have the Go compiler installed, you can proceed to installing GoRefactor. Simply run the `scripts/build` script. It installs GoRefactor via [gomake](http://golang.org/cmd/gomake/).
 
 ## Preparing code for GoRefactor
 
@@ -24,19 +24,19 @@ You can look at the correct project structure in the GoRefactor source (the `src
 
 3.    **Source folder** must contain `goref.cfg` file. It's a text file, listing all the packages of your project in a special way. It has 3 sections:
 
-    * `.packages` section. Each line of it describes a package as a pair {relative_path, go_source_path}. *relative_path* is the path to the package folder, relative to the **source folder**. *go_source_path* is the place in the go source folder (usually, `~/go/src`), where you install your package. You can find *go_source_path* in the `TARG` variable of `Makefile` for your package.
+    * `.packages` section. Each line of it describes a package as a pair {relative_path, go_source_path}. *relative_path* is the path to the package folder, relative to the **source folder**. *go_source_path* is the place in the Go source folder (usually, `~/go/src`), where you install your package. You can find *go_source_path* in the `TARG` variable of `Makefile` for your package.
 
         If package is not installed at 'go/src' (executable package), place a `_` symbol instead of *go_source_path*.
 
     * `.externPackages` section. This section is optional. Here you can specify external dependencies (out of **source folder**). Packages are listed in the same way, the only difference is that instead of *relative_path* you should use the absolute path of the package.
 
-    * `.specialPackages` section. This section contains a list of architecture-dependent packages. For now, there're 3 architecture-dependent packages in go sources: syscall, os, and runtime. The all must be listed there.
+    * `.specialPackages` section. This section contains a list of architecture-dependent packages. For now, there're 3 architecture-dependent packages in Go sources: syscall, os, and runtime. The all must be listed there.
 
     You can get a working `goref.cfg` file from this repository, and edit it.
 
 4.    For each architecture-dependent package **source folder** must contain a `.cfg` file, named as the package. For now, you can just copy `syscall.cfg`, `os.cfg` and `runtime.cfg` from this repository to your project, and copy the `.specialPackages` section of `goref.cfg`.
 
-    *NOTE: all this additional config stuff was added during development, because of regular changes in go compiler source.*
+    *NOTE: all this additional config stuff was added during development, because of regular changes in Go compiler source.*
 
 **Again, you can use `src` folder of this repository to set up your own GoRefactor project**
 
