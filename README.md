@@ -1,6 +1,7 @@
 # GoRefactor
 
-GoRefactor is a tool for refactoring go programs.
+GoRefactor is a tool for refactoring go programs, developed at Department of Computer Science and Technologies,
+Bauman Moscow State Technical University by Pavkin V.V.
 
 ## Requirements
 
